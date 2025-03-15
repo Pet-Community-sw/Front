@@ -1,6 +1,7 @@
 import React, {useState} from "react";
-import {View, TextInput, Button, Text, StyleSheet} from "react-native";
+import {View, TextInput, Text, StyleSheet} from "react-native";
 import { useSignup } from "../hooks/useSignup";
+import Button from "../components/button";
 
 const SignupScreen = () => {
   const [formData, setFormData] = useState({
@@ -47,14 +48,16 @@ const SignupScreen = () => {
       <TextInput
       placeholder="phonenumber"
       value={formData.phonenumber}
-      onChangeText={(text) => handleChange("phonenumber", text)}
+      onChangeText={(text) => handleChange("phone number", text)}
       keyboardType="phone-pad"
       style={styles.input}>
       </TextInput>
 
-      <Button title={isLoading ? "가입중.." : "회원가입"}
-      onPress={handleSubmit}
-      disabled={isLoading}></Button>
+      <Button
+        title={isLoading ? "가입중.." : "회원가입"}
+        onPress={handleSubmit}
+        disabled={isLoading}>
+      </Button>
 
       {error && <Text style={styles.errorText}>회원가입 실패: {error.message}</Text>}
 
@@ -77,7 +80,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: "red", 
     marginTop: 10, 
-  }
+  }, 
 })
 
 export default SignupScreen;
