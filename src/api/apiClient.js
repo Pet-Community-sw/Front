@@ -1,5 +1,5 @@
-/* axios 공통 api 설정 */
-/* 요청마다 토큰 자동 추가 */
+// axios 공통 api 설정, 요청마다 토큰 자동 추가
+// 자동인증 시스템
 import axios from "axios";
 
 const apiClient = axios.create({

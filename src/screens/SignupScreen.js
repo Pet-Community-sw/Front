@@ -11,14 +11,25 @@ const SignupScreen = () => {
     phonenumber: "", 
   })
 
-  const {mutate, isLoading, error} = useSignup();
-
   const handleChange = (name, value) => {
     setFormData({...formData, [name]: value });
   }
-  const handleSubmit = () => {
+  
+  //mutate 함수 가져와라
+  const {mutate, isLoading, error} = useSignup();
 
-  }
+  //mutate 실제 호출
+  const handleSubmit = () => {
+    mutate(formData, {
+      onSuccess: () => {
+        alert("회원가입 성공!");
+        navigation.navigate("Login");
+      }, 
+      onError: (err) => {
+        alert("회원가입 실패: " + err.message);
+      }, 
+    });
+  };
 
   return(
     <View style={styles.container}>

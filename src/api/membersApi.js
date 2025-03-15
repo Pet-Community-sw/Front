@@ -2,6 +2,7 @@
 import apiClient from "./apiClient";
 
 //회원가입
+//서버에 회원가입 요청 보냄
 const signup = async (userData) => {
   const response = await apiClient.post("/members/signup", userData);
   return response.data;
