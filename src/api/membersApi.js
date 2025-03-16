@@ -9,21 +9,32 @@ const signup = async (userData) => {
 };
 
 //로그인
-const login = async (credentials) => {
-  const response =  await apiClient.post("/members/login", credentials);
+const login = async (userData) => {
+  const response =  await apiClient.post("/members/login", userData);
   return response.data;
 };
 
 //아이디 찾기
-const findid = async (phonenumber) => {
-  const response = await apiClient.post("/members/find-id", phonenumber);
+const findid = async (userData) => {
+  const response = await apiClient.post("/members/find-id", userData);
   return response.data;
 }
 
-//비밀번호 찾기
-const findpassword = async (email) => {
-  const response = await apiClient.post("/members/send-email", email);
+//비밀번호 이메일로 인증번호 전송
+const sendemail = async (userData) => {
+  const response = await apiClient.post("/members/send-email", userData);
   return response.data; 
 }
 
-export {signup, login, findid, findpassword};
+//인증번호 검증(사용자가 인증번호 입력)
+const verify = async (userData) => {
+  const response = await apiClient.post("/members/verify-code", userData);
+  return response.data;
+}
+
+//비밀번호 재설정
+const resetpassword = async (userData) => {
+  const response = await apiClient.post("/members/reset-password", userData);
+  return response.data;
+}
+export {signup, login, findid, sendemail, verify, resetpassword};

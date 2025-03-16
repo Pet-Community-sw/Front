@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {View, TextInput, StyleSheet} from "react-native"
+import {View, TextInput, StyleSheet, Text} from "react-native"
 import Button from "../components/button";
 import { useFindid } from "../hooks/useFindid";
 
@@ -26,6 +26,7 @@ const handleSubmit = () => {
 
   return(
     <View style={styles.container}>
+      <Text style={styles.label}>핸드폰 번호 입력</Text>
       <TextInput
         style={styles.input}
         placeholder="phone number"
@@ -55,6 +56,11 @@ const styles = StyleSheet.create({
     color: "red", 
     marginTop: 10, 
   }, 
+  label: {
+    fontSize: 18,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
 })
 
 export default FindidScreen;

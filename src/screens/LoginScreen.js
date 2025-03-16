@@ -3,6 +3,7 @@ import {View, TextInput, Text, StyleSheet, TouchableOpacity} from "react-native"
 import Button from "../components/button";
 import { useLogin } from "../hooks/useLogin";
 import FindidScreen from "./FindidScreen";
+import FindpasswordScreen from "./FindpasswordScreen";
 
 const LoginScreen = ({navigation}) => {
   const [formData, setFormData] = useState({
@@ -54,8 +55,14 @@ const LoginScreen = ({navigation}) => {
 
       <TouchableOpacity
         onPress={() => navigation.navigate('Findid')}
-        style = {styles.findidbutton}>
+        style = {styles.findbutton}>
         <Text style={styles.text}>아이디를 잊으셨나요?</Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Findpassword')}
+        style = {styles.findbutton}>
+        <Text style={styles.text}>비밀번호를 잊으셨나요?</Text>
       </TouchableOpacity>
     </View>
   )
@@ -77,7 +84,7 @@ const styles = StyleSheet.create({
     color: "red", 
     marginTop: 10, 
   }, 
-  findidbutton: {
+  findbutton: {
     backgroundColor: "transparent", // 배경 투명
     alignItems: "center",
     padding: 10, 
@@ -86,7 +93,7 @@ const styles = StyleSheet.create({
   text: {
     textDecorationLine: "underline", // 밑줄
     color: "blue", // 원하는 색상
-    fontSize: 16,
+    fontSize: 15,
   },
   })
 
