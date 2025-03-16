@@ -9,13 +9,13 @@ const FindidScreen = () => {
   })
 
 const handleChange = (field, value) => {
-  setFormData({phonenumber: value});
+  setFormData({...formData, [field]: value});
 }
 
 const {mutate, isLoading, error} = useFindid();
 const handleSubmit = () => {
   mutate(formData, {
-    onSuccess: () => {
+    onSuccess: (data) => {
       alert("아이디 찾기 성공! 아이디: " + data.email);
     },
     onError: (err) => {

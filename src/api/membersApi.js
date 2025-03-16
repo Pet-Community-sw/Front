@@ -20,4 +20,10 @@ const findid = async (phonenumber) => {
   return response.data;
 }
 
-export {signup, login, findid};
+//비밀번호 찾기
+const findpassword = async (email) => {
+  const response = await apiClient.post("/members/send-email", email);
+  return response.data; 
+}
+
+export {signup, login, findid, findpassword};
