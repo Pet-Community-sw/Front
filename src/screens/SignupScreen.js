@@ -57,7 +57,7 @@ const SignupScreen = () => {
       </TextInput>
 
       <TextInput
-        placeholder="phonenumber"
+        placeholder="phone number"
         value={formData.phonenumber}
         onChangeText={(text) => handleChange("phone number", text)}
         keyboardType="phone-pad"

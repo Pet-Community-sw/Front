@@ -1,9 +1,10 @@
 import React, {useState} from "react";
-import {View, TextInput, Text, StyleSheet} from "react-native"
+import {View, TextInput, Text, StyleSheet, TouchableOpacity} from "react-native"
 import Button from "../components/button";
 import { useLogin } from "../hooks/useLogin";
+import FindidScreen from "./FindidScreen";
 
-const LoginScreen = () => {
+const LoginScreen = ({navigation}) => {
   const [formData, setFormData] = useState({
     email: "", 
     password: "", 
@@ -50,6 +51,12 @@ const LoginScreen = () => {
       </Button>
 
       {error && <Text style={styles.errorText}>로그인 실패: {error.message}</Text>}
+
+      <TouchableOpacity
+        onPress={() => navigation.navigate('Findid')}
+        style = {styles.findidbutton}>
+        <Text style={styles.text}>아이디를 잊으셨나요?</Text>
+      </TouchableOpacity>
     </View>
   )
 }
@@ -70,6 +77,17 @@ const styles = StyleSheet.create({
     color: "red", 
     marginTop: 10, 
   }, 
-})
+  findidbutton: {
+    backgroundColor: "transparent", // 배경 투명
+    alignItems: "center",
+    padding: 10, 
+    marginTop: 20, 
+  },
+  text: {
+    textDecorationLine: "underline", // 밑줄
+    color: "blue", // 원하는 색상
+    fontSize: 16,
+  },
+  })
 
 export default LoginScreen;

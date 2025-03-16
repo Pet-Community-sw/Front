@@ -14,4 +14,10 @@ const login = async (credentials) => {
   return response.data;
 };
 
-export {signup, login};
+//아이디 찾기
+const findid = async (phonenumber) => {
+  const response = await apiClient.post("/members/find-id", phonenumber);
+  return response.data;
+}
+
+export {signup, login, findid};
