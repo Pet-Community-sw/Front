@@ -8,6 +8,8 @@ const HomeScreen = ({navigation}) => {
       <Text>홈화면이에용</Text>
       <Button title="회원가입"
       onPress={() => navigation.navigate('Signup')}></Button>
+      <Button title="로그인"
+      onPress={() => navigation.navigate('Login')}></Button>
     </View>
   )
 }

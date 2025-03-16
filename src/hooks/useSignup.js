@@ -2,7 +2,7 @@
 import { useMutation } from "@tanstack/react-query"
 import { signup } from "../api/membersApi"
 
-//mutate 함수 만듦
+//mutate 함수 반환
 export const useSignup = () => {
   return useMutation(signup);
 };

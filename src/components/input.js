@@ -1,7 +1,7 @@
 import React from "react";
 import { StyleSheet, TextInput } from "react-native";
 
-const Input = () => {
+const Input = ({}) => {
   return(
     <TextInput style={styles.input}
        placeholder="input text..."
@@ -12,13 +12,11 @@ const Input = () => {
 
 const styles=StyleSheet.create({
   input: {
-    width: 80, 
-    height: 60, 
-    margin: 5, 
-    padding: 10, 
-    borderRadius: 10, 
-    fontSize: 24, 
-  }
+    height: 40, 
+    borderBottomWidth: 1, 
+    marginBottom: 10, 
+    paddingHorizontal: 8, 
+  }, 
 })
 
 export default Input;

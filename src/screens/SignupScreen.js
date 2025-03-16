@@ -11,8 +11,8 @@ const SignupScreen = () => {
     phonenumber: "", 
   })
 
-  const handleChange = (name, value) => {
-    setFormData({...formData, [name]: value });
+  const handleChange = (field, value) => {
+    setFormData({...formData, [field]: value });
   }
   
   //mutate 함수 가져와라
@@ -34,34 +34,34 @@ const SignupScreen = () => {
   return(
     <View style={styles.container}>
       <TextInput
-      placeholder="이름"
-      value={formData.name}
-      onChangeText={(text) => handleChange("name", text)}
-      style={styles.input}>
+        placeholder="name"
+        value={formData.name}
+        onChangeText={(text) => handleChange("name", text)}
+        style={styles.input}>
       </TextInput>
 
       <TextInput
-      placeholder="email"
-      value={formData.email}
-      onChangeText={(text) => handleChange("email", text)}
-      keyboardType="email-address"
-      style={styles.input}>
+        placeholder="email"
+        value={formData.email}
+        onChangeText={(text) => handleChange("email", text)}
+        keyboardType="email-address"
+        style={styles.input}>
       </TextInput>
 
       <TextInput
-      placeholder="password"
-      value={formData.password}
-      onChangeText={(text) => handleChange("password", text)}
-      secureTextEntry
-      style={styles.input}>
+        placeholder="password"
+        value={formData.password}
+        onChangeText={(text) => handleChange("password", text)}
+        secureTextEntry
+        style={styles.input}>
       </TextInput>
 
       <TextInput
-      placeholder="phonenumber"
-      value={formData.phonenumber}
-      onChangeText={(text) => handleChange("phone number", text)}
-      keyboardType="phone-pad"
-      style={styles.input}>
+        placeholder="phonenumber"
+        value={formData.phonenumber}
+        onChangeText={(text) => handleChange("phone number", text)}
+        keyboardType="phone-pad"
+        style={styles.input}>
       </TextInput>
 
       <Button
