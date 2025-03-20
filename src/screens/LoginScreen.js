@@ -1,11 +1,14 @@
-import React, {useState} from "react";
+import React, {useContext, useEffect, useState} from "react";
 import {View, TextInput, Text, StyleSheet, TouchableOpacity} from "react-native"
 import Button from "../components/button";
 import { useLogin } from "../hooks/useLogin";
 import FindidScreen from "./FindidScreen";
 import FindpasswordScreen from "./FindpasswordScreen";
+import { AuthContext } from "../context/AuthContext";
+import { useFrameCallback } from "react-native-reanimated";
 
 const LoginScreen = ({navigation}) => {
+  const [token, setToken] = useContext(AuthContext);
   const [formData, setFormData] = useState({
     email: "", 
     password: "", 
@@ -20,6 +23,7 @@ const LoginScreen = ({navigation}) => {
     mutate(formData, {
       onSuccess: () => {
         alert("로그인 성공!");
+        setToken(data.accessToken);
         navigation.navigate("Home");
       }, 
       onError: (err) => {
@@ -28,8 +32,15 @@ const LoginScreen = ({navigation}) => {
     });
   };
 
+  useEffect(() => {
+    if(token) {
+      navigation.replace("Home");
+    }
+  }, [token]);
+
   return(
     <View style={styles.container}>
+      {}
       <TextInput
         placeholder="email"
         value={formData.email}
