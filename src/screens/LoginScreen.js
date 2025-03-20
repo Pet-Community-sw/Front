@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   },
   text: {
     textDecorationLine: "underline", // 밑줄
-    color: "blue", // 원하는 색상
+    color: "black", // 원하는 색상
     fontSize: 15,
   },
   })
