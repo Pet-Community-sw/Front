@@ -1,8 +1,14 @@
-//로그인 api 호출
 import { useMutation } from "@tanstack/react-query";
 import { login } from "../api/membersApi";
 
-//mutate 함수 반환
 export const useLogin = () => {
-  return useMutation(login);
-}
+  return useMutation({
+    mutationFn: login, // 올바른 방식으로 함수 전달
+    onSuccess: (data) => {
+      console.log("로그인 성공:", data);
+    },
+    onError: (error) => {
+      console.error("로그인 실패:", error);
+    },
+  });
+};

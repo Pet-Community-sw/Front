@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { View, Text, TextInput, ActivityIndicator, StyleSheet } from "react-native";
 import Button from "../components/button";
 import { useSendemail } from "../hooks/useSendemail";
-import { useVerify } from "../hooks/useVerify";
 import { useResetpassword } from "../hooks/useResetpassword";
 
 const FindpasswordScreen = () => {

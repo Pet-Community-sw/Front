@@ -4,11 +4,10 @@ import Button from "../components/button";
 import { useLogin } from "../hooks/useLogin";
 import FindidScreen from "./FindidScreen";
 import FindpasswordScreen from "./FindpasswordScreen";
-import { AuthContext } from "../context/AuthContext";
-import { useFrameCallback } from "react-native-reanimated";
+import { UserContext } from "../context/User";
 
 const LoginScreen = ({navigation}) => {
-  const [token, setToken] = useContext(AuthContext);
+  const {token, login } = useContext(UserContext);
   const [formData, setFormData] = useState({
     email: "", 
     password: "", 
@@ -19,15 +18,20 @@ const LoginScreen = ({navigation}) => {
   }
 
   const {mutate, isLoading, error } = useLogin();
+
   const handleSubmit = () => {
     mutate(formData, {
-      onSuccess: () => {
-        alert("로그인 성공!");
-        setToken(data.accessToken);
-        navigation.navigate("Home");
-      }, 
+      onSuccess: (data) => {
+        if (data && data.accessToken) {
+          alert("로그인 성공!");
+          setToken(data.accessToken);
+          navigation.navigate("Home");
+        } else {
+          alert("로그인 실패: 유효한 토큰이 없습니다.");
+        }
+      },
       onError: (err) => {
-        alert("회원가입 실패: " + err.message);
+        alert("로그인 실패: " + err.message);
       }, 
     });
   };
