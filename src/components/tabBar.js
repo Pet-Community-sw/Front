@@ -14,7 +14,6 @@ const TabBar = () => {
         tabBarIcon: ({ color, size }) => {
           let iconName;
           if (route.name === "Home") iconName = "pets";
-
           return <MaterialIcons name={iconName} size={size} color={color} />;
         },
         tabBarStyle: {
