@@ -1,23 +1,17 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
-import Button from "../components/button";
 
-const HomeScreen = ({navigation}) => {
+const HomeScreen = () => {
   return(
-    <View style={styles.container}>
+    <View style={styles.container}> 
       <Text>홈화면이에용</Text>
-      <Button title="회원가입"
-      onPress={() => navigation.navigate('Signup')}></Button>
-      <Button title="로그인"
-      onPress={() => navigation.navigate('Login')}></Button>
     </View>
   )
 }
 
-const styles = StyleSheet.create({
+styles = StyleSheet.create({
   container: {
     flex: 1, 
-    padding: 20, 
   }
 })
 
