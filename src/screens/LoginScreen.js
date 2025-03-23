@@ -44,7 +44,6 @@ const LoginScreen = ({navigation}) => {
 
   return(
     <View style={styles.container}>
-      {}
       <TextInput
         placeholder="email"
         value={formData.email}
@@ -100,14 +99,14 @@ const styles = StyleSheet.create({
     marginTop: 10, 
   }, 
   findbutton: {
-    backgroundColor: "transparent", // 배경 투명
+    backgroundColor: "transparent",
     alignItems: "center",
     padding: 10, 
     marginTop: 20, 
   },
   text: {
-    textDecorationLine: "underline", // 밑줄
-    color: "black", // 원하는 색상
+    textDecorationLine: "underline", 
+    color: "black", 
     fontSize: 15,
   },
   })

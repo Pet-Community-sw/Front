@@ -21,6 +21,8 @@ const TabBar = () => {
           height: 50,
           paddingBottom: 5,
         },
+        tabBarActiveTintColor: "#6A9C89", 
+        tabBarInactiveTintColor: "#BDBDBD", 
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen}></Tab.Screen>

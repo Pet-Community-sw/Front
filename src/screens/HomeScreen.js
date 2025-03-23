@@ -1,10 +1,24 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
+import React, { useContext } from "react";
+import { View, Text, StyleSheet, Button } from "react-native";
+import { UserContext } from "../context/User";
+import { useNavigation } from "@react-navigation/native";
 
 const HomeScreen = () => {
+  const {token, logout} = useContext(UserContext);
+  const navigation = useNavigation();
+
+  const handleLogout = async () => {
+    await logout();
+    navigation.navigate("Login");
+  }
   return(
     <View style={styles.container}> 
-      
+      {token && (
+      <Button style={styles.logout}
+        title="로그아웃"
+        onPress={handleLogout}>
+      </Button>)}
+
       <View style={styles.petList}>
         <Text>프로필</Text>
       </View>
@@ -27,6 +41,10 @@ styles = StyleSheet.create({
     alignItems: "center", 
     backgroundColor: "white", 
     paddingBottom: 50,
+  }, 
+  logout: {
+    backgroundColor: "transparent", 
+    textDecorationLine: "underline", 
   }, 
   petList: {
     flex: 1, 
