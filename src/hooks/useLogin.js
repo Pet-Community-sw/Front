@@ -1,9 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
 import { login } from "../api/membersApi";
+import apiClient from "../api/apiClient";
+import { TextInput } from "react-native-gesture-handler";
 
 export const useLogin = () => {
   return useMutation({
-    mutationFn: login, 
+    mutationFn: login,  //로그인 함수 호출
     onSuccess: (data) => {
       console.log("로그인 성공:", data);
     },
@@ -12,3 +14,6 @@ export const useLogin = () => {
     },
   });
 };
+
+
+export default login;
