@@ -2,9 +2,10 @@
 import React, { useContext } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { Ionicons, FontAwesome, MaterialIcons, Entypo, AntDesign } from '@expo/vector-icons';
-import { ProfileContext } from "../context/Profile";
+import { UserContext } from "../context/User";
 
 const PetProfile = () => {
+  const {token} = useContext(UserContext);
   const {removeProfile} = useContext(ProfileContext);
   const handlemodify = () => {
 

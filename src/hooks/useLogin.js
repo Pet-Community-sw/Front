@@ -1,7 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { login } from "../api/membersApi";
 import apiClient from "../api/apiClient";
-import { TextInput } from "react-native-gesture-handler";
 
 export const useLogin = () => {
   return useMutation({

@@ -26,9 +26,9 @@ const modifyProfile = async (profileId, formData) => {
 }
 
 //프로필 삭제
-const deleteProfile = async (profileId) => {
+const removeProfile = async (profileId) => {
   const response = await apiClient.delete(`/profiles/${profileId}`);
   return response.data;
 }
 
-export {addProfile, viewProfiles, viewMyPet, modifyProfile, deleteProfile};
+export {addProfile, viewProfiles, viewMyPet, modifyProfile, removeProfile};
