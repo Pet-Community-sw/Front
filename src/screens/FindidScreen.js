@@ -16,10 +16,10 @@ const {mutate, isLoading, error} = useFindid();
 const handleSubmit = () => {
   mutate(formData, {
     onSuccess: (data) => {
-      alert("아이디 찾기 성공! 아이디: " + data.email);
+      Alert.alert("아이디 찾기 성공! 아이디: " + data.email);
     },
     onError: (err) => {
-      alert("아이디 찾기 실패: " + err.message);
+      Alert.alert("아이디 찾기 실패: " + err.message);
     }, 
   });
 };

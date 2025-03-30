@@ -15,7 +15,7 @@ const FindpasswordScreen = () => {
   const handleSendEmail = () => {
     sendEmail({ email }, {
       onSuccess: () => setStep(2),
-      onError: (error) => alert(`에러 발생: ${error.message}`),
+      onError: (error) => Alert.alert(`에러 발생: ${error.message}`),
     });
   };
 
@@ -24,7 +24,7 @@ const FindpasswordScreen = () => {
   const handleVerifyCode = () => {
     verify({ email, code: verifyCode }, {
       onSuccess: () => setStep(3),
-      onError: (error) => alert(`인증 실패: ${error.message}`),
+      onError: (error) => Alert.alert(`인증 실패: ${error.message}`),
     });
   };
 
@@ -32,8 +32,8 @@ const FindpasswordScreen = () => {
   const { mutate: resetPwd, isLoading: resetting } = useResetpassword();
   const handleResetPassword = () => {
     resetPwd({ email, newPassword }, {
-      onSuccess: () => alert("비밀번호가 성공적으로 변경되었습니다."),
-      onError: (error) => alert(`비밀번호 변경 실패: ${error.message}`),
+      onSuccess: () => Alert.alert("비밀번호가 성공적으로 변경되었습니다."),
+      onError: (error) => Alert.alert(`비밀번호 변경 실패: ${error.message}`),
     });
   };
 

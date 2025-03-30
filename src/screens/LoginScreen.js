@@ -23,15 +23,15 @@ const LoginScreen = ({navigation}) => {
     mutate(formData, {
       onSuccess: (data) => {
         if (data && data.accessToken) {
-          alert("로그인 성공!");
+          Alert.alert("로그인 성공!");
           login(data.accessToken);  //userContext login 함수 호출
           navigation.navigate("Home");
         } else {
-          alert("로그인 실패: 유효한 토큰이 없습니다.");
+          Alert.alert("로그인 실패: 유효한 토큰이 없습니다.");
         }
       },
       onError: (err) => {
-        alert("로그인 실패: " + err.message);
+        Alert.alert("로그인 실패: " + err.message);
       }, 
     });
   };

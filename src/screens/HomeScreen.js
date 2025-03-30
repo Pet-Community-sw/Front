@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, Text, StyleSheet, Button } from "react-native";
 import { UserContext } from "../context/User";
 import { useNavigation } from "@react-navigation/native";
-import PetProfile from "../components/petProfile";
+import petProfile from "../components/petProfile";
 
 const HomeScreen = () => {
   const {token, logout} = useContext(UserContext);
@@ -21,7 +21,7 @@ const HomeScreen = () => {
       </Button>)}
 
       <View style={styles.petList}>
-        <PetProfile></PetProfile>
+        <petProfile></petProfile>
       </View>
 
       <View style={styles.matching}>

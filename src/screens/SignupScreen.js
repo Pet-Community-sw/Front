@@ -22,11 +22,11 @@ const SignupScreen = () => {
   const handleSubmit = () => {
     mutate(formData, {
       onSuccess: () => {
-        alert("회원가입 성공!");
+        Alert.alert("회원가입 성공!");
         navigation.navigate("Login");
       }, 
       onError: (err) => {
-        alert("회원가입 실패: " + err.message);
+        Alert.alert("회원가입 실패: " + err.message);
       }, 
     });
   };
