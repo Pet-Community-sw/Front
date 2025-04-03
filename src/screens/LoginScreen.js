@@ -24,7 +24,7 @@ const LoginScreen = ({navigation}) => {
       onSuccess: (data) => {
         if (data && data.accessToken) {
           Alert.alert("로그인 성공!");
-          login(data.accessToken);  //userContext login 함수 호출
+          login(data.accessToken, data.memberId, data.nickname);  //userContext login 함수 호출
           navigation.navigate("Home");
         } else {
           Alert.alert("로그인 실패: 유효한 토큰이 없습니다.");

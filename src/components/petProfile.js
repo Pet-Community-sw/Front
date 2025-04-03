@@ -1,9 +1,13 @@
 //홈 화면 펫 프로필
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import { Entypo, AntDesign } from '@expo/vector-icons';
 import { UserContext } from "../context/User";
 import { useModifyProfile, useRemoveProfile, useAddProfile, useViewProfile, useViewMyPet } from "../hooks/useProfile";
+import { launchImageLibrary } from "react-native-image-picker";
+import { viewMyPet } from "../api/profileApi";
+
+const maxProfiles = 4;
 
 const petProfile = () => {
   const [formData, setFormData] = useState({
@@ -14,12 +18,10 @@ const petProfile = () => {
     avoidBreeds: "", 
     extraInfo: "", 
   });
+
   const [selectRemove, setSelectRemove] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
-
-  const handleChange = (field, value) => {
-    setFormData({...formData, [field]: value});
-  } 
+  const [profiles, setProfiles] = useState([]);
 
   const {mutate: modifyMutate} = useModifyProfile();
   const {mutate: removeMutate} = useRemoveProfile();
@@ -27,12 +29,38 @@ const petProfile = () => {
   const {mutate: viewMutate} = useViewProfile();
   const {mutate: viewoneMutate} = useViewMyPet();
 
+  const saveProfile = (response) => {
+    setProfiles(response.data);
+  }
+
+  const handleChange = (field, value) => {
+    setFormData({...formData, [field]: value});
+  } 
+
+  //프로필 조회
+  useEffect(() => {
+    viewMyPet(null, {
+      onSuccess: (data) => setProfiles(data), 
+      onError: (err) => Alert.alert("오류: ", err.message), 
+    });
+  }, []);
+
+
   const handlemodify = () => {
 
   };
 
+  //프로필 추가
   const handlesave = () => {
-
+    addMutate(formData, {
+      onSuccess: () => {
+        Alert.alert("프로필 추가 성공!");
+        navigation.navigate("Home");
+      }, 
+      onError: (err) => {
+        Alert.alert("프로필 등록 실패: " + err.message);
+      }
+    })
   };
 
   
@@ -53,6 +81,22 @@ const petProfile = () => {
       }, 
     ]);
   };
+  
+  //펫 이미지 사진 업로드
+  const pickImage = () => {
+    launchImageLibrary({mediaType: "photo"}, (response) => {{
+      if (response.didCancel) {
+        console.log("사용자가 선택을 취소함"); 
+      } else if (response.errorMessage) {
+        console.error("에러 발생:", response.errorMessage);  
+      } else if (response.assets && response.assets.length > 0) {
+        setFormData((prevData) => ({
+          ...prevData, 
+          profileImageFile: response.assets[0].uri,
+        }));
+      }
+    }});
+  }
 
   return(
     <View style={styles.container}>
@@ -74,7 +118,8 @@ const petProfile = () => {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>펫 추가하기</Text>
-            
+
+            <Button title="이미지 등록하기" onPress={pickImage}></Button>
         
             <TextInput
               style={styles.input}
@@ -107,7 +152,7 @@ const petProfile = () => {
               onChangeText={(text) => handleChange("extraInfo", text)}
             />
 
-            <Button title="Save" onPress={handlesave} />
+            <Button title="추가하기" onPress={handlesave} />
             <Button title="Cancel" onPress={() => setModalVisible(false)} />
           </View>
         </View>
