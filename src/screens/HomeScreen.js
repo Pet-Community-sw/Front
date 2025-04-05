@@ -5,7 +5,7 @@ import { useNavigation } from "@react-navigation/native";
 import petProfile from "../components/petProfile";
 
 const HomeScreen = () => {
-  const {token, logout} = useContext(UserContext);
+  const {token, logout, nickname} = useContext(UserContext);
   const navigation = useNavigation();
 
   const handleLogout = async () => {
@@ -15,10 +15,16 @@ const HomeScreen = () => {
   return(
     <View style={styles.container}> 
       {token && (
+        <View>
+        <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+        {nickname ? `${nickname}님 환영합니다!` : "환영합니다!"}
+      </Text>
       <Button style={styles.logout}
         title="로그아웃"
         onPress={handleLogout}>
-      </Button>)}
+      </Button>
+      </View>
+    )}
 
       <View style={styles.petList}>
         <petProfile></petProfile>
@@ -35,7 +41,7 @@ const HomeScreen = () => {
   )
 }
 
-styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1, 
     justifyContent: "center", 

@@ -7,7 +7,7 @@ import { removeProfile } from "../api/profileApi";
 import { viewMyPet } from "../api/profileApi";
 
 //프로필 추가
-//다른 화면에서 useQuery(["profiles"], fetchProfiles)해서 가져옴
+//setQueryData ui 업데이트
 const useAddProfile = () => {
   const queryClient = useQueryClient();
   return useMutation(addProfile, {
@@ -51,6 +51,7 @@ const useRemoveProfile = () => {
 };
 
 //전체 프로필 조회
+//쿼리키: 특정 데이터 식별, 캐싱
 const useViewProfile = () => {
   return useQuery({
     queryKey: ["profiles"], //모든 프로필 목록 데이터
