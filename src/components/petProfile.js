@@ -1,6 +1,6 @@
 //홈 화면 펫 프로필
 import React, { useContext, useEffect, useState } from "react";
-import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Modal, Image, ActivityIndicator, Alert, Button } from "react-native";
 import { Entypo, AntDesign } from '@expo/vector-icons';
 import { useModifyProfile, useRemoveProfile, useAddProfile, useViewMyPet, useViewProfile } from "../hooks/useProfile";
 import { launchImageLibrary } from "react-native-image-picker";
@@ -10,7 +10,7 @@ import { TextInput } from "react-native-gesture-handler";
 
 const maxProfiles = 4;
 
-const petProfile = () => {
+const PetProfile = () => {
   const queryClient = useQueryClient();
   const navigation = useNavigation();
 
@@ -21,23 +21,27 @@ const petProfile = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
-  //수정할 것들
-  const [editName, setEditName] = useState(profileDatail.petName || "");
-  const [editBreed, setEditBreed] = useState(profileDatail.petBreed || "");
-  const [editBirthdate, setEditBirthdate] = useState(profileDatail.petBirthDate || "");
-  const [editAvoidBreeds, setEditAvoidBreeds] = useState(profileDatail.avoidBreeds || "");
-  const [editExtraInfo, setEditExtraInfo] = useState(profileDatail.extraInfo || "");
+  const { data: profileDetail, isLoading } = useViewMyPet(selectProfile?.profileId);
 
-  const { data: profileDatail, isLoading } = useViewMyPet(selectProfile?.profileId);
-
+  //프로필 추가 데이터
   const [formData, setFormData] = useState({
     profileImageFile: "", 
-    petBreed: "", 
-    petBirthDate: "", 
     petName: "", 
+    petBreed: "", 
+    petBirthdate: "", 
     avoidBreeds: "", 
-    extraInfo: "", 
+    extraInfo: ""
   });
+
+   //프로필 수정 데이터
+   const [editData, setEditData] = useState({
+    profileImageFile: "", 
+    petName: "", 
+    petBreed: "", 
+    petBirthdate: "", 
+    avoidBreeds: "", 
+    extraInfo: ""
+  })
 
   const {mutate: modifyMutate} = useModifyProfile();
   const {mutate: removeMutate} = useRemoveProfile();
@@ -51,33 +55,28 @@ const petProfile = () => {
     }
   }, [selectProfile]);
 
+  useEffect(() => {
+    if(profileDetail) {
+      setEditData({
+        profileImageFile: profileDetail.profileImageFile || "", 
+        petName: profileDetail.petName || "", 
+        petBreed: profileDetail.petBreed || "", 
+        petBirthdate: profileDetail.petBirthDate || "", 
+        avoidBreeds: profileDetail.avoidBreeds || "", 
+        extraInfo: profileDetail.extraInfo || ""
+      })
+    }
+  }, [profileDetail])
+
 
   const handleChange = (field, value) => {
     setFormData({...formData, [field]: value});
   } 
 
-  /*
-  const handleEdit = () => {
-    if (!profileDetail) return;
-  
-    const updatedData = {};
-  
-    if (editName !== profileDetail.petName) updatedData.petName = editName;
-    if (editBreed !== profileDetail.petBreed) updatedData.petBreed = editBreed;
-    if (editBirthDate !== profileDetail.petBirthDate) updatedData.petBirthDate = editBirthDate;
-  
-    if (Object.keys(updatedData).length === 0) {
-      Alert.alert("변경된 내용이 없습니다.");
-      return;
-    }
-  
-    modifyMutate({ profileId: profileDetail.profileId, ...updatedData }, {
-      onSuccess: () => {
-        Alert.alert("수정 완료!");
-        setEditModalVisible(false); // 수정 모달 닫기
-      }
-    });
-  };*/
+  const handleEditData = (field, value) => {
+    setEditData({...editData, [field]: value});
+  }
+
 
   //프로필 클릭 시 모달 열음
   const openProfile = (profile) => {
@@ -85,11 +84,25 @@ const petProfile = () => {
     setDetailModalVisible(true);
   }
 
+  //프로필 수정
+  const handlemodify = () => {
+    modifyMutate(editData, {
+      onSuccess: (data) => {
+        Alert.alert("프로필 수정 성공!");
+        queryClient.invalidateQueries(["profiles"]);
+        navigation.navigate("Home");
+      }, 
+      onError: (err) => {
+        Alert.alert("프로필 수정 실패: ", err.message);
+      }, 
+    });
+  };
+
   //프로필 추가
   //invalidateQueries 서버 데이터 연동
   const handlesave = () => {
     const profiles = queryClient.getQueryData(["profiles"] || []);
-    if(profiles.length >= maxProfiles) return;
+    if((profiles || []).length >= maxProfiles) return;
     addMutate(formData, {
       onSuccess: (data) => {
         Alert.alert(`프로필 추가 성공! Id: , ${data.profileId}`);
@@ -118,9 +131,25 @@ const petProfile = () => {
     }});
   }
 
+  //펫 이미지 사진 변경
+  const pickEditImage = () => {
+    launchImageLibrary({mediaType: "photo"}, (response) => {{
+      if (response.didCancel) {
+        console.log("사용자가 선택을 취소함"); 
+      } else if (response.errorMessage) {
+        console.error("에러 발생:", response.errorMessage);  
+      } else if (response.assets && response.assets.length > 0) {
+        setEditData((prevData) => ({
+          ...prevData, 
+          profileImageFile: response.assets[0].uri,
+        }));
+      }
+    }});
+  }
+
   //프로필 삭제
   const handledelete = () => {
-    alert("정말 삭제하시겠습니까?", [
+    Alert.alert("정말 삭제하시겠습니까?", [
       {text: "취소", style: "cancel"}, 
       {text: "삭제", 
         onPress: () => {
@@ -146,7 +175,7 @@ const petProfile = () => {
         <Entypo name="plus" size={24} color="black" />
       </TouchableOpacity>
 
-        {/*프로필 목록*/}
+        {/*프로필 목록, 프로필 이미지 리스트*/}
         <View style={styles.profileContainer}>
           {profiles.map((profile) => (
             <TouchableOpacity key={profile.profileId} onPress={() => openProfile(profile)}>
@@ -161,13 +190,15 @@ const petProfile = () => {
             <View style={styles.modalContent}>
               {isLoading ? (
                 <ActivityIndicator size="large" color="#0000ff"></ActivityIndicator>
-              ): profileDatail ? (
+              ): profileDetail ? (
                 <>
-                <Image source = {{uri: profileDatail.profileImage}} style={styles.modalImage}></Image>
-                <Text>이름: {profileDatail.petName}</Text>
-                <Text>종: {profileDatail.petBreed}</Text>
-                <Text>생일: {profileDatail.petBirthDate}</Text>
-                <TouchableOpacity style={styles.modify} onPress={handlemodify}>
+                <Image source = {{uri: profileDetail.profileImageFile}} style={styles.modalImage}></Image>
+                <Text>이름: {profileDetail.petName}</Text>
+                <Text>종: {profileDetail.petBreed}</Text>
+                <Text>생일: {profileDetail.petBirthDate}</Text>
+                <Text>피해야 하는 종: {profileDetail.avoidBreeds}</Text>
+                <Text>기타사항: {profileDetail.extraInfo}</Text>
+                <TouchableOpacity style={styles.modify} onPress={() => setEditModalVisible(true)}>
                  <Entypo name="pencil" size={24} color="black" />
                 </TouchableOpacity>
                 <TouchableOpacity style={styles.delete} onPress={handledelete}>
@@ -182,6 +213,7 @@ const petProfile = () => {
           </View>
         </Modal>
 
+      {/* 프로필 추가 모달 */}
       <Modal
         animationType="slide"
         transparent={true}
@@ -191,7 +223,7 @@ const petProfile = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>펫 추가하기</Text>
 
-            <Button title="이미지 등록하기" onPress={pickImage}></Button>
+            <Button title="이미지 등록" onPress={pickImage}></Button>
         
             <TextInput
               style={styles.input}
@@ -225,21 +257,23 @@ const petProfile = () => {
             />
 
             <Button title="추가하기" onPress={handlesave} disabled={profiles.length >= maxProfiles} color={profiles.length >= maxProfiles ? "gray" : "orange"}/>
-            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+            <Button title="Cancel" onPress={() => setAddModalVisible(false)} />
           </View>
         </View>
       </Modal>
+
       {/*프로필 수정 모달*/}
       <Modal animationType="slide" transparent={true} visible={editModalVisible} onRequestClose={() => setEditModalVisible(false)}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
               <Text>펫 정보 수정</Text>
-              <TextInput value={editName} placeholder="pet name" onChangeText={setEditName}></TextInput>
-              <TextInput value={editBreed} placeholder="pet breed" onChangeText={setEditBreed}></TextInput>
-              <TextInput value={editBirthdate} placeholder="pet birthdate" onChangeText={setEditBirthdate}></TextInput>
-              <TextInput value={editAvoidBreeds} placeholder="avoidBreeds" onChangeText={setEditAvoidBreeds}></TextInput>
-              <TextInput value={editExtraInfo} placeholder="extraInfo" onChangeText={setEditExtraInfo}></TextInput>
-              <Button title={"저장"} onPress={handleEdit}></Button>
+              <Button title="이미지 변경" onPress={pickEditImage}></Button>
+              <TextInput value={editData.petName} placeholder="pet name" onChangeText={(text) => handleEditData("petName", text)}></TextInput>
+              <TextInput value={editData.petBreed} placeholder="pet breed" onChangeText={(text) => handleEditData("petBreed", text)}></TextInput>
+              <TextInput value={editData.petBirthdate} placeholder="pet birthdate" onChangeText={(text) => handleEditData("petBirthDate", text)}></TextInput>
+              <TextInput value={editData.avoidBreeds} placeholder="avoidBreeds" onChangeText={(text) => handleEditData("avoidBreeds", text)}></TextInput>
+              <TextInput value={editData.extraInfo} placeholder="extraInfo" onChangeText={(text) => handleEditData("extraInfo", text)}></TextInput>
+              <Button title={"저장"} onPress={handlemodify}></Button>
               <Button title={"닫기"} onPress={() => setEditModalVisible(false)}></Button>
           </View>
         </View>
@@ -301,4 +335,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default petProfile;
+export default PetProfile;
