@@ -2,7 +2,7 @@ import React, { useContext } from "react";
 import { View, Text, StyleSheet, Button } from "react-native";
 import { UserContext } from "../context/User";
 import { useNavigation } from "@react-navigation/native";
-import PetProfile from "../components/petProfile";
+import PetProfile from "../components/PetProfile";
 
 const HomeScreen = () => {
   const {token, logout, nickname} = useContext(UserContext);

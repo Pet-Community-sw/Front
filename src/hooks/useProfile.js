@@ -10,19 +10,21 @@ import { viewMyPet } from "../api/profileApi";
 //setQueryData ui 업데이트
 const useAddProfile = () => {
   const queryClient = useQueryClient();
-  return useMutation(addProfile, {
+  return useMutation({
+    mutationFn: addProfile, 
     onSuccess: (newProfiles) => {
       queryClient.setQueryData(["profiles"], (oldProfiles = []) => {
-        return [...oldProfiles, newProfiles]; 
+        return [...oldProfiles, newProfiles];
       });
-    }, 
+    }
   });
 };
 
 //프로필 수정
 const useModifyProfile = () => {
   const queryClient = useQueryClient();
-  return useMutation(modifyProfile, {
+  return useMutation({
+    mutationFn: modifyProfile, 
     onSuccess: (modifiedProfile) => {
       queryClient.setQueryData(["profiles"], (oldProfiles = []) => {
         return oldProfiles.map(profile => 
@@ -30,24 +32,23 @@ const useModifyProfile = () => {
         )
       });
     }, 
-  });
+  })
 };
 
 //프로필 삭제
 const useRemoveProfile = () => {
   const queryClient = useQueryClient();
-  return useMutation(
-    (profileId) => removeProfile(profileId),{
-      onSuccess: (response, profileId) => {
-        queryClient.setQueryData(["profiles"], (oldProfiles = []) => {
-          return oldProfiles.filter(profile => profile.id !== profileId);
-        });
-        
-        //개별 프로필 데이터 Id 삭제
-        queryClient.removeQueries(["profiles", profileId]);
-      }
+  return useMutation({
+    mutationFn: removeProfile, 
+    onSuccess: (response, profileId) => {
+      queryClient.setQueryData(["profiles"], (oldProfiles = []) => {
+        return oldProfiles.filter(profile => profile.id !== profileId);
+      });
+      
+      //개별 프로필 데이터 Id 삭제
+      queryClient.removeQueries(["profiles", profileId]);
     }
-  );
+  })
 };
 
 //전체 프로필 조회
