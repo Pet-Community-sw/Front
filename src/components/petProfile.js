@@ -181,9 +181,11 @@ const pickEditImage = () => {
 
   return(
     <View style={styles.container}>
+      <View style={{width: "100%", alignItems: "flex-start"}}>
       <Text style={styles.title}>Your Pets</Text>
+      </View>
       <TouchableOpacity style={styles.add} onPress={() => setAddModalVisible(true)}>
-        <Entypo name="plus" size={24} color="black" />
+        <Entypo name="plus" size={24} color="#EC5228" />
       </TouchableOpacity>
 
         {/*프로필 목록, 프로필 이미지 리스트*/}
@@ -317,9 +319,9 @@ const pickEditImage = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1, 
+    width: "100%", 
     alignItems: "center", 
     justifyContent: "center", 
-    backgroundColor: "#fff",
     padding: 16,
   }, 
   profileContainer: {
@@ -337,6 +339,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-around",
+    height: "60", 
+    
   }, 
   profileImage: {
     width: 120,
@@ -357,10 +361,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: "700", 
-    marginBottom: 16,
     color: "#333",
     textAlign: "left",  
     alignSelf: "flex-start",
+    width: "100%", 
+    paddingLeft: 0, 
+    marginLeft: 10, 
+    marginTop: 10, 
   }, 
   modify: {
     padding: 12,
@@ -372,21 +379,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   }, 
   add: {
-    padding: 12,
-    backgroundColor: "#ff9800",
+    padding: 5,
+    backgroundColor: "transparent",
     borderRadius: 50,
-    width: 50,
-    height: 50,
+    width: 45,
+    height: 45,
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 4,
     position: "absolute",
     right: 20,
-    top: 20,
+    top: -10,
   }, 
   delete: {
     padding: 12,

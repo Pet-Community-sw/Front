@@ -3,6 +3,8 @@ import { View, Text, StyleSheet, Button } from "react-native";
 import { UserContext } from "../context/User";
 import { useNavigation } from "@react-navigation/native";
 import PetProfile from "../components/PetProfile";
+import WeatherHeader from "../components/weather";
+import MatchingWidget from "../components/MatchingWidjet"
 
 const HomeScreen = () => {
   const {token, logout, nickname} = useContext(UserContext);
@@ -25,13 +27,16 @@ const HomeScreen = () => {
       </Button>
       </View>
     )}
+      <View style={styles.weather}>
+        <WeatherHeader pets={profiles}></WeatherHeader>
+      </View>
 
       <View style={styles.petList}>
         <PetProfile></PetProfile>
       </View>
 
       <View style={styles.matching}>
-        <Text style={styles.sectionTitle}>산책 매칭</Text>
+        <MatchingWidget></MatchingWidget>
       </View>
 
       <View style={styles.community}>
@@ -47,13 +52,16 @@ const styles = StyleSheet.create({
     justifyContent: "center", 
     alignItems: "center", 
     backgroundColor: "#FDFAF6", // 아이보리 배경
-    paddingBottom: 50,
+    paddingBottom: 10,
     paddingHorizontal: 16,
   }, 
   logout: {
     color: "#99BC85", // 세이지 그린
     fontWeight: "600",
     marginTop: 8,
+  }, 
+  weather: {
+    marginTop:  20,
   }, 
   petList: {
     flex: 1,

@@ -20,7 +20,7 @@ const TabBar = () => {
           let iconName;
           let IconComponent = MaterialIcons;
 
-          if (route.name === "Home") {
+          if (route.name === "HomeTab") {
             iconName = "pets"; 
             IconComponent = MaterialIcons;
           }
@@ -47,7 +47,7 @@ const TabBar = () => {
         tabBarInactiveTintColor: "#BDBDBD", 
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen}></Tab.Screen>
+      <Tab.Screen name="HomeTab" component={HomeScreen}></Tab.Screen>
       <Tab.Screen name="Community" component={CommunityScreen}></Tab.Screen>
       <Tab.Screen name="Map" component={MapScreen}></Tab.Screen>
       <Tab.Screen name="Chatting" component={ChattingScreen}></Tab.Screen>

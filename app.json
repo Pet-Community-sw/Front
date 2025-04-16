@@ -23,6 +23,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "fonts": {
+      "NanumGothic-Regular": "./assets/fonts/NanumGothic-Regular.ttf"
+    }, 
+    "plugins": [
+      "expo-font"
+    ]
   }
 }
