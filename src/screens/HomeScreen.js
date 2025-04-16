@@ -16,7 +16,7 @@ const HomeScreen = () => {
     <View style={styles.container}> 
       {token && (
         <View>
-        <Text style={{ fontSize: 20, fontWeight: "bold" }}>
+        <Text style={styles.welcomeText}>
         {nickname ? `${nickname}님 환영합니다!` : "환영합니다!"}
       </Text>
       <Button style={styles.logout}
@@ -31,11 +31,11 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.matching}>
-        <Text>산책 매칭</Text>
+        <Text style={styles.sectionTitle}>산책 매칭</Text>
       </View>
 
       <View style={styles.community}>
-        <Text>커뮤니티</Text>
+        <Text style={styles.sectionTitle}>커뮤니티</Text>
       </View>
     </View>
   )
@@ -46,30 +46,72 @@ const styles = StyleSheet.create({
     flex: 1, 
     justifyContent: "center", 
     alignItems: "center", 
-    backgroundColor: "white", 
+    backgroundColor: "#FDFAF6", // 아이보리 배경
     paddingBottom: 50,
+    paddingHorizontal: 16,
   }, 
   logout: {
-    backgroundColor: "transparent", 
-    textDecorationLine: "underline", 
+    color: "#99BC85", // 세이지 그린
+    fontWeight: "600",
+    marginTop: 8,
   }, 
   petList: {
-    flex: 1, 
+    flex: 1,
+    width: "100%", 
     justifyContent: "center", 
     alignItems: "center", 
-    backgroundColor: "#FFF5E4"
+    backgroundColor: "#FAF1E6", // 베이지
+    borderRadius: 20,
+    marginVertical: 10,
+    padding: 15,
+    shadowColor: "#99BC85",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   }, 
   matching: {
-    flex: 1, 
+    flex: 1,
+    width: "100%", 
     justifyContent: "center", 
     alignItems: "center", 
-    backgroundColor: "#FFF5E4"
+    backgroundColor: "#E4EFE7", // 연한 민트 그린
+    borderRadius: 20,
+    marginVertical: 10,
+    padding: 15,
+    shadowColor: "#99BC85",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   }, 
   community: {
-    flex: 2, 
+    flex: 2,
+    width: "100%", 
     justifyContent: "center", 
     alignItems: "center", 
-    backgroundColor: "#FFF5E4"
+    backgroundColor: "#99BC85", // 세이지 그린
+    borderRadius: 20,
+    marginVertical: 10,
+    padding: 15,
+    shadowColor: "#99BC85",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  welcomeText: {
+    fontSize: 20, 
+    fontWeight: "bold",
+    color: "#99BC85", // 세이지 그린
+    marginBottom: 8,
+    textAlign: "center",
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FDFAF6", // 아이보리 (텍스트)
+    marginBottom: 12,
   }
 })
 

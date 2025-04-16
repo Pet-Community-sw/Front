@@ -61,7 +61,7 @@ const PetProfile = () => {
         profileImageFile: profileDetail.profileImageFile || "", 
         petName: profileDetail.petName || "", 
         petBreed: profileDetail.petBreed || "", 
-        petBirthdate: profileDetail.petBirthDate || "", 
+        petBirthDate: profileDetail.petBirthDate || "", 
         avoidBreeds: profileDetail.avoidBreeds || "", 
         extraInfo: profileDetail.extraInfo || ""
       })
@@ -166,7 +166,7 @@ const pickEditImage = () => {
         onPress: () => {
           removeMutate(selectProfile.profileId, {
             onSuccess: () => {
-              alert("프로필이 삭제되었습니다.");
+              Alert.alert("프로필이 삭제되었습니다.");
               queryClient.invalidateQueries(["profiles"]);  //프로필 목록 새로고침
             }, 
             onError: (err) => {
@@ -234,7 +234,11 @@ const pickEditImage = () => {
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>펫 추가하기</Text>
             <ScrollView style={{ maxHeight: '80%' }}>
-            <Button title="이미지 등록" onPress={pickImage}></Button>
+            <TouchableOpacity 
+              onPress={pickImage}
+              style={[styles.petAddButton, { backgroundColor: "#9ACBD0" }]}>
+              <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>이미지 등록</Text>
+            </TouchableOpacity>
         
             <TextInput
               style={styles.input}
@@ -267,8 +271,22 @@ const pickEditImage = () => {
               onChangeText={(text) => handleChange("extraInfo", text)}
             />
 
-            <Button title="추가하기" onPress={handlesave} disabled={profiles.length >= maxProfiles} color={profiles.length >= maxProfiles ? "gray" : "orange"}/>
-            <Button title="Cancel" onPress={() => setAddModalVisible(false)} />
+            <TouchableOpacity 
+              onPress={handlesave} 
+              disabled={profiles.length >= maxProfiles} 
+              style={[styles.petAddButton, { backgroundColor: profiles.length >= maxProfiles ? "gray" : "#99BC85" }]}>
+              <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>
+                추가하기
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              onPress={() => setAddModalVisible(false)} 
+              style={[styles.petAddButton, { backgroundColor: "#FFC1B4" }]}>
+              <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>
+                Cancel
+              </Text>
+            </TouchableOpacity>
             </ScrollView> 
           </View>
         </View>
@@ -301,72 +319,171 @@ const styles = StyleSheet.create({
     flex: 1, 
     alignItems: "center", 
     justifyContent: "center", 
-    backgroundColor: "#fff", // 흰 배경 기본
+    backgroundColor: "#fff",
+    padding: 16,
   }, 
   profileContainer: {
-    width: "90%",
-    backgroundColor: "#f5f5f5",
-    padding: 16,
-    borderRadius: 12,
+    width: "100%",
+    backgroundColor: "#f9f9f9",
+    padding: 20,
+    borderRadius: 16,
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    marginVertical: 10,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    marginVertical: 16,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
   }, 
   profileImage: {
     width: 120,
     height: 120,
     borderRadius: 60,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: "#ccc",
+    marginBottom: 16,
+    marginHorizontal: 10,
+    borderWidth: 3,
+    borderColor: "#ff9800",
   }, 
   modalImage: {
     width: "100%",
-    height: 300,
-    resizeMode: "contain",
-    borderRadius: 12,
+    height: 250,
+    resizeMode: "cover",
+    borderRadius: 16,
+    marginBottom: 20,
   },
   title: {
-    fontWeight: "bold", 
+    fontSize: 24,
+    fontWeight: "700", 
+    marginBottom: 16,
+    color: "#333",
+    textAlign: "left",  
+    alignSelf: "flex-start",
   }, 
   modify: {
-    padding: 10,
+    padding: 12,
+    backgroundColor: "#f0f0f0",
+    borderRadius: 8,
+    marginVertical: 8,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
   }, 
   add: {
-    padding: 10, 
+    padding: 12,
+    backgroundColor: "#ff9800",
+    borderRadius: 50,
+    width: 50,
+    height: 50,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    position: "absolute",
+    right: 20,
+    top: 20,
   }, 
   delete: {
-    padding: 10, 
+    padding: 12,
+    backgroundColor: "#ffebee",
+    borderRadius: 8,
+    marginVertical: 8,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
   }, 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
     backgroundColor: '#fff',
     width: '90%',
-    borderRadius: 10,
+    borderRadius: 16,
     padding: 20,
     maxHeight: '80%',
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 10,
   },
-  
   modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 10,
+    fontSize: 22,
+    fontWeight: "700",
+    marginBottom: 20,
+    color: "#333",
+    textAlign: "center",
   },
   input: {
-    height: 40,
-    borderBottomWidth: 1,
-    marginBottom: 15,
-    paddingHorizontal: 8,
+    height: 50,
+    borderWidth: 1,
+    borderColor: '#e0e0e0',
+    borderRadius: 8,
+    marginBottom: 16,
+    paddingHorizontal: 12,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
-});
+    detailText: {
+    fontSize: 16,
+    marginBottom: 12,
+    color: "#333",
+    fontWeight: "500",
+  },
+  detailLabel: {
+    fontWeight: "700",
+    color: "#666",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+  },
+  actionButton: {
+    flex: 1,
+    padding: 14,
+    borderRadius: 8,
+    alignItems: "center",
+    marginHorizontal: 5,
+  },
+  saveButton: {
+    backgroundColor: "#ff9800",
+  },
+  cancelButton: {
+    backgroundColor: "#f0f0f0",
+  },
+  buttonText: {
+    fontWeight: "600",
+    fontSize: 16,
+  },
+  saveButtonText: {
+    color: "#fff",
+  },
+  cancelButtonText: {
+    color: "#666",
+  },
+  imageContainer: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  scrollViewContent: {
+    paddingBottom: 20,
+  },
+    petAddButton: {
+      marginBottom: 20,
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 5,
+    }
+  });
+  
 
 export default PetProfile;
