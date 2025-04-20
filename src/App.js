@@ -15,13 +15,17 @@ import TabBar from "./components/tabBar";
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { StyleSheet, Text, View } from 'react-native';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
-import practice from './api/ex';
+import LoadingScreen from './components/Loading';
 
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
 const MainNavigator = () => {
-  const { token } = useContext(UserContext);
+  const { token, loading } = useContext(UserContext);
+
+  if (loading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <NavigationContainer>

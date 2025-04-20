@@ -1,4 +1,4 @@
-// PetContext.js
+//펫 프로필 전역 관리
 import { useViewProfile } from "../hooks/useProfile";
 import { createContext, useContext } from "react";
 

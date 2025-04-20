@@ -1,3 +1,4 @@
+//로그인 토큰 정보 전역 관리
 import React, {createContext, useState, useEffect} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -7,18 +8,26 @@ const UserProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [nickname, setNickname] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // 앱 실행 시 저장된 토큰 불러오기
   useEffect(() => {
     const loadUserData = async () => {
-      const storedToken = await AsyncStorage.getItem("accessToken");
-      const storedMemberId = await AsyncStorage.getItem("memberId");
-      const storedNickname = await AsyncStorage.getItem("nickname");
-      
-      if (storedToken) setToken(storedToken);
-      if (storedMemberId) setMemberId(Number(storedMemberId));
-      if (storedNickname) setNickname(storedNickname);
+      try {
+        const storedToken = await AsyncStorage.getItem("accessToken");
+        const storedMemberId = await AsyncStorage.getItem("memberId");
+        const storedNickname = await AsyncStorage.getItem("nickname");
+
+        if (storedToken) setToken(storedToken);
+        if (storedMemberId) setMemberId(Number(storedMemberId));
+        if (storedNickname) setNickname(storedNickname);
+      } catch (e) { {/* 어싱크스토리지 사용 불가한 경우 */}
+        console.log("유저 데이터 로딩 실패:", e);
+      } finally {
+        setLoading(false); 
+      }
     };
+
     loadUserData();
   }, []);
 
@@ -43,7 +52,7 @@ const UserProvider = ({ children }) => {
   };
 
   return (
-    <UserContext.Provider value={{ token, login, logout }}>
+    <UserContext.Provider value={{ token, login, logout, loading }}>
       {children}
     </UserContext.Provider>
   );
