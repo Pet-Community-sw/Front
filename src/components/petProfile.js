@@ -33,6 +33,18 @@ const PetProfile = () => {
     extraInfo: ""
   });
 
+  //추가 중 닫기 버튼 눌렀을 때, 입력값 초기화
+  const resetData = () => {
+      setFormData({
+        profileImageFile: "", 
+        petName: "", 
+        petBreed: "", 
+        petBirthDate: "", 
+        avoidBreeds: "", 
+        extraInfo: ""
+      });
+  };
+
    //프로필 수정 데이터
    const [editData, setEditData] = useState({
     profileImageFile: "", 
@@ -42,6 +54,21 @@ const PetProfile = () => {
     avoidBreeds: "", 
     extraInfo: ""
   })
+
+  //수정 중 닫기 버튼 눌렀을 때, 입력값 초기화
+  const resetEditData = () => {
+    if (profileDetail) {
+      setEditData({
+        profileImageFile: profileDetail.profileImageFile || "", 
+        petName: profileDetail.petName || "", 
+        petBreed: profileDetail.petBreed || "", 
+        petBirthDate: profileDetail.petBirthDate || "", 
+        avoidBreeds: profileDetail.avoidBreeds || "", 
+        extraInfo: profileDetail.extraInfo || ""
+      });
+    }
+  };
+  
 
   const {mutate: modifyMutate} = useModifyProfile();
   const {mutate: removeMutate} = useRemoveProfile();
@@ -132,6 +159,13 @@ const PetProfile = () => {
     });
   };
 
+  useEffect(() => {
+    if (editModalVisible && profileDetail) {
+      resetEditData();
+    }
+  }, [editModalVisible]);
+  
+
   //프로필 추가
   //invalidateQueries 서버 데이터 연동
   const handlesave = () => {
@@ -148,6 +182,13 @@ const PetProfile = () => {
       }
     })
   };
+
+  useEffect(() => {
+    if (addModalVisible) {
+      resetData(); // 열릴 때도 무조건 초기화
+    }
+  }, [addModalVisible]);
+  
 
 // 공통 이미지 선택 함수
 const handleImagePick = async (callback) => {
@@ -332,15 +373,15 @@ const pickEditImage = () => {
               disabled={profiles.length >= maxProfiles} 
               style={[styles.petAddButton, { backgroundColor: profiles.length >= maxProfiles ? "gray" : "#99BC85" }]}>
               <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>
-                추가하기
+                추가
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity 
-              onPress={() => setAddModalVisible(false)} 
+              onPress={() => {resetData(); setAddModalVisible(false)}} 
               style={[styles.petAddButton, { backgroundColor: "#FFC1B4" }]}>
               <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>
-                Cancel
+                취소
               </Text>
             </TouchableOpacity>
             </ScrollView> 
@@ -361,7 +402,7 @@ const pickEditImage = () => {
             <ScrollView style={{ maxHeight: "80%" }}>
               <Button title="이미지 변경" onPress={pickEditImage} />
 
-              {/* ✅ 이미지 파일명 + 미리보기 */}
+              {/* 추가한 이미지 미리보기 */}
               {editData.profileImageFile ? (
                 <View style={{ alignItems: "center", marginVertical: 10 }}>
                   <Text style={{ color: "#666", marginBottom: 6 }}>
@@ -406,7 +447,7 @@ const pickEditImage = () => {
                 onChangeText={(text) => handleEditData("extraInfo", text)}
               />
               <Button title={"저장"} onPress={handlemodify} />
-              <Button title={"닫기"} onPress={() => setEditModalVisible(false)} />
+              <Button title={"취소"} onPress={() => {resetEditData(); setEditModalVisible(false)}} />
             </ScrollView>
           </View>
         </View>
