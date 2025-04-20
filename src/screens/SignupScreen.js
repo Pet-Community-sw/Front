@@ -20,14 +20,15 @@ const SignupScreen = () => {
 
   //mutate 실제 호출
   const handleSubmit = () => {
+    console.log("회원가입 요청 보냄");
     mutate(formData, {
       onSuccess: () => {
         Alert.alert("회원가입 성공!");
         navigation.navigate("Login");
       }, 
       onError: (err) => {
-        Alert.alert("회원가입 실패: " + err.message);
-      }, 
+        console.log("❌ 회원가입 실패:", err);
+      },
     });
   };
 
@@ -59,7 +60,7 @@ const SignupScreen = () => {
       <TextInput
         placeholder="phone number"
         value={formData.phonenumber}
-        onChangeText={(text) => handleChange("phone number", text)}
+        onChangeText={(text) => handleChange("phonenumber", text)}
         keyboardType="phone-pad"
         style={styles.input}>
       </TextInput>

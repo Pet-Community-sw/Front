@@ -70,12 +70,46 @@ const PetProfile = () => {
 
 
   const handleChange = (field, value) => {
-    setFormData({...formData, [field]: value});
-  } 
+    const isKoreanOnly = /^[가-힣\s,]*$/.test(value);
+    const isDateValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  
+    if (
+      (["petName", "petBreed", "avoidBreeds", "extraInfo"].includes(field) && !isKoreanOnly) ||
+      (field === "petBirthDate" && !isDateValid)
+    ) {
+      Alert.alert(
+        "입력 오류",
+        field === "petBirthDate"
+          ? "생일은 YYYY-MM-DD 형식으로 입력해주세요."
+          : "한글만 입력할 수 있습니다."
+      );
+      return;
+    }
+  
+    setFormData({ ...formData, [field]: value });
+  };
+  
 
   const handleEditData = (field, value) => {
-    setEditData({...editData, [field]: value});
-  }
+    const isKoreanOnly = /^[가-힣\s,]*$/.test(value);
+    const isDateValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
+  
+    if (
+      (["petName", "petBreed", "avoidBreeds", "extraInfo"].includes(field) && !isKoreanOnly) ||
+      (field === "petBirthDate" && !isDateValid)
+    ) {
+      Alert.alert(
+        "입력 오류",
+        field === "petBirthDate"
+          ? "생일은 YYYY-MM-DD 형식으로 입력해주세요."
+          : "한글만 입력할 수 있습니다."
+      );
+      return;
+    }
+  
+    setEditData({ ...editData, [field]: value });
+  };
+  
 
 
   //프로필 클릭 시 모달 열음
@@ -359,15 +393,15 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: "700", 
     color: "#333",
     textAlign: "left",  
     alignSelf: "flex-start",
     width: "100%", 
     paddingLeft: 0, 
-    marginLeft: 10, 
-    marginTop: 10, 
+    marginLeft: -10, 
+    marginTop: 15, 
   }, 
   modify: {
     padding: 12,

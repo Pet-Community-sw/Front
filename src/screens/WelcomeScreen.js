@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 import Button from "../components/button";
-import LinearGradient from "react-native-linear-gradient";
 
 
 const WelcomeScreen = ({navigation}) => {

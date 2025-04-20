@@ -16,19 +16,16 @@ const HomeScreen = () => {
   }
   return(
     <View style={styles.container}> 
-      {token && (
-        <View>
+      {token !== undefined && (
+      <View>
         <Text style={styles.welcomeText}>
-        {nickname ? `${nickname}님 환영합니다!` : "환영합니다!"}
-      </Text>
-      <Button style={styles.logout}
-        title="로그아웃"
-        onPress={handleLogout}>
-      </Button>
+          {nickname ? `${nickname}님 환영합니다!` : "환영합니다!"}
+        </Text>
+        <Button title="로그아웃" onPress={handleLogout} />
       </View>
-    )}
+)}
       <View style={styles.weather}>
-        <WeatherHeader pets={profiles}></WeatherHeader>
+        <WeatherHeader></WeatherHeader>
       </View>
 
       <View style={styles.petList}>
@@ -64,7 +61,7 @@ const styles = StyleSheet.create({
     marginTop:  20,
   }, 
   petList: {
-    flex: 1,
+    flex: 1.2,
     width: "100%", 
     justifyContent: "center", 
     alignItems: "center", 
@@ -79,10 +76,10 @@ const styles = StyleSheet.create({
     elevation: 3,
   }, 
   matching: {
-    flex: 1,
+    flex: 2,
     width: "100%", 
     justifyContent: "center", 
-    alignItems: "center", 
+    alignItems: "flex-start", 
     backgroundColor: "#E4EFE7", // 연한 민트 그린
     borderRadius: 20,
     marginVertical: 10,
@@ -92,9 +89,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 4,
     elevation: 3,
+    height: "auto"
   }, 
   community: {
-    flex: 2,
+    flex: 1.5,
     width: "100%", 
     justifyContent: "center", 
     alignItems: "center", 
