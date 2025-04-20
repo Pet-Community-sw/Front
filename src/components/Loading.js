@@ -1,13 +1,13 @@
 // components/LoadingScreen.js
 import React from "react";
-import { View, Text, ActivityIndicator } from "react-native";
+import { View, Text, StyleSheet } from "react-native";
 import LottieView from "lottie-react-native";
 
 const LoadingScreen = () => {
   return (
     <View style={styles.container}>
       <LottieView
-        source={require("../assets/pet-loading.json")}
+        source={require("../../assets/pet-loading.json")}
         autoPlay
         loop
         style={{ width: 180, height: 180 }}
