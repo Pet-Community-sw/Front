@@ -3,6 +3,7 @@ import { View, Text, TextInput, ActivityIndicator, StyleSheet } from "react-nati
 import Button from "../components/button";
 import { useSendemail } from "../hooks/useSendemail";
 import { useResetpassword } from "../hooks/useResetpassword";
+import { useVerify } from "../hooks/useVerify";
 
 const FindpasswordScreen = () => {
   const [email, setEmail] = useState("");
