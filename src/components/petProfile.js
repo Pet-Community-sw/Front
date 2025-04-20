@@ -275,6 +275,26 @@ const pickEditImage = () => {
               style={[styles.petAddButton, { backgroundColor: "#9ACBD0" }]}>
               <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>이미지 등록</Text>
             </TouchableOpacity>
+
+            {formData.profileImageFile ? (
+              <View style={{ alignItems: 'center', marginBottom: 12 }}>
+                <Text style={{ color: "#666", marginBottom: 6 }}>
+                  선택된 파일: {formData.profileImageFile.split("/").pop()}
+                </Text>
+                <Image
+                  source={{ uri: formData.profileImageFile }}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: "#ccc",
+                  }}
+                />
+              </View>
+            ) : null}
+
+
         
             <TextInput
               style={styles.input}
@@ -329,23 +349,69 @@ const pickEditImage = () => {
       </Modal>
 
       {/*프로필 수정 모달*/}
-      <Modal animationType="slide" transparent={true} visible={editModalVisible} onRequestClose={() => setEditModalVisible(false)}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={editModalVisible}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-              <Text>펫 정보 수정</Text>
-              <ScrollView style={{ maxHeight: '80%' }}>
-              <Button title="이미지 변경" onPress={pickEditImage}></Button>
-              <TextInput value={editData.petName} placeholder="pet name" onChangeText={(text) => handleEditData("petName", text)}></TextInput>
-              <TextInput value={editData.petBreed} placeholder="pet breed" onChangeText={(text) => handleEditData("petBreed", text)}></TextInput>
-              <TextInput value={editData.petBirthdate} placeholder="pet birthDate" onChangeText={(text) => handleEditData("petBirthDate", text)}></TextInput>
-              <TextInput value={editData.avoidBreeds} placeholder="avoidBreeds" onChangeText={(text) => handleEditData("avoidBreeds", text)}></TextInput>
-              <TextInput value={editData.extraInfo} placeholder="extraInfo" onChangeText={(text) => handleEditData("extraInfo", text)}></TextInput>
-              <Button title={"저장"} onPress={handlemodify}></Button>
-              <Button title={"닫기"} onPress={() => setEditModalVisible(false)}></Button>
-              </ScrollView>
+            <Text>펫 정보 수정</Text>
+            <ScrollView style={{ maxHeight: "80%" }}>
+              <Button title="이미지 변경" onPress={pickEditImage} />
+
+              {/* ✅ 이미지 파일명 + 미리보기 */}
+              {editData.profileImageFile ? (
+                <View style={{ alignItems: "center", marginVertical: 10 }}>
+                  <Text style={{ color: "#666", marginBottom: 6 }}>
+                    선택된 파일: {editData.profileImageFile.split("/").pop()}
+                  </Text>
+                  <Image
+                    source={{ uri: editData.profileImageFile }}
+                    style={{
+                      width: 120,
+                      height: 120,
+                      borderRadius: 8,
+                      borderWidth: 1,
+                      borderColor: "#ccc",
+                    }}
+                  />
+                </View>
+              ) : null}
+
+              <TextInput
+                value={editData.petName}
+                placeholder="pet name"
+                onChangeText={(text) => handleEditData("petName", text)}
+              />
+              <TextInput
+                value={editData.petBreed}
+                placeholder="pet breed"
+                onChangeText={(text) => handleEditData("petBreed", text)}
+              />
+              <TextInput
+                value={editData.petBirthDate}
+                placeholder="pet birthDate"
+                onChangeText={(text) => handleEditData("petBirthDate", text)}
+              />
+              <TextInput
+                value={editData.avoidBreeds}
+                placeholder="avoidBreeds"
+                onChangeText={(text) => handleEditData("avoidBreeds", text)}
+              />
+              <TextInput
+                value={editData.extraInfo}
+                placeholder="extraInfo"
+                onChangeText={(text) => handleEditData("extraInfo", text)}
+              />
+              <Button title={"저장"} onPress={handlemodify} />
+              <Button title={"닫기"} onPress={() => setEditModalVisible(false)} />
+            </ScrollView>
           </View>
         </View>
       </Modal>
+
     </View>
   )
 }
