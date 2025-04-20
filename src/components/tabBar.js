@@ -7,6 +7,7 @@ import PostListScreen from "../screens/Community/PostListScreen";
 import MapScreen from "../screens/MapScreen";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import ChattingScreen from "../screens/ChattingScreen";
+import PostDetailScreen from "../screens/Community/PostDetailScreen";
 
 
 const Tab = createBottomTabNavigator();
@@ -48,7 +49,7 @@ const TabBar = () => {
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen}></Tab.Screen>
-      <Tab.Screen name="Community" component={PostListScreen}></Tab.Screen>
+      <Tab.Screen name="Community" component={PostDetailScreen}></Tab.Screen>
       <Tab.Screen name="Map" component={MapScreen}></Tab.Screen>
       <Tab.Screen name="Chatting" component={ChattingScreen}></Tab.Screen>
     </Tab.Navigator>
