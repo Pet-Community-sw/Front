@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { View, Text, StyleSheet, Button } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { UserContext } from "../context/User";
 import { useNavigation } from "@react-navigation/native";
 import PetProfile from "../components/PetProfile";
@@ -17,11 +17,13 @@ const HomeScreen = () => {
   return(
     <View style={styles.container}> 
       {token !== undefined && (
-      <View>
+      <View style={styles.headerRow}>
         <Text style={styles.welcomeText}>
           {nickname ? `${nickname}님 환영합니다!` : "환영합니다!"}
         </Text>
-        <Button title="로그아웃" onPress={handleLogout} />
+        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}> 
+          <Text style={styles.logoutText}>로그아웃</Text> 
+        </TouchableOpacity>
       </View>
 )}
       <View style={styles.weather}>
@@ -52,13 +54,29 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     paddingHorizontal: 16,
   }, 
-  logout: {
-    color: "#99BC85", // 세이지 그린
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    width: "100%",  // 가로 꽉 차게
+    paddingHorizontal: 10,
+    marginTop: 20,
+  },  
+  logoutButton: {
+    backgroundColor: "#E78F81",  
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    marginTop: -10,
+    alignSelf: "flex-end"
+  }, 
+  logoutText: {
+    color: "#FDFAF6",            
     fontWeight: "600",
-    marginTop: 8,
+    fontSize: 13,
   }, 
   weather: {
-    marginTop:  20,
+    marginTop: 7,
   }, 
   petList: {
     flex: 1.2,
@@ -111,7 +129,7 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     color: "#99BC85", // 세이지 그린
     marginBottom: 8,
-    textAlign: "center",
+    marginTop: -10, 
   },
   sectionTitle: {
     fontSize: 18,

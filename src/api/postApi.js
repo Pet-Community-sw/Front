@@ -1,5 +1,4 @@
 //게시물 api
-import { resolvePlugin } from "@babel/core";
 import apiClient from "./apiClient";
 
 //게시물 추가
@@ -9,8 +8,8 @@ const addPost = async (formData) => {
 }
 
 //게시물 목록 조회
-const viewPosts = async () => {
-  const response = await apiClient.get("/posts");
+const viewPosts = async (page = 0) => {
+  const response = await apiClient.get(`/posts?page=${page}`);
   return response.data;
 }
 
@@ -21,8 +20,8 @@ const viewOnePost = async (postId) => {
 }
 
 //게시물 수정
-const modifyPost = async (postId) => {
-  const response = await apiClient.put(`/posts/${postId}`);
+const modifyPost = async (postId, formData) => {
+  const response = await apiClient.put(`/posts/${postId}`, formData);
   return response.data;
 }
 

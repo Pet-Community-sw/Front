@@ -21,7 +21,10 @@ const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
 const MainNavigator = () => {
-  const { token, loading } = useContext(UserContext);
+  //const { token, loading } = useContext(UserContext);
+
+  const token = true;
+  const loading = false;
 
   if (loading) {
     return <LoadingScreen />;

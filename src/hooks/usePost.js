@@ -1,10 +1,6 @@
 //게시물 hook
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addPost, viewOnePost } from "../api/postApi"; 
-import { viewPosts } from "../api/postApi";
-import { viewOnePost } from "../api/postApi";
-import { modifyPost } from "../api/postApi";
-import { removePost } from "../api/postApi";
+import { addPost, viewOnePost, viewPosts, modifyPost, removePost } from "../api/postApi"; 
 
 //게시물 추가
 const useAddPost = () => {
@@ -45,16 +41,16 @@ const useRemovePost = () => {
       });
       
       //개별 프로필 데이터 Id 삭제
-      queryClient.removeQueries(["posts", postsId]);
+      queryClient.removeQueries(["posts", postId]);
     }
   })
 };
 
 //게시물 목록 조회
-const useViewPosts = () => {
+const useViewPosts = (page = 0) => {
   return useQuery({
-    queryKey: ["posts"], 
-    queryFn: viewPosts, 
+    queryKey: ["posts"], page, 
+    queryFn: () => viewPosts(page), 
   });
 }
 

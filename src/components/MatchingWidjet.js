@@ -17,7 +17,7 @@ const MatchingWidget = () => {
         <View style={styles.inputSection}>
           <Text style={styles.label}>희망 동네</Text>
           <TextInput
-            placeholder="예: 송파구 잠실동"
+            placeholder="예: 노원구 중계동"
             style={styles.input}
             value={desiredArea}
             onChangeText={setDesiredArea}
@@ -66,7 +66,7 @@ const MatchingWidget = () => {
           console.log("✅ 신청됨:", { desiredArea, selectedPetId });
         }}
       >
-        <Text style={styles.matchButtonText}>매칭 신청</Text>
+        <Text style={styles.matchButtonText}>매칭 바로가기</Text>
       </TouchableOpacity>
     </View>
   );
@@ -78,6 +78,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
     margin: 16,
+    width: "100%", 
+    paddingHorizontal: "15", 
   },
   title: {
     fontSize: 22,
@@ -149,16 +151,20 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   matchButton: {
-    marginTop: 20, 
+    marginTop: 10, 
     backgroundColor: "#015551",
-    padding: 15,
+    padding: 12,
     borderRadius: 25,
     alignItems: "center",
-    alignSelf: "center",
+    width: "100%", 
+    marginHorizontal: -15, 
+    marginBottom: -15, 
+    alignSelf: "stretch", 
   },
   matchButtonText: {
     color: "#fff",
     fontWeight: "bold",
+    textAlign: "center"
   },
 });
 
