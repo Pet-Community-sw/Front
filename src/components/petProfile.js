@@ -25,7 +25,7 @@ const PetProfile = () => {
 
   //프로필 추가 데이터
   const [formData, setFormData] = useState({
-    profileImageFile: "", 
+    petImageUrl: "", 
     petName: "", 
     petBreed: "", 
     petBirthDate: "", 
@@ -36,7 +36,7 @@ const PetProfile = () => {
   //추가 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetData = () => {
       setFormData({
-        profileImageFile: "", 
+        petImageUrl: "", 
         petName: "", 
         petBreed: "", 
         petBirthDate: "", 
@@ -47,7 +47,7 @@ const PetProfile = () => {
 
    //프로필 수정 데이터
    const [editData, setEditData] = useState({
-    profileImageFile: "", 
+    petImageUrl: "", 
     petName: "", 
     petBreed: "", 
     petBirthDate: "", 
@@ -59,7 +59,7 @@ const PetProfile = () => {
   const resetEditData = () => {
     if (profileDetail) {
       setEditData({
-        profileImageFile: profileDetail.profileImageFile || "", 
+        petImageUrl: profileDetail.petImageUrl || "", 
         petName: profileDetail.petName || "", 
         petBreed: profileDetail.petBreed || "", 
         petBirthDate: profileDetail.petBirthDate || "", 
@@ -85,7 +85,7 @@ const PetProfile = () => {
   useEffect(() => {
     if(profileDetail) {
       setEditData({
-        profileImageFile: profileDetail.profileImageFile || "", 
+        profileImageFile: profileDetail.petImageUrl || "", 
         petName: profileDetail.petName || "", 
         petBreed: profileDetail.petBreed || "", 
         petBirthDate: profileDetail.petBirthDate || "", 
@@ -217,7 +217,7 @@ const pickImage = () => {
   handleImagePick((imageUri) => {
     setFormData((prevData) => ({
       ...prevData,
-      profileImageFile: imageUri,
+      petImageUrl: imageUri,
     }));
   });
 };
@@ -227,7 +227,7 @@ const pickEditImage = () => {
   handleImagePick((imageUri) => {
     setEditData((prevData) => ({
       ...prevData,
-      profileImageFile: imageUri,
+      petImageUrl: imageUri,
     }));
   });
 };
@@ -257,7 +257,7 @@ const pickEditImage = () => {
   return(
     <View style={styles.container}>
       <View style={{width: "100%", alignItems: "flex-start"}}>
-      <Text style={styles.title}>Your Pets</Text>
+      <Text style={styles.title}>Your Pets 💕</Text>
       </View>
       <TouchableOpacity style={styles.add} onPress={() => setAddModalVisible(true)}>
         <Entypo name="plus" size={24} color="#EC5228" />
@@ -267,7 +267,7 @@ const pickEditImage = () => {
         <View style={styles.profileContainer}>
           {profiles.map((profile) => (
             <TouchableOpacity key={profile.profileId} onPress={() => openProfile(profile)}>
-              <Image source={{uri: profile.profileImageFile}} style={styles.profileImage}></Image>
+              <Image source={{uri: profile.petImageUrl}} style={styles.profileImage}></Image>
             </TouchableOpacity>
           ))}
         </View>
@@ -280,7 +280,7 @@ const pickEditImage = () => {
                 <ActivityIndicator size="large" color="#0000ff"></ActivityIndicator>
               ): profileDetail ? (
                 <ScrollView style={{ maxHeight: '80%' }}>
-                <Image source = {{uri: profileDetail.profileImageFile}} style={styles.modalImage}></Image>
+                <Image source = {{uri: profileDetail.petImageUrl}} style={styles.modalImage}></Image>
                 <Text>이름: {profileDetail.petName}</Text>
                 <Text>종: {profileDetail.petBreed}</Text>
                 <Text>생일: {profileDetail.petBirthDate}</Text>
@@ -317,13 +317,13 @@ const pickEditImage = () => {
               <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>이미지 등록</Text>
             </TouchableOpacity>
 
-            {formData.profileImageFile ? (
+            {formData.petImageUrl ? (
               <View style={{ alignItems: 'center', marginBottom: 12 }}>
                 <Text style={{ color: "#666", marginBottom: 6 }}>
-                  선택된 파일: {formData.profileImageFile.split("/").pop()}
+                  선택된 파일: {formData.petImageUrl.split("/").pop()}
                 </Text>
                 <Image
-                  source={{ uri: formData.profileImageFile }}
+                  source={{ uri: formData.petImageUrl }}
                   style={{
                     width: 120,
                     height: 120,
@@ -403,13 +403,13 @@ const pickEditImage = () => {
               <Button title="이미지 변경" onPress={pickEditImage} />
 
               {/* 추가한 이미지 미리보기 */}
-              {editData.profileImageFile ? (
+              {editData.petImageUrl ? (
                 <View style={{ alignItems: "center", marginVertical: 10 }}>
                   <Text style={{ color: "#666", marginBottom: 6 }}>
-                    선택된 파일: {editData.profileImageFile.split("/").pop()}
+                    선택된 파일: {editData.petImageUrl.split("/").pop()}
                   </Text>
                   <Image
-                    source={{ uri: editData.profileImageFile }}
+                    source={{ uri: editData.petImageUrl }}
                     style={{
                       width: 120,
                       height: 120,
@@ -507,8 +507,9 @@ const styles = StyleSheet.create({
     alignSelf: "flex-start",
     width: "100%", 
     paddingLeft: 0, 
-    marginLeft: -10, 
+    marginLeft: 0, 
     marginTop: 15, 
+    marginBottom: -8, 
   }, 
   modify: {
     padding: 12,

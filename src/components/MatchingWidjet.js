@@ -9,7 +9,7 @@ const MatchingWidget = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>산책 매칭</Text>
+      <Text style={styles.title}>산책 매칭 💌</Text>
 
       {/* 희망 동네 입력 + 펫 선택 토글 버튼 나란히 */}
       <View style={styles.row}>

@@ -1,73 +1,86 @@
 import 'react-native-gesture-handler';
-import React, { useContext } from "react";
+import React, { useContext, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { StyleSheet, View, Text } from 'react-native';
+import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import { UserProvider, UserContext } from "./context/User";
+import { PetProvider } from './context/PetProfiles';
+
 import HomeScreen from "./screens/HomeScreen";
 import SignupScreen from "./screens/SignupScreen";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import LoginScreen from "./screens/LoginScreen";
 import FindidScreen from "./screens/FindidScreen";
 import FindpasswordScreen from "./screens/FindpasswordScreen";
-import { UserProvider, UserContext } from "./context/User";
-import { PetProvider } from './context/PetProfiles';
 import WelcomeScreen from "./screens/WelcomeScreen";
 import TabBar from "./components/tabBar";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, Text, View } from 'react-native';
-import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import LoadingScreen from './components/Loading';
 
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
 const MainNavigator = () => {
-  //const { token, loading } = useContext(UserContext);
+  const { token, loading } = useContext(UserContext);
 
-  const token = true;
-  const loading = false;
-
-  if (loading) {
-    return <LoadingScreen />;
-  }
+  if (loading) return <LoadingScreen />;
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {token ? (
-          <Stack.Screen
-            name="Home"
-            component={TabBar}
-            options={{
-              headerShown: true,
-              headerStyle: {
-                backgroundColor: "#57B4BA",
-              },
-              headerTitleAlign: "center",
-              headerTitle: () => (
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <MaterialCommunityIcons
-                    name="paw"
-                    size={22}
-                    color="#FDFBEE"
-                    style={{ marginRight: 6, marginTop: 4 }}
-                  />
-                  <Text style={{ color: "white", fontSize: 25, fontWeight: "bold" }}>
-                    멍냥로드
-                  </Text>
-                </View>
-              )
-            }}
-          />
-        ) : (
-          <>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="Signup" component={SignupScreen} options={{ title: "회원가입" }} />
-            <Stack.Screen name="Login" component={LoginScreen} options={{ title: "로그인" }} />
-            <Stack.Screen name="Findid" component={FindidScreen} options={{ title: "아이디 찾기" }} />
-            <Stack.Screen name="Findpassword" component={FindpasswordScreen} options={{ title: "비밀번호 찾기" }} />
-          </>
-        )}
-      </Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: true }}>
+      {/* ✅ TabRoot는 항상 등록 */}
+      <Stack.Screen
+        name="TabRoot"
+        component={TabBar}
+        options={{
+          headerShown: token ? true : false, // 로그인 상태에서만 헤더 보이게
+          headerStyle: {
+            backgroundColor: "#57B4BA",
+          },
+          headerTitleAlign: "center",
+          headerTitle: () =>
+            token ? (
+              <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <MaterialCommunityIcons
+                  name="paw"
+                  size={22}
+                  color="#FDFBEE"
+                  style={{ marginRight: 6, marginTop: 4 }}
+                />
+                <Text style={{ color: "white", fontSize: 25, fontWeight: "bold" }}>
+                  멍냥로드
+                </Text>
+              </View>
+            ) : null,
+        }}
+      />
+
+      {/* ✅ 비로그인 상태일 때만 인증 관련 스크린들 렌더 */}
+      {!token && (
+        <>
+          <Stack.Screen name="Welcome" component={WelcomeScreen}
+            options={{ headerBackVisible: true }} />
+          <Stack.Screen name="Signup" component={SignupScreen}
+            options={{ headerBackVisible: true }} />
+          <Stack.Screen name="Login" component={LoginScreen}
+            options={{ headerBackVisible: true }} />
+          <Stack.Screen name="Findid" component={FindidScreen}
+            options={{ headerBackVisible: true }} />
+          <Stack.Screen name="Findpassword" component={FindpasswordScreen}
+            options={{ headerBackVisible: true }} />
+        </>
+      )}
+    </Stack.Navigator>
+  );
+};
+
+
+const AppInner = () => {
+  const { token } = useContext(UserContext);
+
+  return (
+    <NavigationContainer key={token ? "user" : "guest"}>
+      <MainNavigator />
     </NavigationContainer>
   );
 };
@@ -77,9 +90,10 @@ const App = () => {
     <GestureHandlerRootView style={styles.container}>
       <UserProvider>
         <QueryClientProvider client={queryClient}>
-          <PetProvider>
-            <MainNavigator />
-          </PetProvider>
+            <PetProvider>
+            <AppInner />
+            </PetProvider>
+          
         </QueryClientProvider>
       </UserProvider>
     </GestureHandlerRootView>
@@ -92,4 +106,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App;
+export default App; 

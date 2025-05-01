@@ -1,10 +1,11 @@
 import React, {useContext, useEffect, useState} from "react";
-import {View, TextInput, Text, StyleSheet, TouchableOpacity} from "react-native"
+import {View, TextInput, Text, StyleSheet, TouchableOpacity, Alert} from "react-native"
 import Button from "../components/button";
 import { useLogin } from "../hooks/useLogin";
 import FindidScreen from "./FindidScreen";
 import FindpasswordScreen from "./FindpasswordScreen";
 import { UserContext } from "../context/User";
+
 
 const LoginScreen = ({navigation}) => {
   const {token, login } = useContext(UserContext);
@@ -21,26 +22,31 @@ const LoginScreen = ({navigation}) => {
 
   const handleSubmit = () => {
     mutate(formData, {
-      onSuccess: (data) => {
-        if (data && data.accessToken) {
-          Alert.alert("로그인 성공!");
-          login(data.accessToken, data.memberId, data.nickname);  //userContext login 함수 호출
-          navigation.navigate("Home");
-        } else {
-          Alert.alert("로그인 실패: 유효한 토큰이 없습니다.");
-        }
+      // LoginScreen.jsx
+onSuccess: (data) => {
+  if (data && data.accessToken) {
+    Alert.alert("로그인 성공!");
+    login(data.accessToken, data.memberId, data.nickname);
+
+    // 🔥 살짝 delay 줘서 navigation 타이밍 안정화
+    setTimeout(() => {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "TabRoot" }],
+      });
+    }, 0);
+  } else {
+    Alert.alert("로그인 실패: 유효한 토큰이 없습니다.");
+  }
+
       },
       onError: (err) => {
-        Alert.alert("로그인 실패: " + err.message);
-      }, 
+        Alert.alert("로그인 실패", err.response?.data?.message || err.message);
+      },
     });
   };
+  
 
-  useEffect(() => {
-    if(token) {
-      navigation.replace("Home");
-    }
-  }, [token]);
 
   return(
     <View style={styles.container}>
@@ -87,6 +93,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     padding: 20,
     justifyContent: "center", 
+    backgroundColor: "white"
   }, 
   input: {
     height: 40, 

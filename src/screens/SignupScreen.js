@@ -1,19 +1,22 @@
 import React, {useState} from "react";
-import {View, TextInput, Text, StyleSheet} from "react-native";
+import {View, TextInput, Text, StyleSheet, Alert} from "react-native";
 import { useSignup } from "../hooks/useSignup";
 import Button from "../components/button";
+import { useNavigation } from "@react-navigation/native";
+
 
 const SignupScreen = () => {
   const [formData, setFormData] = useState({
     name: "", 
     email: "", 
     password: "", 
-    phonenumber: "", 
+    phoneNumber: "", 
   })
 
   const handleChange = (field, value) => {
     setFormData({...formData, [field]: value });
   }
+  const navigation = useNavigation();
   
   //mutate 함수 가져와라
   const {mutate, isLoading, error} = useSignup();
@@ -25,9 +28,10 @@ const SignupScreen = () => {
       onSuccess: () => {
         Alert.alert("회원가입 성공!");
         navigation.navigate("Login");
+        console.log("token")
       }, 
       onError: (err) => {
-        console.log("❌ 회원가입 실패:", err);
+        console.log("회원가입 실패:", err);
       },
     });
   };
@@ -59,9 +63,9 @@ const SignupScreen = () => {
 
       <TextInput
         placeholder="phone number"
-        value={formData.phonenumber}
-        onChangeText={(text) => handleChange("phonenumber", text)}
-        keyboardType="phone-pad"
+        value={formData.phoneNumber}
+        onChangeText={(text) => handleChange("phoneNumber", text)}
+        //keyboardType="phone-pad"
         style={styles.input}>
       </TextInput>
 
@@ -82,6 +86,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     padding: 20,
     justifyContent: "center", 
+    backgroundColor: "white"
   }, 
   input: {
     height: 40, 

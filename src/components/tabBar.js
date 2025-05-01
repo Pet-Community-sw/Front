@@ -30,7 +30,7 @@ const TabBar = () => {
             IconComponent = Ionicons;
           }
           else if(route.name === "Map") {
-            iconName = "map-marker-star";
+            iconName = "map-marker";
             IconComponent = MaterialCommunityIcons;
           }
           else if(route.name === "Chatting") {
