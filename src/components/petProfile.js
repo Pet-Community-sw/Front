@@ -15,7 +15,7 @@ const PetProfile = () => {
   const navigation = useNavigation();
 
   //각각의 프로필 데이터 구조 분해 할당
-  const {data: profiles = []} = useViewProfile();
+  const {data: profiles = [], refetch} = useViewProfile();
   const [selectProfile, setSelectProfile] = useState(null);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -75,6 +75,10 @@ const PetProfile = () => {
   const {mutate: addMutate} = useAddProfile();
   const {mutate: viewOneProfileMutate} = useViewMyPet();
 
+  useEffect(() => {
+    refetch(); 
+  }, []);
+  
   //선택한 프로필 id 가져옴
   useEffect(() => {
     if(selectProfile) {
@@ -174,7 +178,7 @@ const PetProfile = () => {
     addMutate(formData, {
       onSuccess: (data) => {
         Alert.alert(`프로필 추가 성공! Id: , ${data.profileId}`);
-        queryClient.invalidateQueries(["profiles"]);  //프로필 목록 새로고침
+        refetch();
         navigation.navigate("Home");
       }, 
       onError: (err) => {

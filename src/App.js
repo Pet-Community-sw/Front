@@ -78,6 +78,8 @@ const MainNavigator = () => {
 const AppInner = () => {
   const { token } = useContext(UserContext);
 
+  
+
   return (
     <NavigationContainer key={token ? "user" : "guest"}>
       <MainNavigator />
@@ -90,9 +92,9 @@ const App = () => {
     <GestureHandlerRootView style={styles.container}>
       <UserProvider>
         <QueryClientProvider client={queryClient}>
-            <PetProvider>
+           <PetProvider>
             <AppInner />
-            </PetProvider>
+          </PetProvider>
           
         </QueryClientProvider>
       </UserProvider>
@@ -106,4 +108,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App; 
+export default App; // ✅ App을 export 해야 함
