@@ -13,7 +13,7 @@ const HomeScreen = () => {
 
   const handleLogout = async () => {
     await logout();
-    navigation.navigate("Login");
+    navigation.navigate("Welcome");
   }
 
   const posts = [

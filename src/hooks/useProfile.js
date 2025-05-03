@@ -53,8 +53,8 @@ const useRemoveProfile = () => {
 
 //전체 프로필 조회
 //쿼리키: 특정 데이터 식별, 캐싱
+//enabled로 자동 실행 막음
 const useViewProfile = () => {
-  console.log("🔥 viewProfiles() 실행됨");
   return useQuery({
     queryKey: ["profiles"], //모든 프로필 목록 데이터
     queryFn: viewProfiles, 

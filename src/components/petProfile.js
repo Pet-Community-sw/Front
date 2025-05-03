@@ -23,6 +23,12 @@ const PetProfile = () => {
 
   const { data: profileDetail, isLoading } = useViewMyPet(selectProfile?.profileId);
 
+  //컴포넌트 실행 시, 프로필 목록 가져옴 useViewProfile
+  useEffect(() => {
+    refetch(); 
+  }, []);
+
+
   //프로필 추가 데이터
   const [formData, setFormData] = useState({
     petImageUrl: "", 
@@ -75,9 +81,6 @@ const PetProfile = () => {
   const {mutate: addMutate} = useAddProfile();
   const {mutate: viewOneProfileMutate} = useViewMyPet();
 
-  useEffect(() => {
-    refetch(); 
-  }, []);
   
   //선택한 프로필 id 가져옴
   useEffect(() => {
@@ -154,7 +157,7 @@ const PetProfile = () => {
     modifyMutate(editData, {
       onSuccess: (data) => {
         Alert.alert("프로필 수정 성공!");
-        queryClient.invalidateQueries(["profiles"]);
+        refetch();
         navigation.navigate("Home");
       }, 
       onError: (err) => {

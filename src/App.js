@@ -9,7 +9,6 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import { UserProvider, UserContext } from "./context/User";
 import { PetProvider } from './context/PetProfiles';
 
-import HomeScreen from "./screens/HomeScreen";
 import SignupScreen from "./screens/SignupScreen";
 import LoginScreen from "./screens/LoginScreen";
 import FindidScreen from "./screens/FindidScreen";
@@ -21,6 +20,7 @@ import LoadingScreen from './components/Loading';
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
+//토큰 여부에 따라 무슨 화면 렌더링할지 정하는 컴포넌트
 const MainNavigator = () => {
   const { token, loading } = useContext(UserContext);
 
@@ -28,14 +28,13 @@ const MainNavigator = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
-      {/* ✅ TabRoot는 항상 등록 */}
+      {token && (
       <Stack.Screen
         name="TabRoot"
         component={TabBar}
         options={{
-          headerShown: token ? true : false, // 로그인 상태에서만 헤더 보이게
           headerStyle: {
-            backgroundColor: "#57B4BA",
+          backgroundColor: "#57B4BA",
           },
           headerTitleAlign: "center",
           headerTitle: () =>
@@ -54,8 +53,9 @@ const MainNavigator = () => {
             ) : null,
         }}
       />
+    )}
 
-      {/* ✅ 비로그인 상태일 때만 인증 관련 스크린들 렌더 */}
+      {/* 비로그인 상태일 때만 인증 관련 스크린들 렌더 */}
       {!token && (
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen}
@@ -74,12 +74,9 @@ const MainNavigator = () => {
   );
 };
 
-
+//토큰 상태 바뀌면 네비게이션 스택 초기화
 const AppInner = () => {
   const { token } = useContext(UserContext);
-
-  
-
   return (
     <NavigationContainer key={token ? "user" : "guest"}>
       <MainNavigator />
@@ -87,17 +84,17 @@ const AppInner = () => {
   );
 };
 
+//앱 전역 환경 설정
 const App = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
-      <UserProvider>
-        <QueryClientProvider client={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
            <PetProvider>
             <AppInner />
           </PetProvider>
-          
-        </QueryClientProvider>
-      </UserProvider>
+        </UserProvider>
+      </QueryClientProvider>
     </GestureHandlerRootView>
   );
 };
@@ -108,4 +105,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default App; // ✅ App을 export 해야 함
+export default App;
