@@ -1,41 +1,35 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  Modal,
-  TextInput
-} from "react-native";
+import React, { useEffect, useState, useCallback } from "react";
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, Modal, TextInput} from "react-native";
+import {useAddPost, useViewPosts} from "../../hooks/usePost"
 import { AntDesign } from "@expo/vector-icons";
+import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
-const samplePost = {
-  postImageUrl:
-    "https://images.unsplash.com/photo-1601758003122-58e2f95c8fdd?auto=format&fit=crop&w=400&q=80",
-  profileId: 1,
-  profileName: "멍냥",
-  profileImageUrl: "/profile/이미지.jpg",
-  title: "테스트 글입니다",
-  timeAgo: "방금 전",
-  viewCount: 0,
-  likeCount: 0
-};
-
-const dummyPosts = Array.from({ length: 30 }, (_, idx) => ({
-  ...samplePost,
-  postId: idx + 1,
-  title: `테스트 글 #${idx + 1}`
-}));
+const PAGE_SIZE = 10;
+const TOTAL_PAGES = Math.ceil(TOTAL_POSTS / PAGE_SIZE);
 
 const PostListScreen = ({ navigation }) => {
-  const PAGE_SIZE = 10;
-  const TOTAL_POSTS = dummyPosts.length;
-  const TOTAL_PAGES = Math.ceil(TOTAL_POSTS / PAGE_SIZE);
+  const navigation = useNavigation();
 
+  const {data: posts = [], refetch} = useViewPosts();
   const [page, setPage] = useState(0);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+
+  //이 컴포넌트가 화면에 다시 나타날 때마다 게시글 목록 새로 가져옴
+  useFocusEffect(
+    useCallback(() => {
+      setPage(0);
+      refetch();
+    }, [])
+  );
+
+  //사용자가 페이지 버튼 눌렀을 때 해당하는 글 목록 보여주기
+  useEffect(() => {
+    refetch();
+  }, [page])
+
+  const {mutate: addMutate} = useAddPost();
+
+  //게시글 추가 데이터
   const [formData, setFormData] = useState({
     postImageFile: "",
     profileId: "",
@@ -43,17 +37,22 @@ const PostListScreen = ({ navigation }) => {
     content: ""
   });
 
-  const resetData = () => {
-    setFormData({ postImageFile: "", profileId: "", title: "", content: "" });
+  const handleAddPost = () => {
+    addMutate(formData, {
+      onSuccess: (data) => {
+        Alert.alert(`게시글 추가 성공! Id: ${data.postId}`);
+        setAddModalVisible(false);
+        navigation.navigate("PostDetail", {postId: data.postId});
+      }, 
+      onError: (err) => {
+        Alert.alert("게시글 추가 실패: ", + err.message);
+      }
+    })
   };
 
-  const posts = dummyPosts.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-
-  const handleAddPost = () => {
-    // 여기서 서버 요청 추가하면 됨
-    console.log("📤 작성된 폼", formData);
-    resetData();
-    setModalVisible(false);
+  //추가 중 닫기 버튼 눌렀을 때, 입력값 초기화
+  const resetData = () => {
+    setFormData({ postImageFile: "", profileId: "", title: "", content: "" });
   };
 
   return (
@@ -80,6 +79,7 @@ const PostListScreen = ({ navigation }) => {
         )}
       />
 
+      {/* 페이지네이션 버튼 생성 */}
       <View style={styles.pagination}>
         {Array.from({ length: TOTAL_PAGES }, (_, idx) => (
           <TouchableOpacity
@@ -91,12 +91,13 @@ const PostListScreen = ({ navigation }) => {
           </TouchableOpacity>
         ))}
       </View>
-
-      <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
+      
+      {/*게시글 추가 모달*/}
+      <TouchableOpacity style={styles.addButton} onPress={() => setAddModalVisible(true)}>
         <AntDesign name="pluscircle" size={56} color="#E78F81" />
       </TouchableOpacity>
-
-      <Modal visible={modalVisible} transparent animationType="slide">
+      
+      <Modal visible={addModalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>게시글 작성</Text>
@@ -114,7 +115,7 @@ const PostListScreen = ({ navigation }) => {
               multiline
             />
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => { resetData(); setModalVisible(false); }}>
+              <TouchableOpacity onPress={() => { resetData(); setAddModalVisible(false); }}>
                 <Text style={styles.cancelText}>취소</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleAddPost}>

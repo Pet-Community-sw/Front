@@ -1,8 +1,8 @@
 //홈 화면 펫 프로필
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useFocusEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, ActivityIndicator, Alert, Button } from "react-native";
 import { Entypo, AntDesign } from '@expo/vector-icons';
-import { useModifyProfile, useRemoveProfile, useAddProfile, useViewMyPet, useViewProfile } from "../hooks/useProfile";
+import { useModifyProfile, useRemoveProfile, useAddProfile, useViewProfile, useViewOneProfile } from "../hooks/useProfile";
 import * as ImagePicker from 'expo-image-picker';
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
@@ -21,13 +21,19 @@ const PetProfile = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
-  const { data: profileDetail, isLoading } = useViewMyPet(selectProfile?.profileId);
+  //특정 프로필 조회 데이터
+  const { data: profileDetail, isLoading } = useViewOneProfile(selectProfile?.profileId);
 
-  //컴포넌트 실행 시, 프로필 목록 가져옴 useViewProfile
-  useEffect(() => {
-    refetch(); 
-  }, []);
+  //이 컴포넌트가 화면에 다시 나타날 때마다 프로필 목록 새로 가져옴
+    useFocusEffect(
+      useCallback(() => {
+        refetch();
+      }, [])
+    );
 
+  const {mutate: modifyMutate} = useModifyProfile();
+  const {mutate: removeMutate} = useRemoveProfile();
+  const {mutate: addMutate} = useAddProfile();
 
   //프로필 추가 데이터
   const [formData, setFormData] = useState({
@@ -74,13 +80,6 @@ const PetProfile = () => {
       });
     }
   };
-  
-
-  const {mutate: modifyMutate} = useModifyProfile();
-  const {mutate: removeMutate} = useRemoveProfile();
-  const {mutate: addMutate} = useAddProfile();
-  const {mutate: viewOneProfileMutate} = useViewMyPet();
-
   
   //선택한 프로필 id 가져옴
   useEffect(() => {
@@ -175,12 +174,14 @@ const PetProfile = () => {
 
   //프로필 추가
   //invalidateQueries 서버 데이터 연동
-  const handlesave = () => {
+  const handleAddProfile = () => {
     const profiles = queryClient.getQueryData(["profiles"] || []);
-    if((profiles || []).length >= maxProfiles) return;
+    if((profiles || []).length >= maxProfiles) {
+      Alert.alert("프로필은 최대 4개까지 등록 가능합니다!");
+    }
     addMutate(formData, {
       onSuccess: (data) => {
-        Alert.alert(`프로필 추가 성공! Id: , ${data.profileId}`);
+        Alert.alert(`프로필 추가 성공! Id: ${data.profileId}`);
         refetch();
         navigation.navigate("Home");
       }, 
@@ -249,7 +250,7 @@ const pickEditImage = () => {
           removeMutate(selectProfile.profileId, {
             onSuccess: () => {
               Alert.alert("프로필이 삭제되었습니다.");
-              queryClient.invalidateQueries(["profiles"]);  //프로필 목록 새로고침
+              refetch();
             }, 
             onError: (err) => {
               alert("오류: ", err.message);
@@ -324,6 +325,7 @@ const pickEditImage = () => {
               <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>이미지 등록</Text>
             </TouchableOpacity>
 
+             {/* 추가한 이미지 미리보기 */} 
             {formData.petImageUrl ? (
               <View style={{ alignItems: 'center', marginBottom: 12 }}>
                 <Text style={{ color: "#666", marginBottom: 6 }}>
@@ -341,8 +343,6 @@ const pickEditImage = () => {
                 />
               </View>
             ) : null}
-
-
         
             <TextInput
               style={styles.input}
@@ -376,7 +376,7 @@ const pickEditImage = () => {
             />
 
             <TouchableOpacity 
-              onPress={handlesave} 
+              onPress={handleAddProfile} 
               disabled={profiles.length >= maxProfiles} 
               style={[styles.petAddButton, { backgroundColor: profiles.length >= maxProfiles ? "gray" : "#99BC85" }]}>
               <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>

@@ -1,6 +1,7 @@
 //게시물 hook
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { addPost, viewOnePost, viewPosts, modifyPost, removePost } from "../api/postApi"; 
+import { FlatList } from "react-native-gesture-handler";
 
 //게시물 추가
 const useAddPost = () => {
@@ -49,8 +50,9 @@ const useRemovePost = () => {
 //게시물 목록 조회
 const useViewPosts = (page = 0) => {
   return useQuery({
-    queryKey: ["posts"], page, 
+    queryKey: ["posts", page], 
     queryFn: () => viewPosts(page), 
+    enabled: false, 
   });
 }
 

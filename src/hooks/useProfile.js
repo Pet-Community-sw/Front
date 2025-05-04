@@ -4,7 +4,7 @@ import { viewProfiles } from "../api/profileApi";
 import { useMutation, useQuery, useQueryClient, } from "@tanstack/react-query";
 import { modifyProfile } from "../api/profileApi";
 import { removeProfile } from "../api/profileApi";
-import { viewMyPet } from "../api/profileApi";
+import { viewOneProfile } from "../api/profileApi";
 
 //프로필 추가
 //setQueryData ui 업데이트
@@ -63,12 +63,12 @@ const useViewProfile = () => {
 }
 
 //특정 프로필 조회
-const useViewMyPet = (profileId) => {
+const useViewOneProfile = (profileId) => {
   return useQuery({
     queryKey: ["profiles", profileId], 
-    queryFn: () => viewMyPet(profileId), 
+    queryFn: () => viewOneProfile(profileId), 
     enabled: !!profileId,
   });
 }
 
-export {useAddProfile, useViewProfile, useModifyProfile, useRemoveProfile, useViewMyPet};
+export {useAddProfile, useViewProfile, useModifyProfile, useRemoveProfile, useViewOneProfile};

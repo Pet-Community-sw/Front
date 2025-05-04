@@ -9,7 +9,9 @@ const addPost = async (formData) => {
 
 //게시물 목록 조회
 const viewPosts = async (page = 0) => {
-  const response = await apiClient.get(`/posts?page=${page}`);
+  const response = await apiClient.get("/posts", {
+    params: {page}, 
+  });
   return response.data;
 }
 

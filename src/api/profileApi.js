@@ -14,7 +14,7 @@ const viewProfiles = async () => {
 }
 
 //특정 프로필 조회
-const viewMyPet = async (profileId) => {
+const viewOneProfile = async (profileId) => {
   const response = await apiClient.get(`/profiles/${profileId}`);
   return response.data;
 }
@@ -31,4 +31,4 @@ const removeProfile = async (profileId) => {
   return response.data;
 }
 
-export {addProfile, viewProfiles, viewMyPet, modifyProfile, removeProfile};
+export {addProfile, viewProfiles, viewOneProfile, modifyProfile, removeProfile};

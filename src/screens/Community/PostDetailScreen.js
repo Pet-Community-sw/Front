@@ -1,37 +1,8 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
-
-// 더미 데이터 사용
-const dummyPost = {
-  postId: 1,
-  title: "안녕하세요",
-  content: "부산 사는 상남자 리트리버입니데이",
-  postImageUrl: "https://images.unsplash.com/photo-1601758123927-1971b1c5bbd5?auto=format&fit=crop&w=800&q=80",
-  viewCount: 0,
-  likeCount: 0,
-  profileId: 1,
-  profileName: "초이선자이",
-  profileImageUrl: "/profile/sample.png",
-  createdAt: "17분 전",
-  owner: true,
-  comments: [
-    {
-      commentId: 2,
-      content: "댓글입니데이~",
-      likeCount: 1,
-      profileId: 1,
-      profileDogName: "/profile/sample2.png",
-      profileImageUrl: "초이선자이",
-      createdAt: "방금 전",
-      postId: 1,
-      owner: true,
-    },
-  ],
-};
+import { useModifyPost, useRemovePost } from "../../hooks/usePost";
 
 const PostDetailScreen = () => {
-  const post = dummyPost; // API 대신 더미 데이터 사용
-
   return (
     <ScrollView style={styles.container}>
       {post.postImageUrl && (
