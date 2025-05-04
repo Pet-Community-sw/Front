@@ -4,14 +4,12 @@ import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, Act
 import { Entypo, AntDesign } from '@expo/vector-icons';
 import { useModifyProfile, useRemoveProfile, useAddProfile, useViewProfile, useViewOneProfile } from "../hooks/useProfile";
 import * as ImagePicker from 'expo-image-picker';
-import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigation } from "@react-navigation/native";
 import { TextInput } from "react-native-gesture-handler";
 
 const maxProfiles = 4;
 
 const PetProfile = () => {
-  const queryClient = useQueryClient();
   const navigation = useNavigation();
 
   //각각의 프로필 데이터 구조 분해 할당
@@ -175,7 +173,6 @@ const PetProfile = () => {
   //프로필 추가
   //invalidateQueries 서버 데이터 연동
   const handleAddProfile = () => {
-    const profiles = queryClient.getQueryData(["profiles"] || []);
     if((profiles || []).length >= maxProfiles) {
       Alert.alert("프로필은 최대 4개까지 등록 가능합니다!");
     }

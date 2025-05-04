@@ -1,8 +1,13 @@
 import React from "react";
 import { View, Text, Image, StyleSheet, ScrollView } from "react-native";
-import { useModifyPost, useRemovePost } from "../../hooks/usePost";
+import { useModifyPost, useRemovePost, useViewOnePost } from "../../hooks/usePost";
 
-const PostDetailScreen = () => {
+const PostDetailScreen = ({route}) => {
+  const {postId} = route.params;
+
+  const {mutate: modifyMutate} = useModifyPost();
+  const {mutate: removeMutate} = useRemovePost();
+
   return (
     <ScrollView style={styles.container}>
       {post.postImageUrl && (
