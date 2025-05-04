@@ -250,7 +250,7 @@ const pickEditImage = () => {
               refetch();
             }, 
             onError: (err) => {
-              alert("오류: ", err.message);
+              Alert.alert("오류: ", err.message);
             }, 
           });
         }, 
