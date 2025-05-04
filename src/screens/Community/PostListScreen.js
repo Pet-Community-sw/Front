@@ -57,6 +57,7 @@ const PostListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* 게시글 목록 */}
       <FlatList
         data={posts}
         keyExtractor={(item) => item.postId.toString()}
