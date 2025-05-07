@@ -11,9 +11,9 @@ const modifyComment = async ({commentId, postId, content}) => {
   return response.data;
 }
 
-const deleteComment = async ({commentId}) => {
+const removeComment = async ({commentId}) => {
   const response = await apiClient.delete(`/comments/${commentId}`);
   return response.data;
 }
 
-export {postComment, modifyComment, deleteComment};
+export {postComment, modifyComment, removeComment};
