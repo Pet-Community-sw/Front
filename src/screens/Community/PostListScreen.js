@@ -4,15 +4,14 @@ import {useAddPost, useViewPosts} from "../../hooks/usePost"
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 
-const PAGE_SIZE = 10;
-const TOTAL_PAGES = Math.ceil(TOTAL_POSTS / PAGE_SIZE);
-
 const PostListScreen = ({ navigation }) => {
-  const navigation = useNavigation();
 
   const {data: posts = [], refetch} = useViewPosts();
   const [page, setPage] = useState(0);
   const [addModalVisible, setAddModalVisible] = useState(false);
+
+  const PAGE_SIZE = 10;
+  const TOTAL_PAGES = Math.ceil(posts.length / PAGE_SIZE);
 
   //이 컴포넌트가 화면에 다시 나타날 때마다 게시글 목록 새로 가져옴
   useFocusEffect(

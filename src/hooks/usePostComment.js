@@ -7,7 +7,7 @@ const usePostComment = () => {
   return useMutation({
     mutationFn: postComment, 
     onSuccess: (response, variable) => {
-      queryClient.invalidateQueries(["comments", variable.postId]);
+      queryClient.invalidateQueries(["posts", variable.postId]);
     }    
   });
 };
@@ -18,7 +18,7 @@ const useModifyComment = () => {
   return useMutation({
     mutationFn: modifyComment, 
     onSuccess: (response, variable) => {
-      queryClient.invalidateQueries(["comments", variable.postId]);
+      queryClient.invalidateQueries(["posts", variable.postId]);
     }
   });
 }
@@ -29,7 +29,7 @@ const useRemoveComment = () => {
   return useMutation({
     mutationFn: removeComment, 
     onSuccess: (response, variable) => {
-      queryClient.invalidateQueries(["comments", variable.postId]);
+      queryClient.invalidateQueries(["posts", variable.postId]);
     }
   })
 };

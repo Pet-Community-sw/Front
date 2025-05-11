@@ -1,11 +1,13 @@
 //홈 화면 펫 프로필
-import React, { useContext, useEffect, useState, useFocusEffect } from "react";
+import React, { useContext, useEffect, useState, } from "react";
+import { useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, ActivityIndicator, Alert, Button } from "react-native";
 import { Entypo, AntDesign } from '@expo/vector-icons';
 import { useModifyProfile, useRemoveProfile, useAddProfile, useViewProfile, useViewOneProfile } from "../hooks/useProfile";
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from "@react-navigation/native";
 import { TextInput } from "react-native-gesture-handler";
+import { useFocusEffect } from "@react-navigation/native";
 
 const maxProfiles = 4;
 

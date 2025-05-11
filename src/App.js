@@ -1,3 +1,4 @@
+/*
 import 'react-native-gesture-handler';
 import React, { useContext, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
@@ -54,8 +55,9 @@ const MainNavigator = () => {
         }}
       />
     )}
-
+*/
       {/* 비로그인 상태일 때만 인증 관련 스크린들 렌더 */}
+      /*
       {!token && (
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen}
@@ -106,3 +108,19 @@ const styles = StyleSheet.create({
 });
 
 export default App;
+*/
+
+
+
+import React from "react";
+import { SafeAreaView } from "react-native";
+import PostDetailMock from "./screens/Community/PostDetailMock";
+
+export default function App() {
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <PostDetailMock />
+    </SafeAreaView>
+  );
+}
+

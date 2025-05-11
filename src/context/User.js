@@ -7,6 +7,7 @@ const UserContext = createContext();
 const UserProvider = ({ children }) => {
   const [token, setToken] = useState(null);
   const [name, setName] = useState(null);
+  const [memberId, setMemberId] = useState(null);
   const [loading, setLoading] = useState(true);
 
   // 앱 실행 시 저장된 토큰 불러오기
@@ -15,10 +16,12 @@ const UserProvider = ({ children }) => {
       try {
         const storedToken = await AsyncStorage.getItem("accessToken");
         const storedName = await AsyncStorage.getItem("name");
+        const storedMemberId = await AsyncStorage.getItem("memberId");
   
         if (storedToken) {
           setToken(storedToken);
           if (storedName) setName(storedName);
+          if (storedMemberId) setMemberId(storedMemberId);
         }
       } catch (e) {
         console.log("유저 데이터 로딩 실패:", e);
@@ -34,11 +37,13 @@ const UserProvider = ({ children }) => {
   
 
   // 로그인 시 토큰 저장
-  const login = async (accessToken, name) => {
+  const login = async (accessToken, name, memberId) => {
     await AsyncStorage.setItem("accessToken", accessToken);
     await AsyncStorage.setItem("name", name);
+    await AsyncStorage.setItem("memberId", memberId);
     setToken(accessToken);
     setName(name);
+    setMemberId(memberId);
   };
 
   // 로그아웃 시 토큰 삭제
@@ -47,10 +52,11 @@ const UserProvider = ({ children }) => {
     setName(null);
     await AsyncStorage.removeItem("accessToken");
     await AsyncStorage.removeItem("name");
+    await AsyncStorage.removeItem("memberId");
   };
 
   return (
-    <UserContext.Provider value={{ token, name, login, logout, loading }}>
+    <UserContext.Provider value={{ token, name, memberId, login, logout, loading }}>
       {children}
     </UserContext.Provider>
   );
