@@ -324,7 +324,7 @@ const pickEditImage = () => {
               <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>이미지 등록</Text>
             </TouchableOpacity>
 
-             {/* 추가한 이미지 미리보기 */} 
+            {/* 추가한 이미지 미리보기 */} 
             {formData.petImageUrl ? (
               <View style={{ alignItems: 'center', marginBottom: 12 }}>
                 <Text style={{ color: "#666", marginBottom: 6 }}>

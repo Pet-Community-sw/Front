@@ -113,14 +113,21 @@ export default App;
 
 
 import React from "react";
-import { SafeAreaView } from "react-native";
-import PostDetailMock from "./screens/Community/PostDetailMock";
+import { NavigationContainer } from "@react-navigation/native";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
+import PostMock from "./screens/Community/PostDetailMock";
+
+const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      <PostDetailMock />
-    </SafeAreaView>
+    <NavigationContainer>
+      <Stack.Navigator>
+        <Stack.Screen name="PostMock" component={PostMock} />
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
+
+
 

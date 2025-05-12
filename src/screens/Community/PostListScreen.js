@@ -72,7 +72,7 @@ const PostListScreen = ({ navigation }) => {
             <View style={styles.textSection}>
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.meta}>
-                {item.profileName} · {item.timeAgo} · 조회수 {item.viewCount} · 좋아요 {item.likeCount}
+                {item.memberImageUrl} · {item.memberName} · {item.timeAgo} · 조회수 {item.viewCount} · 좋아요 {item.likeCount}
               </Text>
             </View>
           </TouchableOpacity>

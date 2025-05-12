@@ -245,7 +245,7 @@ const PostDetailScreen = ({ route }) => {
         <Text style={{ fontSize: 18, fontWeight: "bold" }}>좋아요 목록</Text>
         <ScrollView>
             {likeList?.map((likeList) => (
-              <Text key={likeList.memberName}>{likeList.memberName}</Text>
+              <Text key={likeList.memberImageUrl}>{likeList.memberName}</Text>
             ))}
         </ScrollView>
         <Text onPress={() => setLikeModalVisible(false)}>닫기</Text>
@@ -290,7 +290,7 @@ const PostDetailScreen = ({ route }) => {
             </TouchableOpacity>
             </>
            )}
-            <Text style={styles.commentText}>{comment.content}</Text>
+            <Text style={styles.commentText}>{comment.memberImageUrl}{comment.content}</Text>
             <Text style={styles.commentMeta}>{comment.createdAt}</Text>
           </View>
         ))
