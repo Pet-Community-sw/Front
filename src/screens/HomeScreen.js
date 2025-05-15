@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { UserContext } from "../context/User";
 import { useNavigation } from "@react-navigation/native";
@@ -6,10 +6,14 @@ import PetProfile from "../components/PetProfile";
 import WeatherHeader from "../components/weather";
 import MatchingWidget from "../components/MatchingWidjet"
 import PostListScreen from "./Community/PostListScreen";
+import { NotificationBell, NotificationModal } from "../components/notification";
 
 const HomeScreen = () => {
   const {token, logout, name} = useContext(UserContext);
   const navigation = useNavigation();
+
+  const [isNotiVisible, setNotiVisible] = useState(false);
+  const [notifications, setNotifications] = useState([]);
 
   const handleLogout = async () => {
     await logout();
@@ -29,6 +33,8 @@ const HomeScreen = () => {
         <Text style={styles.welcomeText}>
           {name ? `${name}님 환영합니다!` : "환영합니다!"}
         </Text>
+        <NotificationBell onPress={() => setNotiVisible(true)} />
+        <NotificationModal visible={isNotiVisible} onClose={() => setNotiVisible(false)} notifications={notifications} />
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}> 
           <Text style={styles.logoutText}>로그아웃</Text> 
         </TouchableOpacity>
