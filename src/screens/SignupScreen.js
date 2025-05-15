@@ -66,7 +66,7 @@ const SignupScreen = () => {
     }
   };
 
-  // 펫 이미지 업로드
+  // 회원 이미지 업로드
   const pickImage = () => {
     handleImagePick((imageUri) => {
       setFormData((prevData) => ({
@@ -119,7 +119,7 @@ const SignupScreen = () => {
       </TouchableOpacity>
 
       {/* 추가한 이미지 미리보기 */}
-      {formData.petImageUrl ? (
+      {formData.memberImageUrl ? (
         <View style={{ alignItems: "center", marginBottom: 12 }}>
           <Text style={{ color: "#666", marginBottom: 6 }}>
             선택된 파일: {formData.memberImageUrl.split("/").pop()}

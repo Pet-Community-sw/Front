@@ -1,12 +1,21 @@
 import React, { useEffect, useState, useCallback } from "react";
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity, Modal, TextInput} from "react-native";
-import {useAddPost, useViewPosts} from "../../hooks/usePost"
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+} from "react-native";
+import { useAddPost, useViewPosts } from "../../hooks/usePost";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker"
 
 const PostListScreen = ({ navigation }) => {
-
-  const {data: posts = [], refetch} = useViewPosts();
+  const { data: posts = [], refetch } = useViewPosts();
   const [page, setPage] = useState(0);
   const [addModalVisible, setAddModalVisible] = useState(false);
 
@@ -24,16 +33,16 @@ const PostListScreen = ({ navigation }) => {
   //사용자가 페이지 버튼 눌렀을 때 해당하는 글 목록 보여주기
   useEffect(() => {
     refetch();
-  }, [page])
+  }, [page]);
 
-  const {mutate: addMutate} = useAddPost();
+  const { mutate: addMutate } = useAddPost();
 
   //게시글 추가 데이터
   const [formData, setFormData] = useState({
     postImageFile: "",
     profileId: "",
     title: "",
-    content: ""
+    content: "",
   });
 
   const handleAddPost = () => {
@@ -41,17 +50,50 @@ const PostListScreen = ({ navigation }) => {
       onSuccess: (data) => {
         Alert.alert(`게시글 추가 성공! Id: ${data.postId}`);
         setAddModalVisible(false);
-        navigation.navigate("PostDetail", {postId: data.postId});
-      }, 
+        navigation.navigate("PostDetail", { postId: data.postId });
+      },
       onError: (err) => {
-        Alert.alert("게시글 추가 실패: ", + err.message);
-      }
-    })
+        Alert.alert("게시글 추가 실패: ", +err.message);
+      },
+    });
   };
 
   //추가 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetData = () => {
     setFormData({ postImageFile: "", profileId: "", title: "", content: "" });
+  };
+
+  // 공통 이미지 선택 함수
+  const handleImagePick = async (callback) => {
+    const permissionResult =
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.status !== "granted") {
+      alert("이미지 접근 권한이 필요합니다.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      callback(result.assets[0].uri);
+    } else {
+      console.log("사용자가 선택을 취소함");
+    }
+  };
+
+  // 게시글 이미지 업로드
+  const pickImage = () => {
+    handleImagePick((imageUri) => {
+      setFormData((prevData) => ({
+        ...prevData,
+        postImageFile: imageUri,
+      }));
+    });
   };
 
   return (
@@ -64,15 +106,21 @@ const PostListScreen = ({ navigation }) => {
         renderItem={({ item }) => (
           <TouchableOpacity
             style={styles.card}
-            onPress={() => navigation?.navigate?.("PostDetail", { postId: item.postId })}
+            onPress={() =>
+              navigation?.navigate?.("PostDetail", { postId: item.postId })
+            }
           >
             {item.postImageUrl && (
-              <Image source={{ uri: item.postImageUrl }} style={styles.thumbnail} />
+              <Image
+                source={{ uri: item.postImageUrl }}
+                style={styles.thumbnail}
+              />
             )}
             <View style={styles.textSection}>
               <Text style={styles.title}>{item.title}</Text>
               <Text style={styles.meta}>
-                {item.memberImageUrl} · {item.memberName} · {item.timeAgo} · 조회수 {item.viewCount} · 좋아요 {item.likeCount}
+                {item.memberImageUrl} · {item.memberName} · {item.timeAgo} ·
+                조회수 {item.viewCount} · 좋아요 {item.likeCount}
               </Text>
             </View>
           </TouchableOpacity>
@@ -84,23 +132,64 @@ const PostListScreen = ({ navigation }) => {
         {Array.from({ length: TOTAL_PAGES }, (_, idx) => (
           <TouchableOpacity
             key={idx}
-            style={[styles.pageButton, idx === page && styles.pageButtonSelected]}
+            style={[
+              styles.pageButton,
+              idx === page && styles.pageButtonSelected,
+            ]}
             onPress={() => setPage(idx)}
           >
-            <Text style={[styles.pageText, idx === page && styles.pageTextSelected]}>{idx + 1}</Text>
+            <Text
+              style={[styles.pageText, idx === page && styles.pageTextSelected]}
+            >
+              {idx + 1}
+            </Text>
           </TouchableOpacity>
         ))}
       </View>
-      
+
       {/*게시글 추가 모달*/}
-      <TouchableOpacity style={styles.addButton} onPress={() => setAddModalVisible(true)}>
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => setAddModalVisible(true)}
+      >
         <AntDesign name="pluscircle" size={56} color="#E78F81" />
       </TouchableOpacity>
-      
+
       <Modal visible={addModalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>게시글 작성</Text>
+
+            <TouchableOpacity
+              onPress={pickImage}
+              style={[styles.input, { backgroundColor: "#9ACBD0" }]}
+            >
+              <Text
+                style={{ color: "white", fontSize: 20, textAlign: "center" }}
+              >
+                이미지 등록
+              </Text>
+            </TouchableOpacity>
+
+            {/* 추가한 이미지 미리보기 */}
+            {formData.postImageFile ? (
+              <View style={{ alignItems: "center", marginBottom: 12 }}>
+                <Text style={{ color: "#666", marginBottom: 6 }}>
+                  선택된 파일: {formData.postImageFile.split("/").pop()}
+                </Text>
+                <Image
+                  source={{ uri: formData.postImageFile }}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 8,
+                    borderWidth: 1,
+                    borderColor: "#ccc",
+                  }}
+                />
+              </View>
+            ) : null}
+
             <TextInput
               placeholder="제목"
               value={formData.title}
@@ -110,12 +199,19 @@ const PostListScreen = ({ navigation }) => {
             <TextInput
               placeholder="내용"
               value={formData.content}
-              onChangeText={(text) => setFormData({ ...formData, content: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, content: text })
+              }
               style={[styles.input, { height: 100 }]}
               multiline
             />
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => { resetData(); setAddModalVisible(false); }}>
+              <TouchableOpacity
+                onPress={() => {
+                  resetData();
+                  setAddModalVisible(false);
+                }}
+              >
                 <Text style={styles.cancelText}>취소</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={handleAddPost}>
@@ -136,7 +232,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#FDFAF6",
     paddingHorizontal: 16,
-    paddingTop: 12
+    paddingTop: 12,
   },
   card: {
     backgroundColor: "#fff",
@@ -146,32 +242,32 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     alignItems: "center",
-    elevation: 2
+    elevation: 2,
   },
   thumbnail: {
     width: 60,
     height: 60,
     borderRadius: 8,
-    backgroundColor: "#ddd"
+    backgroundColor: "#ddd",
   },
   textSection: {
-    flex: 1
+    flex: 1,
   },
   title: {
     fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 6
+    marginBottom: 6,
   },
   meta: {
     fontSize: 12,
-    color: "#666"
+    color: "#666",
   },
   pagination: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
     marginTop: 12,
-    flexWrap: "wrap"
+    flexWrap: "wrap",
   },
   pageButton: {
     paddingHorizontal: 12,
@@ -179,41 +275,41 @@ const styles = StyleSheet.create({
     marginHorizontal: 4,
     marginVertical: 4,
     backgroundColor: "#ddd",
-    borderRadius: 6
+    borderRadius: 6,
   },
   pageButtonSelected: {
     backgroundColor: "#E78F81",
-    marginBottom: 40
+    marginBottom: 40,
   },
   pageText: {
     color: "#333",
-    fontWeight: "500"
+    fontWeight: "500",
   },
   pageTextSelected: {
     color: "#fff",
-    fontWeight: "700"
+    fontWeight: "700",
   },
   addButton: {
     position: "absolute",
     bottom: 15,
-    right: 15
+    right: 15,
   },
   modalContainer: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.4)",
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   modalContent: {
     backgroundColor: "white",
     width: "85%",
     padding: 20,
-    borderRadius: 12
+    borderRadius: 12,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: "bold",
-    marginBottom: 12
+    marginBottom: 12,
   },
   input: {
     borderWidth: 1,
@@ -221,18 +317,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    marginBottom: 12
+    marginBottom: 12,
   },
   modalActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 12
+    marginTop: 12,
   },
   cancelText: {
-    color: "#999"
+    color: "#999",
   },
   submitText: {
     color: "#E78F81",
-    fontWeight: "bold"
-  }
+    fontWeight: "bold",
+  },
 });
