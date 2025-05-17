@@ -3,6 +3,8 @@ import { EventSource } from 'react-native-sse';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../config/apiConfig';
 import { Alert } from 'react-native';
+import { useQuery } from '@tanstack/react-query';
+import NotificationList from '../api/notificationApi';
 
 //sse 알림
 const useNotification = (onMessage) => {
@@ -44,4 +46,11 @@ const useNotification = (onMessage) => {
   }, []);
 };
 
-export default useNotification;
+const useNotificationList = () => {
+  return useQuery({
+    queryKey: [notis], 
+    queryFn: NotificationList, 
+  })
+}
+
+export {useNotification, useNotificationList};

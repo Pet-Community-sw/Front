@@ -1,23 +1,23 @@
-
-import 'react-native-gesture-handler';
+/*import "react-native-gesture-handler";
 import React, { useContext, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
-import { StyleSheet, View, Text } from 'react-native';
+import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { StyleSheet, View, Text } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { UserProvider, UserContext } from "./context/User";
-import { PetProvider } from './context/PetProfiles';
-import useNotification from './hooks/useNotification';
+import { PetProvider } from "./context/PetProfiles";
+import useNotification from "./hooks/useNotification";
 
 import SignupScreen from "./screens/SignupScreen";
 import LoginScreen from "./screens/LoginScreen";
 import FindidScreen from "./screens/FindidScreen";
 import FindpasswordScreen from "./screens/FindpasswordScreen";
 import WelcomeScreen from "./screens/WelcomeScreen";
+import NotificationScreen from "./screens/NotificationListScreen";
 import TabBar from "./components/tabBar";
-import LoadingScreen from './components/Loading';
+import LoadingScreen from "./components/Loading";
 
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
@@ -31,57 +31,65 @@ const MainNavigator = () => {
   return (
     <Stack.Navigator screenOptions={{ headerShown: true }}>
       {token && (
-      <Stack.Screen
-        name="TabRoot"
-        component={TabBar}
-        options={{
-          headerStyle: {
-          backgroundColor: "#57B4BA",
-          },
-          headerTitleAlign: "center",
-          headerTitle: () =>
-            token ? (
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <MaterialCommunityIcons
-                  name="paw"
-                  size={22}
-                  color="#FDFBEE"
-                  style={{ marginRight: 6, marginTop: 4 }}
-                />
-                <Text style={{ color: "white", fontSize: 25, fontWeight: "bold" }}>
-                  멍냥로드
-                </Text>
-              </View>
-            ) : null,
-        }}
-      />
-    )}
-
-      {/* 비로그인 상태일 때만 인증 관련 스크린들 렌더 */}
+        <>
+          <Stack.Screen
+            name="TabRoot"
+            component={TabBar}
+            options={{
+              headerStyle: {
+                backgroundColor: "#57B4BA",
+              },
+              headerTitleAlign: "center",
+              headerTitle: () => (
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <MaterialCommunityIcons
+                    name="paw"
+                    size={22}
+                    color="#FDFBEE"
+                    style={{ marginRight: 6, marginTop: 4 }}
+                  />
+                  <Text
+                    style={{
+                      color: "white",
+                      fontSize: 25,
+                      fontWeight: "bold",
+                    }}
+                  >
+                    멍냥로드
+                  </Text>
+                </View>
+              ),
+            }}
+          />
+          <Stack.Screen
+            name="NotificationList"
+            component={NotificationScreen}
+            options={{ title: "🔔 알림 목록" }}
+          />
+        </>
+      )}
+*/
+{/*
       {!token && (
         <>
-          <Stack.Screen name="Welcome" component={WelcomeScreen}
-            options={{ headerBackVisible: true }} />
-          <Stack.Screen name="Signup" component={SignupScreen}
-            options={{ headerBackVisible: true }} />
-          <Stack.Screen name="Login" component={LoginScreen}
-            options={{ headerBackVisible: true }} />
-          <Stack.Screen name="Findid" component={FindidScreen}
-            options={{ headerBackVisible: true }} />
-          <Stack.Screen name="Findpassword" component={FindpasswordScreen}
-            options={{ headerBackVisible: true }} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="Signup" component={SignupScreen} />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="Findid" component={FindidScreen} />
+          <Stack.Screen name="Findpassword" component={FindpasswordScreen} />
         </>
       )}
     </Stack.Navigator>
   );
 };
-
+*/}
+/*
 //토큰 상태 바뀌면 네비게이션 스택 초기화
 const AppInner = () => {
   const { token } = useContext(UserContext);
   return (
     <NavigationContainer key={token ? "user" : "guest"}>
-      {token && <Notification />} 
+      {token && <Notification />}
       <MainNavigator />
     </NavigationContainer>
   );
@@ -91,7 +99,7 @@ const AppInner = () => {
 function Notification() {
   useNotification((data) => {
     Alert.alert("🔔 알림: ", data.message);
-  })
+  });
   return null;
 }
 
@@ -101,7 +109,7 @@ const App = () => {
     <GestureHandlerRootView style={styles.container}>
       <QueryClientProvider client={queryClient}>
         <UserProvider>
-           <PetProvider>
+          <PetProvider>
             <AppInner />
           </PetProvider>
         </UserProvider>
@@ -118,25 +126,21 @@ const styles = StyleSheet.create({
 
 export default App;
 
+*/
 
-
-/*
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import PostMock from "./screens/Community/PostDetailMock";
-
+import Mock from "./screens/MockUI";
 const Stack = createNativeStackNavigator();
 
 export default function App() {
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        <Stack.Screen name="PostMock" component={PostMock} />
+        <Stack.Screen name="PostMock" component={Mock} />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
-*/
-
 

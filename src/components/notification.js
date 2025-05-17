@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, TouchableOpacity, Modal, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 
 const NotificationBell = ({ unreadCount, onPress }) => {
@@ -19,29 +19,5 @@ const NotificationBell = ({ unreadCount, onPress }) => {
   );
 };
 
-const NotificationModal = ({ visible, onClose, notifications }) => {
-  return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={{ flex: 1, backgroundColor: "#00000088", justifyContent: "center", alignItems: "center" }}>
-        <View style={{ backgroundColor: "#fff", borderRadius: 12, width: "80%", padding: 16 }}>
-          <Text style={{ fontWeight: "bold", fontSize: 18, marginBottom: 12 }}>알림 목록</Text>
-          <FlatList
-            data={notifications}
-            keyExtractor={(item, index) => index.toString()}
-            renderItem={({ item }) => (
-              <View style={{ paddingVertical: 8, borderBottomWidth: 0.5, borderColor: "#ccc" }}>
-                <Text>{item.message}</Text>
-                <Text style={{ fontSize: 11, color: "#aaa" }}>{item.createdAt}</Text>
-              </View>
-            )}
-          />
-          <TouchableOpacity onPress={onClose} style={{ marginTop: 16, alignSelf: "center" }}>
-            <Text style={{ color: "#007AFF" }}>닫기</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </Modal>
-  );
-};
 
-export {NotificationBell, NotificationModal};
+export {NotificationBell};

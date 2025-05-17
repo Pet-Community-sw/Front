@@ -1,4 +1,4 @@
-import React, { useContext, useState } from "react";
+import React, { useContext, useState, useEffect } from "react";
 import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
 import { UserContext } from "../context/User";
 import { useNavigation } from "@react-navigation/native";
@@ -6,14 +6,17 @@ import PetProfile from "../components/PetProfile";
 import WeatherHeader from "../components/weather";
 import MatchingWidget from "../components/MatchingWidjet"
 import PostListScreen from "./Community/PostListScreen";
-import { NotificationBell, NotificationModal } from "../components/notification";
+import { NotificationBell, } from "../components/notification";
 
 const HomeScreen = () => {
-  const {token, logout, name} = useContext(UserContext);
-  const navigation = useNavigation();
+  const {token, logout, name, loading} = useContext(UserContext);
+  if (loading) return null; 
+  
+  useEffect(() => {
+  console.log("홈화면에서 받은 name:", name); // ✅ 출력 확인
+  }, [name]);
 
-  const [isNotiVisible, setNotiVisible] = useState(false);
-  const [notifications, setNotifications] = useState([]);
+  const navigation = useNavigation();
 
   const handleLogout = async () => {
     await logout();
@@ -33,8 +36,7 @@ const HomeScreen = () => {
         <Text style={styles.welcomeText}>
           {name ? `${name}님 환영합니다!` : "환영합니다!"}
         </Text>
-        <NotificationBell onPress={() => setNotiVisible(true)} />
-        <NotificationModal visible={isNotiVisible} onClose={() => setNotiVisible(false)} notifications={notifications} />
+        <NotificationBell onPress={() => navigation.navigate("NotificationList")} />
         <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}> 
           <Text style={styles.logoutText}>로그아웃</Text> 
         </TouchableOpacity>
