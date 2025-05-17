@@ -9,6 +9,7 @@ import { StyleSheet, View, Text } from 'react-native';
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import { UserProvider, UserContext } from "./context/User";
 import { PetProvider } from './context/PetProfiles';
+import useNotification from './hooks/useNotification';
 
 import SignupScreen from "./screens/SignupScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -80,10 +81,19 @@ const AppInner = () => {
   const { token } = useContext(UserContext);
   return (
     <NavigationContainer key={token ? "user" : "guest"}>
+      {token && <Notification />} 
       <MainNavigator />
     </NavigationContainer>
   );
 };
+
+//실시간 알림창
+function Notification() {
+  useNotification((data) => {
+    Alert.alert("🔔 알림: ", data.message);
+  })
+  return null;
+}
 
 //앱 전역 환경 설정
 const App = () => {
