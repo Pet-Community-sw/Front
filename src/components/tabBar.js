@@ -5,7 +5,7 @@ import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
 import MapScreen from "../screens/MapScreen";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
-import ChattingScreen from "../screens/ChattingScreen";
+import ChattingScreen from "../screens/Chatting/ChattingScreen";
 import CommunityStack from "../navigations/CommunityStack";
 
 

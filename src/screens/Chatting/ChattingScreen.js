@@ -1,5 +1,6 @@
 import { StyleSheet, Text, View } from "react-native";
 
+//채팅 상세 스크린
 const ChattingScreen = () => {
   return(
     <View style={styles.container}>

@@ -1,7 +1,7 @@
 import { useContext, useEffect, useRef } from 'react';
 import { EventSource } from 'react-native-sse';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BASE_URL } from '../config/apiConfig';
+import { BASE_URL } from '../api/apiClient';
 import * as Notifications from 'expo-notifications';
 import { NotificationContext } from '../context/Notification';
 
