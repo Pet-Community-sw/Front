@@ -1,19 +1,20 @@
 import React from "react";
-import { View, Text, TouchableOpacity, } from "react-native";
+import { View, TouchableOpacity, } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useContext } from "react";
 
-const NotificationBell = ({ unreadCount, onPress }) => {
+const NotificationBell = ({ onPress }) => {
+  const {newNoti} = useContext(NotificationContext);
+
   return (
-    <TouchableOpacity onPress={onPress} style={{ position: "relative", marginRight: -50, marginBottom: 5 }}>
+    <TouchableOpacity onPress={onPress} style={{ position: "relative" }}>
       <Ionicons name="notifications" size={24} color="black" />
-      {unreadCount > 0 && (
+      {newNoti && (
         <View style={{
-          position: "absolute", top: -5, right: -5,
-          backgroundColor: "red", borderRadius: 8,
-          width: 16, height: 16, justifyContent: "center", alignItems: "center"
-        }}>
-          <Text style={{ color: "white", fontSize: 10 }}>{unreadCount}</Text>
-        </View>
+          position: "absolute", top: -4, right: -4,
+          width: 10, height: 10,
+          borderRadius: 5, backgroundColor: "red"
+        }} />
       )}
     </TouchableOpacity>
   );

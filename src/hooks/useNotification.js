@@ -1,11 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { EventSource } from 'react-native-sse';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../config/apiConfig';
 import * as Notifications from 'expo-notifications';
+import { NotificationContext } from '../context/Notification';
 
 //sse 알림
 const useNotification = (onMessage) => {
+  const {setHasNewNoti} = useContext(NotificationContext);  //알림 빨간 뱃지 전역 상태
   const eventSourceRef = useRef(null);  //서버와 연결된 이벤트 객체 저장
   const retryRef = useRef(null);  //자동 재연결을 위한 타이머 반환 id
 
@@ -31,6 +33,7 @@ const useNotification = (onMessage) => {
           trigger: null, //즉시 실행
         });
 
+        setHasNewNoti(true); // 빨간 뱃지 표시 ON
         if (onMessage) onMessage(data);
       });
 

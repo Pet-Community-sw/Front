@@ -1,12 +1,14 @@
-import React, { useFocusEffect, useCallback } from "react";
+import React, { useFocusEffect, useCallback, useContext } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
 import { useNotificationList } from "../hooks/useNotification"; 
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
+import { NotificationContext } from "../context/Notification";
 
 const NotificationScreen = () => {
   const navigation = useNavigation();
   const { data, isLoading, isError, refetch } = useNotificationList(); 
+  const { setNewNoti } = useContext(NotificationContext);
 
   if (isLoading) return <Text style={styles.statusText}>불러오는 중...</Text>;
   if (isError) return <Text style={styles.statusText}>오류가 발생했습니다.</Text>;
@@ -14,6 +16,7 @@ const NotificationScreen = () => {
   useFocusEffect(
     useCallback(() => {
       refetch(); 
+      setNewNoti(false);  //알림 목록 들어오면 빨간 뱃지 끔
     }, [])
   );
 
