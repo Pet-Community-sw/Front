@@ -1,29 +1,39 @@
 import React, { useFocusEffect, useCallback, useContext } from "react";
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
-import { useNotificationList } from "../hooks/useNotification"; 
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TouchableOpacity,
+} from "react-native";
+import { useNotificationList } from "../hooks/useNotification";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { NotificationContext } from "../context/Notification";
 
 const NotificationScreen = () => {
   const navigation = useNavigation();
-  const { data, isLoading, isError, refetch } = useNotificationList(); 
+  const { data, isLoading, isError, refetch } = useNotificationList();
   const { setNewNoti } = useContext(NotificationContext);
 
   if (isLoading) return <Text style={styles.statusText}>불러오는 중...</Text>;
-  if (isError) return <Text style={styles.statusText}>오류가 발생했습니다.</Text>;
+  if (isError)
+    return <Text style={styles.statusText}>오류가 발생했습니다.</Text>;
 
   useFocusEffect(
     useCallback(() => {
-      refetch(); 
-      setNewNoti(false);  //알림 목록 들어오면 빨간 뱃지 끔
+      refetch();
+      setNewNoti(false); //알림 목록 들어오면 빨간 뱃지 끔
     }, [])
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}
+        >
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>🔔 알림 목록</Text>
@@ -36,6 +46,7 @@ const NotificationScreen = () => {
           <View style={styles.item}>
             <Text style={styles.message}>{item.message}</Text>
             <Text style={styles.time}>{item.createdAt}</Text>
+            <Text style={styles.notiTime}>{item.notificationTime}</Text>
           </View>
         )}
       />
@@ -72,9 +83,15 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   time: {
-    color: "#888",
+    color: "#666",
     fontSize: 12,
     marginTop: 4,
+  },
+  notiTime: {
+    color: "#aaa",
+    fontSize: 11,
+    marginTop: 2,
+    fontStyle: "italic",
   },
   statusText: {
     textAlign: "center",
