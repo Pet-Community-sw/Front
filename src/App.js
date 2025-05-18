@@ -1,11 +1,12 @@
-/*import "react-native-gesture-handler";
+import "react-native-gesture-handler";
 import React, { useContext, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StyleSheet, View, Text } from "react-native";
+import { StyleSheet, View, Text, Platform } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
+import * as Notifications from "expo-notifications";
 import { UserProvider, UserContext } from "./context/User";
 import { PetProvider } from "./context/PetProfiles";
 import useNotification from "./hooks/useNotification";
@@ -22,7 +23,44 @@ import LoadingScreen from "./components/Loading";
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
-//토큰 여부에 따라 무슨 화면 렌더링할지 정하는 컴포넌트
+// 알림 권한 요청 및 안드로이드 채널 설정
+const useNotificationSetup = () => {
+  useEffect(() => {
+    const setup = async () => {
+      const { status } = await Notifications.requestPermissionsAsync();
+      if (status !== 'granted') {
+        alert("알림 권한이 없습니다.");
+        return;
+      }
+
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: '기본 채널',
+          importance: Notifications.AndroidImportance.HIGH,
+        });
+      }
+    };
+
+    setup();
+  }, []);
+};
+
+// SSE 알림 수신 후 알림 표시
+function Notification() {
+  useNotification(async (data) => {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: "🔔 알림 도착",
+        body: data.message,
+        sound: "default",
+      },
+      trigger: null,
+    });
+  });
+  return null;
+}
+
+// 로그인 여부에 따라 화면 구성
 const MainNavigator = () => {
   const { token, loading } = useContext(UserContext);
 
@@ -36,9 +74,7 @@ const MainNavigator = () => {
             name="TabRoot"
             component={TabBar}
             options={{
-              headerStyle: {
-                backgroundColor: "#57B4BA",
-              },
+              headerStyle: { backgroundColor: "#57B4BA" },
               headerTitleAlign: "center",
               headerTitle: () => (
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -48,13 +84,7 @@ const MainNavigator = () => {
                     color="#FDFBEE"
                     style={{ marginRight: 6, marginTop: 4 }}
                   />
-                  <Text
-                    style={{
-                      color: "white",
-                      fontSize: 25,
-                      fontWeight: "bold",
-                    }}
-                  >
+                  <Text style={{ color: "white", fontSize: 25, fontWeight: "bold" }}>
                     멍냥로드
                   </Text>
                 </View>
@@ -64,12 +94,11 @@ const MainNavigator = () => {
           <Stack.Screen
             name="NotificationList"
             component={NotificationScreen}
-            options={{ title: "🔔 알림 목록" }}
+            options={{ title: "알림 목록" }}
           />
         </>
       )}
-*/
-{/*
+
       {!token && (
         <>
           <Stack.Screen name="Welcome" component={WelcomeScreen} />
@@ -82,11 +111,11 @@ const MainNavigator = () => {
     </Stack.Navigator>
   );
 };
-*/}
-/*
-//토큰 상태 바뀌면 네비게이션 스택 초기화
+
+// 앱 내부 라우팅 및 알림 초기 설정
 const AppInner = () => {
   const { token } = useContext(UserContext);
+  useNotificationSetup();
   return (
     <NavigationContainer key={token ? "user" : "guest"}>
       {token && <Notification />}
@@ -95,15 +124,7 @@ const AppInner = () => {
   );
 };
 
-//실시간 알림창
-function Notification() {
-  useNotification((data) => {
-    Alert.alert("🔔 알림: ", data.message);
-  });
-  return null;
-}
-
-//앱 전역 환경 설정
+// 앱 전역 설정 
 const App = () => {
   return (
     <GestureHandlerRootView style={styles.container}>
@@ -125,22 +146,3 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-
-*/
-
-import React from "react";
-import { NavigationContainer } from "@react-navigation/native";
-import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import Mock from "./screens/MockUI";
-const Stack = createNativeStackNavigator();
-
-export default function App() {
-  return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="PostMock" component={Mock} />
-      </Stack.Navigator>
-    </NavigationContainer>
-  );
-}
-

@@ -2,9 +2,7 @@ import { useEffect, useRef } from 'react';
 import { EventSource } from 'react-native-sse';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../config/apiConfig';
-import { Alert } from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import NotificationList from '../api/notificationApi';
+import * as Notifications from 'expo-notifications';
 
 //sse 알림
 const useNotification = (onMessage) => {
@@ -19,12 +17,24 @@ const useNotification = (onMessage) => {
       const url = `${BASE_URL}/notifications/subscribe?token=${token}`;
       const eventSource = new EventSource(url);
 
-      eventSource.addEventListener('notification', (event) => {
+      //서버에서 알림 수신
+      eventSource.addEventListener('notification', async (event) => {
         const data = JSON.parse(event.data);  //문자열을 객체로 변환
-        Alert.alert('🔔 알림:', data.message);
+
+        // 상단 알림(푸시 스타일)으로 표시
+        await Notifications.scheduleNotificationAsync({
+          content: {
+            title: '🔔 알림:',
+            body: data.message,
+            sound: 'default',
+          },
+          trigger: null, //즉시 실행
+        });
+
         if (onMessage) onMessage(data);
       });
 
+      //에러 발생 시 연결 종료 후 재연결 시도
       eventSource.addEventListener('error', (err) => {
         console.error('SSE 에러:', err.message);
         eventSource.close();
@@ -46,11 +56,4 @@ const useNotification = (onMessage) => {
   }, []);
 };
 
-const useNotificationList = () => {
-  return useQuery({
-    queryKey: [notis], 
-    queryFn: NotificationList, 
-  })
-}
-
-export {useNotification, useNotificationList};
+export { useNotification };

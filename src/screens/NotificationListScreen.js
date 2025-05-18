@@ -1,15 +1,21 @@
-import React from "react";
+import React, { useFocusEffect, useCallback } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity } from "react-native";
-import { useNotificationList } from "../hooks/useNotification";
+import { useNotificationList } from "../hooks/useNotification"; 
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 
 const NotificationScreen = () => {
   const navigation = useNavigation();
-  const { data, isLoading, isError } = useNotificationList();
+  const { data, isLoading, isError, refetch } = useNotificationList(); 
 
-  if (isLoading) return <Text>불러오는 중...</Text>;
-  if (isError) return <Text>오류가 발생했습니다.</Text>;
+  if (isLoading) return <Text style={styles.statusText}>불러오는 중...</Text>;
+  if (isError) return <Text style={styles.statusText}>오류가 발생했습니다.</Text>;
+
+  useFocusEffect(
+    useCallback(() => {
+      refetch(); 
+    }, [])
+  );
 
   return (
     <View style={styles.container}>
@@ -17,12 +23,12 @@ const NotificationScreen = () => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>알림 목록</Text>
+        <Text style={styles.headerTitle}>🔔 알림 목록</Text>
       </View>
 
       <FlatList
         data={data}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(_, index) => index.toString()}
         renderItem={({ item }) => (
           <View style={styles.item}>
             <Text style={styles.message}>{item.message}</Text>
@@ -66,6 +72,12 @@ const styles = StyleSheet.create({
     color: "#888",
     fontSize: 12,
     marginTop: 4,
+  },
+  statusText: {
+    textAlign: "center",
+    marginTop: 30,
+    fontSize: 16,
+    color: "#999",
   },
 });
 
