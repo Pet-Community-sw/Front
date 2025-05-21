@@ -1,13 +1,9 @@
 import { Client } from "@stomp/stompjs";
-import { w3cwebsocket } from "websocket";
 import { BASE_URL } from "./apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 //웹소켓 연결, 구독, 전송 관리
 
 const SOCKET_URL = BASE_URL.replace("http", "ws") + "/ws-stomp";
-
-//폴리필: 앱에서의 웹소켓을 브라우저 표준처럼 동작하게 만들어줌
-global.WebSocket = w3cwebsocket;
 
 //메시지 구독, 전송, 연결 끊기 등 모든 행동의 중심 객체
 let stompClient = null;  
@@ -42,6 +38,14 @@ export const subscribeChat = (chatRoomId, onMessage) => {
   });
 }
 
+//채팅방 구독 해제
+export const unsubscribeChat = (chatRoomId) => {
+  if(subscribeChat[chatRoomId]) {
+    subscribeChat[chatRoomId].unsubscribeChat();
+    delete subscribeChat[roomId];
+  }
+};
+
 //메시지 전송, message: 서버에 보내는 객체
 export const sendChat = (message) => {
   if(!stompClient) return;
@@ -53,7 +57,7 @@ export const sendChat = (message) => {
 };
 
 //연결 해제
-export const disconnectStomp = () => {
+export const disconnectStomp = async () => {
   if(stompClient) {
     stompClient.deactivate();
     stompClient = null;

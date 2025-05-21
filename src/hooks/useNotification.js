@@ -59,4 +59,4 @@ const useNotification = (onMessage) => {
   }, []);
 };
 
-export { useNotification };
+export default useNotification;

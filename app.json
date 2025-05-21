@@ -19,14 +19,15 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.anonymous.petapp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "fonts": {
       "NanumGothic-Regular": "./assets/fonts/NanumGothic-Regular.ttf"
-    }, 
+    },
     "plugins": [
       "expo-font"
     ]

@@ -1,6 +1,7 @@
 // 로그인 토큰 정보 전역 관리
 import React, { createContext, useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { disconnectStomp } from "../api/stompClient";
 
 const UserContext = createContext();
 
@@ -46,13 +47,14 @@ const UserProvider = ({ children }) => {
     setMemberId(memberId);
   };
 
-  // 로그아웃 시 토큰 삭제
+  // 로그아웃 시 토큰 삭제, 웹소켓 연결 해제
   const logout = async () => {
     setToken(null);
     setName(null);
     await AsyncStorage.removeItem("accessToken");
     await AsyncStorage.removeItem("name");
     await AsyncStorage.removeItem("memberId");
+    await disconnectStomp();
   };
 
   return (
