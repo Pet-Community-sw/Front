@@ -20,6 +20,8 @@ import NotificationScreen from "./screens/NotificationListScreen";
 import TabBar from "./components/tabBar";
 import LoadingScreen from "./components/Loading";
 
+import Mock from "./screens/MockUI";
+
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
@@ -101,7 +103,7 @@ const MainNavigator = () => {
 
       {!token && (
         <>
-          <Stack.Screen name="Welcome" component={WelcomeScreen} />
+          <Stack.Screen name="Welcome" component={Mock} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Findid" component={FindidScreen} />
