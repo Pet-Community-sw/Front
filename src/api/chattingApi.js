@@ -2,8 +2,10 @@ import apiClient from "./apiClient";
 //채팅 api 연동, 개인 or 단체에 따라 조건부로 연동
 
 //채팅방 생성
-const memberChat = async () => {
-    const response = await apiClient.post("/member-chat-rooms");
+const memberChat = async ({memberId}) => {
+    const response = await apiClient.post("/member-chat-rooms", {
+        memberId, 
+    });
     return response.data;
 }
 
@@ -35,11 +37,13 @@ const exitChattingRoom = async ({ memberChatRoomId, chatRoomId, chatRoomType }) 
 }
 
 //채팅 내역 불러오기
-const fetchMessages = async ({ memberChatRoomId, chatRoomId, chatRoomType }) => {
+const fetchMessages = async ({ memberChatRoomId, chatRoomId, chatRoomType, page = 0 }) => {
     const url = chatRoomType === "ONE"
-    ? `/member-chat-rooms/${memberChatRoomId}`
+    ? `/member-chat-rooms/${memberChatRoomId}?`
     : `/chat-rooms/${chatRoomId}`
-    const response = await apiClient.get(url);
+    const response = await apiClient.get(url, {
+        params: { page }, 
+    });
     return response.data;
 }
 
