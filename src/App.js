@@ -10,6 +10,8 @@ import * as Notifications from "expo-notifications";
 import { UserProvider, UserContext } from "./context/User";
 import { PetProvider } from "./context/PetProfiles";
 import useNotification from "./hooks/useNotification";
+import { ChatProvider } from "./context/Chatting";
+import { NotificationProvider } from "./context/Notification";
 
 import SignupScreen from "./screens/SignupScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -132,9 +134,13 @@ const App = () => {
     <GestureHandlerRootView style={styles.container}>
       <QueryClientProvider client={queryClient}>
         <UserProvider>
-          <PetProvider>
-            <AppInner />
-          </PetProvider>
+          <NotificationProvider>
+            <PetProvider>
+              <ChatProvider>
+                <AppInner />
+              </ChatProvider>
+            </PetProvider>
+          </NotificationProvider>
         </UserProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
