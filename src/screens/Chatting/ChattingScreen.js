@@ -1,58 +1,47 @@
-import React, {useEffect, useState, useContext} from "react";
+import React, { useEffect, useContext, useRef, useState } from "react";
+import {
+  StyleSheet,
+  TextInput,
+  Text,
+  View,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
 import { UserContext } from "../../context/User";
-import { StyleSheet, TextInput, Text, View, TouchableOpacity } from "react-native";
-import { connectStomp, subscribeChat, unsubscribeChat, sendChat, disconnectStomp } from "../../api/stompClient";
-import { FlatList, } from "react-native-gesture-handler";
-import apiClient from "../../api/apiClient";
+import {
+  sendChat,
+  subscribeChat,
+  unsubscribeChat,
+} from "../../api/stompClient";
+import { useFetchMessages } from "../../hooks/useChatting";
 
-//채팅 상세 스크린
-const ChattingScreen = ({route}) => {
-  const {chatRoomId, chatName, chatRoomType} = route.params;
-  const {loggedId, name} = useContext(UserContext);
+const ChattingScreen = ({ route }) => {
+  const { chatRoomId, chatName, chatRoomType } = route.params;
+  const { loggedId, name } = useContext(UserContext);
+  const flatListRef = useRef(null);
 
-  const [messages, setMessages] = useState([]);   //채팅 기록
-  const [input, setInput] = useState("");   //입력창 상태
-  const [enter, setEnter] = useState(false);  //채팅방 들낙
+  const [input, setInput] = useState("");
+  const [enter, setEnter] = useState(false);
 
   //채팅 내역 불러오기
-  useEffect(() => {
-    const fetchMessages = async () => {
-      try {
-        const res = await apiClient.get(`/chat-rooms/${chatRoomId}`)
-      }
-      catch (err) {
-        console.log("채팅 내역 불러오기 실패", err);
-      }
-    };
+  const {
+    data: messagesData = [],
+    refetch: refetchMessages,
+  } = useFetchMessages({ chatRoomId, chatRoomType });
 
-    fetchMessages();
+  // 채팅방 입장 시 메시지 불러오기
+  useEffect(() => {
+    refetchMessages();
   }, [chatRoomId]);
 
-  //메시지 전송
-  const handleSend = () => {
-    if (!input.trim()) return;
-    const talkMessage = {
-      id, 
-      messageType: "TALK", 
-      chatRoomType, 
-      chatRoomId,
-      senderId: loggedId, 
-      senderName: name,
-      message: input,   
-    };
-
-    sendChat(talkMessage);
-    setInput("");
-  }
-
-  //채팅방 구독, 입장 메시지
+  // 입장 처리 및 실시간 메시지 구독
   useEffect(() => {
     if (!enter) {
       const enterMessage = {
-        messageType: "ENTER", 
-        chatRoomType, 
+        messageType: "ENTER",
+        chatRoomType,
         chatRoomId,
-        senderId: loggedId, 
+        senderId: loggedId,
         senderName: name,
         message: "",
       };
@@ -61,57 +50,96 @@ const ChattingScreen = ({route}) => {
     }
 
     subscribeChat(chatRoomId, (message) => {
-      setMessages((prev) => [...prev, message]);
+      refetchMessages();    //수신된 메시지가 생기면 다시 메시지 조회
     });
 
-    return() => {
+    //컴포넌트 언마운트 시 구독 해제
+    return () => {
       const leaveMessage = {
-        messageType: "LEAVE", 
-        chatRoomType, 
+        messageType: "LEAVE",
+        chatRoomType,
         chatRoomId,
-        senderId: loggedId, 
+        senderId: loggedId,
         senderName: name,
         message: "",
       };
-
       sendChat(leaveMessage);
-      unsubscribeChat(chatRoomId);   //해당 채팅방 나가면 구독만 해제
+      unsubscribeChat(chatRoomId);
     };
   }, [chatRoomId]);
 
-  //메시지 렌더링
+  // 메시지 도착 시 자동 스크롤
+  useEffect(() => {
+    flatListRef.current?.scrollToEnd({ animated: true });
+  }, [messagesData]);
+
+  // 메시지 전송
+  const handleSend = () => {
+    if (!input.trim()) return;
+
+    const talkMessage = {
+      messageType: "TALK",
+      chatRoomType,
+      chatRoomId,
+      senderId: loggedId,
+      senderName: name,
+      message: input,
+    };
+
+    try {
+      sendChat(talkMessage);
+      setInput("");
+    } catch (err) {
+      console.log("메시지 전송 실패", err);
+    }
+  };
+
+  // 메시지 렌더링
   const renderMessage = ({ item }) => {
-    if (chatRoomType === "MANY" && item.messageType === "ENTER") {
-      return (
-        <Text style={styles.systemMessage}>
-          {item.senderName} 님이 입장했습니다.
-        </Text>
-      );
+    const type = item.messageType || "TALK";
+
+    if (type === "ENTER" && item.senderId === loggedId) {
+      return <Text style={styles.systemMessage}>입장하였습니다.</Text>;
     }
 
-    if (chatRoomType === "MANY" && item.messageType === "LEAVE") {
-      return (
-        <Text style={styles.systemMessage}>
-          {item.senderName} 님이 퇴장했습니다.
-        </Text>
-      );
+    if (chatRoomType === "MANY") {
+      if (type === "ENTER") {
+        return (
+          <Text style={styles.systemMessage}>
+            {item.senderName} 님이 입장했습니다.
+          </Text>
+        );
+      }
+      if (type === "LEAVE") {
+        return (
+          <Text style={styles.systemMessage}>
+            {item.senderName} 님이 퇴장했습니다.
+          </Text>
+        );
+      }
     }
 
     return (
       <View style={styles.messageItem}>
         <Text style={styles.sender}>{item.senderName}</Text>
         <Text>{item.message}</Text>
-        <Text style={styles.time}>{item.messageTime}</Text>
+        <Text style={styles.time}>
+          {item.messageTime || item.createdAt || ""}
+        </Text>
       </View>
     );
   };
 
+
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>{chatRoomType === "ONE" ? name : chatName}</Text>
+      <Text style={styles.title}>
+        {chatRoomType === "ONE" ? name : chatName}
+      </Text>
 
       <FlatList
-        data={messages}
+        ref={flatListRef}
+        data={messagesData}
         keyExtractor={(_, idx) => String(idx)}
         renderItem={renderMessage}
         style={styles.list}
