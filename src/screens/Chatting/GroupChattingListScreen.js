@@ -28,6 +28,7 @@ const GroupChattingListScreen = ({ navigation }) => {
               navigation.navigate("Chatting", {
                 chatRoomId: item.chatRoomId,
                 chatRoomType: "MANY",
+                chatName: item.chatName, 
               });
             }}
             style={{
