@@ -121,6 +121,7 @@ const ChattingScreen = ({ route }) => {
 
     return (
       <View style={styles.messageItem}>
+        <Image source={{ uri: item.senderImageUrl }} style={styles.profileImage} />
         <Text style={styles.sender}>{item.senderName}</Text>
         <Text>{item.message}</Text>
         <Text style={styles.time}>
@@ -171,6 +172,12 @@ const styles = StyleSheet.create({
   list: { flex: 1 },
   messageItem: {
     marginBottom: 10,
+  },
+  profileImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#ccc",
   },
   sender: {
     fontWeight: "bold",
