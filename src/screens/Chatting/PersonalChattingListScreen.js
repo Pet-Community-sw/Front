@@ -2,7 +2,7 @@
 
 //navigation.navigate("/")
 
-const personalChattingListScreen = () => {
+const PersonalChattingListScreen = () => {
   return(
     <View>
 
@@ -10,4 +10,4 @@ const personalChattingListScreen = () => {
   )
 }
 
-export default personalChattingListScreen;
+export default PersonalChattingListScreen;

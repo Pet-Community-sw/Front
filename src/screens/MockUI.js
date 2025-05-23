@@ -1,101 +1,92 @@
 import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import { View, TouchableOpacity, Text, FlatList, StyleSheet } from "react-native";
 
-// 더미 채팅 데이터
-const dummyMessages = Array.from({ length: 10 }, (_, idx) => ({
-  id: idx,
-  senderName: idx % 2 === 0 ? "나" : "상대방",
-  message: `테스트 메시지 #${idx + 1}`,
-  messageTime: `${idx + 1}분 전`,
+// 더미 채팅방 데이터
+const dummyChatRooms = Array.from({ length: 5 }, (_, idx) => ({
+  chatRoomId: idx + 1,
+  chatName: `산책 그룹 ${idx + 1}`,
+  crrentCount: Math.floor(Math.random() * 5) + 1,
+  chatLimitCount: 5,
+  lastMessage: `마지막 메시지 예시 ${idx + 1}`,
+  lastMessageTime: `${idx + 1}시간 전`,
+  unReadCount: idx % 2 === 0 ? 0 : Math.floor(Math.random() * 5) + 1,
 }));
 
-const Mock = () => {
-  const renderMessage = ({ item }) => {
-    const isMine = item.senderName === "나";
-
-    return (
-      <View
-        style={[
-          styles.messageRow,
-          isMine ? styles.myMessageRow : styles.otherMessageRow,
-        ]}
-      >
-        <View style={[styles.bubble, isMine ? styles.myBubble : styles.otherBubble]}>
-          <Text style={styles.messageText}>{item.message}</Text>
-          <Text style={[styles.time, isMine ? styles.timeRight : styles.timeLeft]}>
-            {item.messageTime}
-          </Text>
-        </View>
-      </View>
-    );
-  };
-
+const MockGroupChattingListScreen = () => {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>💬 채팅 미리보기</Text>
       <FlatList
-        data={dummyMessages}
-        keyExtractor={(item) => item.id.toString()}
+        data={dummyChatRooms}
+        keyExtractor={(item) => item.chatRoomId.toString()}
         contentContainerStyle={{ paddingBottom: 32 }}
-        renderItem={renderMessage}
+        ItemSeparatorComponent={() => (
+          <View style={styles.separator} />
+        )}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.chatCard}>
+            <Text style={styles.chatName}>
+              {item.chatName} ({item.crrentCount}/{item.chatLimitCount})
+            </Text>
+            <Text numberOfLines={1} style={styles.lastMessage}>
+              {item.lastMessage || "메시지 없음"}
+            </Text>
+            <Text style={styles.timeText}>
+              {item.lastMessageTime}
+              {item.unReadCount > 0 && `  ·  안읽음 ${item.unReadCount}개`}
+            </Text>
+          </TouchableOpacity>
+        )}
       />
+
+      <TouchableOpacity style={styles.button}>
+        <Text style={styles.buttonText}>개인 채팅방 보기</Text>
+      </TouchableOpacity>
     </View>
   );
 };
 
+export default MockGroupChattingListScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#FDFAF6",
+    backgroundColor: "#fff",
+    padding: 16,
+  },
+  chatCard: {
+    flexDirection: "column",
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    paddingTop: 16,
+    backgroundColor: "#f9f9f9",
+    borderRadius: 8,
   },
-  title: {
-    fontSize: 20,
+  chatName: {
+    fontSize: 16,
     fontWeight: "bold",
-    marginBottom: 12,
-    textAlign: "center",
-    color: "#333",
+    marginBottom: 4,
   },
-  messageRow: {
-    flexDirection: "row",
-    marginBottom: 12,
+  lastMessage: {
+    color: "#666",
+    marginBottom: 2,
   },
-  myMessageRow: {
-    justifyContent: "flex-end",
+  timeText: {
+    fontSize: 12,
+    color: "#aaa",
   },
-  otherMessageRow: {
-    justifyContent: "flex-start",
+  separator: {
+    height: 1,
+    backgroundColor: "#eee",
+    marginVertical: 8,
   },
-  bubble: {
-    maxWidth: "75%",
-    borderRadius: 16,
+  button: {
+    marginTop: 16,
     padding: 12,
+    backgroundColor: "#0066cc",
+    borderRadius: 8,
+    alignItems: "center",
   },
-  myBubble: {
-    backgroundColor: "#007AFF",
-    borderTopRightRadius: 0,
-  },
-  otherBubble: {
-    backgroundColor: "#E5E5EA",
-    borderTopLeftRadius: 0,
-  },
-  messageText: {
+  buttonText: {
     color: "#fff",
-    fontSize: 15,
-  },
-  time: {
-    fontSize: 10,
-    marginTop: 4,
-  },
-  timeRight: {
-    textAlign: "right",
-    color: "#d9edff",
-  },
-  timeLeft: {
-    textAlign: "left",
-    color: "#555",
+    fontWeight: "bold",
   },
 });
-
-export default Mock;

@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { useAddPost, useViewPosts } from "../../hooks/usePost";
 import { AntDesign } from "@expo/vector-icons";
-import { useNavigation, useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker"
 
 const PostListScreen = ({ navigation }) => {
