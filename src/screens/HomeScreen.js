@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   },
   section: {
     marginBottom: 10,
-    marginTop: 10, 
+    marginTop: 10,
   },
   sectionTitle: {
     fontSize: 25,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     fontFamily: "cute",
     marginBottom: 12,
     marginLeft: 3,
-    marginTop: 5, 
+    marginTop: 5,
   },
   buttonRow: {
     flexDirection: "row",

@@ -68,7 +68,27 @@ const TabBar = () => {
             backgroundColor: "#57B4BA",
           },
         }}></Tab.Screen>
-      <Tab.Screen name="Community" component={CommunityStack}></Tab.Screen>
+      <Tab.Screen name="Community" component={CommunityStack}
+      options={{
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerTitle: () => (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <MaterialCommunityIcons
+                name="paw"
+                size={22}
+                color="#FDFBEE"
+                style={{ marginRight: 6, marginTop: 4 }}
+              />
+              <Text style={{ color: "white", fontSize:40, fontFamily: 'cute'}}>
+                멍냥로드
+              </Text>
+            </View>
+          ),
+          headerStyle: {
+            backgroundColor: "#57B4BA",
+          },
+        }}></Tab.Screen>
       <Tab.Screen name="Map" component={MapScreen}></Tab.Screen>
       <Tab.Screen name="Chatting" component={GroupChattingListScreen}></Tab.Screen>
     </Tab.Navigator>
