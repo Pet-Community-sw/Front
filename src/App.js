@@ -71,7 +71,7 @@ const MainNavigator = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {token && (
         <>
           <Stack.Screen
@@ -105,7 +105,7 @@ const MainNavigator = () => {
 
       {!token && (
         <>
-          <Stack.Screen name="Welcome" component={Mock} />
+          <Stack.Screen name="Welcome" component={WelcomeScreen} />
           <Stack.Screen name="Signup" component={SignupScreen} />
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Findid" component={FindidScreen} />

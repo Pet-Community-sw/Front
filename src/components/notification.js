@@ -2,6 +2,7 @@ import React from "react";
 import { View, TouchableOpacity, } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useContext } from "react";
+import { NotificationContext } from "../context/Notification";
 
 const NotificationBell = ({ onPress }) => {
   const {newNoti} = useContext(NotificationContext);
