@@ -1,195 +1,269 @@
-import React, { useContext, useState, useEffect } from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
-import { UserContext } from "../context/User";
+import React, { useContext } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  FlatList,
+  ScrollView,
+} from "react-native";
 import { useNavigation } from "@react-navigation/native";
-import PetProfile from "../components/PetProfile";
-import WeatherHeader from "../components/weather";
-import MatchingWidget from "../components/MatchingWidjet"
-import PostListScreen from "./Community/PostListScreen";
-import { NotificationBell, } from "../components/notification";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+
+import { UserContext } from "../context/User";
+import { NotificationBell } from "../components/notification";
+
+const pet = {
+  name: "멍멍이",
+  birthdate: "2025-05-24",
+};
+
+const posts = [
+  { id: 1, title: "오늘 강아지랑 한강 다녀왔어요!", author: "효빈", date: "2025.04.21", likes: 12, comments: 3 },
+  { id: 2, title: "산책로 추천해주세요~", author: "댕댕맘", date: "2025.04.20", likes: 5, comments: 1 },
+];
 
 const HomeScreen = () => {
-  const {token, logout, name, loading} = useContext(UserContext);
-  if (loading) return null; 
-  
-  useEffect(() => {
-  console.log("홈화면에서 받은 name:", name); // ✅ 출력 확인
-  }, [name]);
-
+  const { logout, loading } = useContext(UserContext);
   const navigation = useNavigation();
+
+  if (loading) return null;
 
   const handleLogout = async () => {
     await logout();
     navigation.navigate("Welcome");
-  }
+  };
 
-  const posts = [
-    { id: 1, title: "오늘 강아지랑 한강 다녀왔어요!", author: "효빈", date: "2025.04.21" },
-    { id: 2, title: "산책로 추천해주세요~", author: "댕댕맘", date: "2025.04.20" },
-  ];
-  
+  const today = new Date().toISOString().slice(5, 10);
+  const isBirthday = pet.birthdate?.slice(5, 10) === today;
 
-  return(
-    <View style={styles.container}> 
-      {token !== undefined && (
+  return (
+    <ScrollView style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.welcomeText}>
-          {name ? `${name}님 환영합니다!` : "환영합니다!"}
+        <Text style={styles.headerInfoText}>5월 24일 ☀️ 맑음 24º</Text>
+        <View style={styles.rightHeader}>
+          <NotificationBell onPress={() => navigation.navigate("NotificationList")} />
+          <TouchableOpacity onPress={() => navigation.navigate("MyProfile")} style={styles.iconBtn}>
+            <MaterialIcons name="person" size={28} color="#333" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}>
+            <Text style={styles.logoutText}>로그아웃</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.petGreetingBox}>
+        <Text style={styles.petGreetingText}>
+          {isBirthday
+            ? `🎉 오늘은 ${pet.name}의 생일이에요! 축하합니다 🥳`
+            : `오늘도 ${pet.name}와 좋은 하루 보내세요 💛`}
         </Text>
-        <NotificationBell onPress={() => navigation.navigate("NotificationList")} />
-        <TouchableOpacity onPress={handleLogout} style={styles.logoutButton}> 
-          <Text style={styles.logoutText}>로그아웃</Text> 
-        </TouchableOpacity>
-      </View>
-)}
-      <View style={styles.weather}>
-        <WeatherHeader></WeatherHeader>
       </View>
 
-      <View style={styles.petList}>
-        <PetProfile></PetProfile>
-      </View>
 
-      <View style={styles.matching}>
-        <MatchingWidget></MatchingWidget>
-      </View>
-
-      <View style={styles.community}>
-      <Text style={styles.sectionTitle}>Community 💬</Text>
-        {posts.slice(0, 3).map((post) => (
-          <View key={post.id} style={styles.postPreview}>
-            <Text style={styles.postTitle}>{post.title}</Text>
-            <Text style={styles.postMeta}>
-              {post.author} · {post.date}
-            </Text>
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>🐾 내 반려동물</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.petItem}>
+            <View style={styles.placeholderCircle} />
+            <Text style={styles.petName}>{pet.name}</Text>
           </View>
-        ))}
+        </ScrollView>
       </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>📍 산책 기능 바로가기</Text>
+        <View style={styles.buttonRow}>
+          <IconButton icon="paw" label="산책 매칭" onPress={() => navigation.navigate("Matching")} />
+          <IconButton icon="run" label="대리 산책자" onPress={() => navigation.navigate("Walker")} />
+          <IconButton icon="map" label="산책길 추천" onPress={() => navigation.navigate("MapRoute")} />
+        </View>
+      </View>
+
+      <View style={styles.divider} />
+
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>💬 커뮤니티</Text>
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.id.toString()}
+          scrollEnabled={false}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              style={styles.threadCard}
+              onPress={() => navigation.navigate("PostDetail", { postId: item.id })}
+            >
+              <Text style={styles.threadTitle}>{item.title}</Text>
+              <View style={styles.threadMetaRow}>
+                <View style={styles.threadActions}>
+                  <MaterialCommunityIcons name="heart" size={16} color="#F47C7C" />
+                  <Text style={styles.metaText}>{item.likes}</Text>
+                  <MaterialCommunityIcons name="comment-outline" size={16} color="#4A7B9D" style={{ marginLeft: 12 }} />
+                  <Text style={styles.metaText}>{item.comments}</Text>
+                </View>
+                <Text style={styles.metaText}>{item.date} · {item.author}</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+    </ScrollView>
+  );
+};
+
+const IconButton = ({ icon, label, onPress }) => (
+  <TouchableOpacity style={styles.iconButton} onPress={onPress}>
+    <View style={styles.iconCircle}>
+      <MaterialCommunityIcons name={icon} size={26} color="#6D9886" />
     </View>
-  )
-}
+    <Text style={styles.iconLabel}>{label}</Text>
+  </TouchableOpacity>
+);
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
-    justifyContent: "center", 
-    alignItems: "center", 
-    backgroundColor: "white",
-    paddingBottom: 10,
+    flex: 1,
+    backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
-  }, 
+  },
   headerRow: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "flex-end",
     alignItems: "center",
-    width: "100%",  // 가로 꽉 차게
-    paddingHorizontal: 20,
-    marginTop: 25,
-  },  
+    marginTop: 20,
+    marginBottom: 10,
+  },
+  headerInfoText: {
+    fontSize: 14,
+    color: "#444",
+    fontFamily: "font",
+    flex: 1,
+    marginLeft: 15
+  },
+  rightHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  iconBtn: {
+    padding: 4,
+  },
   logoutButton: {
-    backgroundColor: "#E78F81",  
+    backgroundColor: "#F7B4C3",
     paddingVertical: 6,
     paddingHorizontal: 13,
     borderRadius: 8,
-    marginTop: -0,
-    marginRight: 10, 
-    alignSelf: "flex-end",
-    top: -7, 
-  }, 
+  },
   logoutText: {
-    color: "#FDFAF6",            
+    color: "#fff",
     fontWeight: "600",
     fontSize: 13,
-  }, 
-  weather: {
-    marginTop: 7,
-  }, 
-  petList: {
-    flex: 1.2,
-    width: "100%", 
-    justifyContent: "center", 
-    alignItems: "center", 
-    backgroundColor: "#FAF1E6", // 베이지
-    borderRadius: 20,
-    marginVertical: 10,
-    padding: 15,
-    shadowColor: "#99BC85",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-  }, 
-  matching: {
-    flex: 2,
-    width: "100%", 
-    justifyContent: "center", 
-    alignItems: "flex-start", 
-    backgroundColor: "#E4EFE7", // 연한 민트 그린
-    borderRadius: 20,
-    marginVertical: 10,
-    padding: 15,
-    shadowColor: "#99BC85",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
-    height: "auto"
-  }, 
-  community: {
-    flex: 2,
-    width: "100%", 
-    justifyContent: "center", 
-    alignItems: "center", 
-    backgroundColor: "#99BC85", // 세이지 그린
-    borderRadius: 20,
-    marginVertical: 10,
-    padding: 15,
-    shadowColor: "#99BC85",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  welcomeText: {
-    fontSize: 20, 
-    fontWeight: "bold",
-    color: "#99BC85", // 세이지 그린
-    marginBottom: 8,
-    marginTop: -10, 
-    marginLeft: 30, 
+  petGreetingBox: {
+    backgroundColor: "#F7F7F7",
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 16,
+    alignSelf: "flex-start",
+    marginLeft: 5,
+    borderWidth: 1,
+    borderColor: "#7EC8C2",
+  },
+  petGreetingText: {
+    fontSize: 14,
+    color: "#333",
+    fontFamily: "font",
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#D2E0DC",
+    marginVertical: 10,
+    marginHorizontal: 4,
+  },
+  section: {
+    marginBottom: 10,
+    marginTop: 10, 
   },
   sectionTitle: {
     fontSize: 25,
-    fontWeight: "600",
-    color: "black", // 아이보리 (텍스트)
-    marginBottom: 7,
-    alignSelf: "flex-start", 
-    marginLeft: "10", 
-    marginTop: "5", 
-  }, 
-  postPreview: {
-    width: "100%",
-    backgroundColor: "#FDFAF6", // 아이보리
+    color: "black",
+    fontFamily: "cute",
+    marginBottom: 12,
+    marginLeft: 3,
+    marginTop: 5, 
+  },
+  buttonRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  iconButton: {
+    alignItems: "center",
+    padding: 8,
+  },
+  iconCircle: {
+    backgroundColor: "#F3F4F6",
     padding: 10,
-    borderRadius: 10,
-    marginBottom: 5,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: 100,
   },
-  postTitle: {
-    fontSize: 12,
-    fontWeight: "bold",
+  iconLabel: {
+    marginTop: 6,
+    fontSize: 13,
     color: "#333",
+    fontFamily: "font",
   },
-  postMeta: {
+  petItem: {
+    alignItems: "center",
+    marginRight: 16,
+    marginLeft: 10,
+  },
+  placeholderCircle: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 2,
+    borderColor: "#6B7B8C",
+  },
+  petName: {
+    marginTop: 6,
+    fontSize: 17,
+    color: "#333",
+    fontFamily: "cute",
+  },
+  threadCard: {
+    backgroundColor: "#FDFDFD",
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 2,
+    marginHorizontal: 5,
+  },
+  threadTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 10,
+    color: "#2C3E50",
+  },
+  threadMetaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  threadActions: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  metaText: {
     fontSize: 12,
-    color: "#777",
-    marginTop: 4,
+    color: "#6B7B8C",
+    marginLeft: 4,
   },
-  
-})
+});
 
 export default HomeScreen;

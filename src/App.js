@@ -4,7 +4,7 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { StyleSheet, View, Text, Platform } from "react-native";
+import { StyleSheet, View, Text, Platform, StatusBar } from "react-native";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons";
 import * as Notifications from "expo-notifications";
 import { UserProvider, UserContext } from "./context/User";
@@ -73,29 +73,14 @@ const MainNavigator = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: true }}>
       {token && (
         <>
           <Stack.Screen
             name="TabRoot"
             component={TabBar}
             options={{
-              headerShown: true, 
-              headerStyle: { backgroundColor: "#57B4BA" },
-              headerTitleAlign: "center",
-              headerTitle: () => (
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <MaterialCommunityIcons
-                    name="paw"
-                    size={22}
-                    color="#FDFBEE"
-                    style={{ marginRight: 6, marginTop: 4 }}
-                  />
-                  <Text style={{ color: "white", fontSize: 25, fontWeight: "bold" }}>
-                    멍냥로드
-                  </Text>
-                </View>
-              ),
+              headerShown: false
             }}
           />
           <Stack.Screen
@@ -144,6 +129,10 @@ const App = () => {
 
   return (
     <GestureHandlerRootView style={styles.container}>
+      <StatusBar
+        backgroundColor="black"
+        barStyle="light-content"  // ← 흰 배경이면 dark-content / 어두운 배경이면 light-content
+      />
       <QueryClientProvider client={queryClient}>
         <UserProvider>
           <NotificationProvider>
