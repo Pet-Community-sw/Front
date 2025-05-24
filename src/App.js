@@ -12,6 +12,7 @@ import { PetProvider } from "./context/PetProfiles";
 import useNotification from "./hooks/useNotification";
 import { ChatProvider } from "./context/Chatting";
 import { NotificationProvider } from "./context/Notification";
+import { useFonts } from "expo-font";
 
 import SignupScreen from "./screens/SignupScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -21,6 +22,7 @@ import WelcomeScreen from "./screens/WelcomeScreen";
 import NotificationScreen from "./screens/NotificationListScreen";
 import TabBar from "./components/tabBar";
 import LoadingScreen from "./components/Loading";
+
 
 import Mock from "./screens/MockUI";
 
@@ -78,6 +80,7 @@ const MainNavigator = () => {
             name="TabRoot"
             component={TabBar}
             options={{
+              headerShown: true, 
               headerStyle: { backgroundColor: "#57B4BA" },
               headerTitleAlign: "center",
               headerTitle: () => (
@@ -130,6 +133,14 @@ const AppInner = () => {
 
 // 앱 전역 설정 
 const App = () => {
+  const [fontsLoaded] = useFonts({
+    font: require("./assets/fonts/font.ttf"),
+    fontBold: require("./assets/fonts/fontBold.ttf"),
+    cute: require("./assets/fonts/cute.ttf"),
+  });
+
+  if (!fontsLoaded) return <LoadingScreen />;
+
   return (
     <GestureHandlerRootView style={styles.container}>
       <QueryClientProvider client={queryClient}>

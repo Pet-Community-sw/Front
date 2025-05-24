@@ -7,9 +7,8 @@ import { LinearGradient } from "expo-linear-gradient";
 const WelcomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
-      <MaterialCommunityIcons name="paw" size={100} color="#015551" style={styles.icon} />
 
-      <Text style={styles.title}>멍냥로드에 오신 것을 환영합니다!</Text>
+      <Text style={styles.title}>멍냥로드</Text>
 
       <TouchableOpacity
         style={[styles.button, styles.signupBtn]}
@@ -40,11 +39,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
+    fontSize: 40,
     color: "black",
-    marginBottom: 40,
-    textAlign: "center",
+    marginBottom: 50,
+    textAlign: "center", 
+    fontFamily: 'fontBold', 
   },
   button: {
     width: "80%",
@@ -66,8 +65,9 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
+    fontFamily: "cute"
   },
 });
 

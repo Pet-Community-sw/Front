@@ -6,7 +6,7 @@ import { disconnectStomp } from "../api/stompClient";
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
-  const [token, setToken] = useState(true);
+  const [token, setToken] = useState(null);
   const [name, setName] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [loading, setLoading] = useState(true);
