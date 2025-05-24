@@ -136,6 +136,7 @@ const App = () => {
   const [fontsLoaded] = useFonts({
     font: require("./assets/fonts/font.ttf"),
     fontBold: require("./assets/fonts/fontBold.ttf"),
+    fontExtra: require("./assets/fonts/fontExtra.ttf"),
     cute: require("./assets/fonts/cute.ttf"),
   });
 

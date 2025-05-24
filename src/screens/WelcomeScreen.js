@@ -1,14 +1,20 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { LinearGradient } from "expo-linear-gradient";
-
 
 const WelcomeScreen = ({ navigation }) => {
   return (
     <View style={styles.container}>
+      <MaterialCommunityIcons
+        name="paw"
+        size={100}
+        color="#57B4BA"
+        style={styles.icon}
+      />
 
       <Text style={styles.title}>멍냥로드</Text>
+
+      <Text style={styles.subtitle}>오늘도 산책 함께할까요? 💕</Text>
 
       <TouchableOpacity
         style={[styles.button, styles.signupBtn]}
@@ -30,20 +36,25 @@ const WelcomeScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "white", 
     justifyContent: "center",
     alignItems: "center",
-    padding: 24,
+    paddingHorizontal: 24,
   },
   icon: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 40,
-    color: "black",
-    marginBottom: 50,
-    textAlign: "center", 
-    fontFamily: 'fontBold', 
+    fontSize: 45,
+    fontFamily: "fontExtra", 
+    color: "#333",
+    marginBottom: 15,
+  },
+  subtitle: {
+    fontSize: 20,
+    fontFamily: "font",
+    color: "#666",
+    marginBottom: 40,
   },
   button: {
     width: "80%",
@@ -53,21 +64,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 3,
-  },  
+    elevation: 2,
+  },
   signupBtn: {
-    backgroundColor: "#E78F81",
+    backgroundColor: "#7EC8C2", // 민트
+    marginBottom: 15, 
   },
   loginBtn: {
-    backgroundColor: "#99BC85",
+    backgroundColor: "#F7B4C3", // 핑크
   },
   buttonText: {
-    color: "#fff",
+    color: "#333",
     fontSize: 20,
-    fontWeight: "600",
-    fontFamily: "cute"
+    fontFamily: "cute",
   },
 });
 

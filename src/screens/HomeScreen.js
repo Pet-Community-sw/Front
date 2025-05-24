@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     flex: 1, 
     justifyContent: "center", 
     alignItems: "center", 
-    backgroundColor: "#FDFAF6", // 아이보리 배경
+    backgroundColor: "white",
     paddingBottom: 10,
     paddingHorizontal: 16,
   }, 
