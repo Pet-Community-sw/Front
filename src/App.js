@@ -26,6 +26,8 @@ import LoadingScreen from "./components/Loading";
 
 import Mock from "./screens/MockUI";
 
+//npx expo run:androida
+
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
