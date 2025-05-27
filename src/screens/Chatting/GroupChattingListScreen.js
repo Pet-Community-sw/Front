@@ -1,74 +1,335 @@
-import React, { useCallback } from "react";
-import { View, TouchableOpacity, Text, FlatList } from "react-native";
-import { useGroupChattingList } from "../../hooks/useChatting";
+// 감성 스타일 적용된 PostListScreen + 서버 연동 기능 통합 + UI 개선 + 감성 모달 스타일
+import React, { useEffect, useState, useCallback } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Alert,
+} from "react-native";
+import { useAddPost, useViewPosts } from "../../hooks/usePost";
+import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
+import * as ImagePicker from "expo-image-picker";
 
-const GroupChattingListScreen = ({ navigation }) => {
-  const { data: chatRooms = [], refetch } = useGroupChattingList();
+const PostListScreen = ({ navigation }) => {
+  const { data: posts = [], refetch } = useViewPosts();
+  const [page, setPage] = useState(0);
+  const [addModalVisible, setAddModalVisible] = useState(false);
 
-  // 화면 포커스 시 목록 다시 불러오기
+  const PAGE_SIZE = 10;
+  const TOTAL_PAGES = Math.ceil(posts.length / PAGE_SIZE);
+
   useFocusEffect(
     useCallback(() => {
+      setPage(0);
       refetch();
     }, [])
   );
 
+  useEffect(() => {
+    refetch();
+  }, [page]);
+
+  const { mutate: addMutate } = useAddPost();
+
+  const [formData, setFormData] = useState({
+    postImageFile: "",
+    profileId: "",
+    title: "",
+    content: "",
+  });
+
+  const handleAddPost = () => {
+    addMutate(formData, {
+      onSuccess: (data) => {
+        Alert.alert(`게시글 추가 성공! Id: ${data.postId}`);
+        setAddModalVisible(false);
+        navigation.navigate("PostDetail", { postId: data.postId });
+      },
+      onError: (err) => {
+        Alert.alert("게시글 추가 실패", err.message);
+      },
+    });
+  };
+
+  const resetData = () => {
+    setFormData({ postImageFile: "", profileId: "", title: "", content: "" });
+  };
+
+  const handleImagePick = async (callback) => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.status !== "granted") {
+      alert("이미지 접근 권한이 필요합니다.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: false,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled && result.assets.length > 0) {
+      callback(result.assets[0].uri);
+    } else {
+      console.log("사용자가 선택을 취소함");
+    }
+  };
+
+  const pickImage = () => {
+    handleImagePick((imageUri) => {
+      setFormData((prevData) => ({
+        ...prevData,
+        postImageFile: imageUri,
+      }));
+    });
+  };
+
   return (
-    <View style={{ flex: 1, backgroundColor: "#fff", padding: 16 }}>
+    <View style={styles.container}>
+      <View style={styles.headerRow}>
+        <Text style={styles.sectionTitle}>💬 자유롭게 올리고 싶은 걸 올려보세요!</Text>
+        <TouchableOpacity
+          style={{ padding: 10, borderRadius: 100 }}
+          onPress={() => setAddModalVisible(true)}
+        >
+          <MaterialCommunityIcons name="pencil-plus" size={30} color="#2A4759" />
+        </TouchableOpacity>
+      </View>
+
       <FlatList
-        data={chatRooms}
-        keyExtractor={(item) => item.chatRoomId.toString()}
+        data={posts}
+        keyExtractor={(item) => item.postId.toString()}
         contentContainerStyle={{ paddingBottom: 32 }}
-        ItemSeparatorComponent={() => (
-          <View style={{ height: 1, backgroundColor: "#eee", marginVertical: 8 }} />
-        )}
         renderItem={({ item }) => (
           <TouchableOpacity
-            onPress={() => {
-              navigation.navigate("Chatting", {
-                chatRoomId: item.chatRoomId,
-                chatRoomType: "MANY",
-                chatName: item.chatName, 
-              });
-            }}
-            style={{
-              flexDirection: "column",
-              paddingVertical: 12,
-              paddingHorizontal: 16,
-              backgroundColor: "#f9f9f9",
-              borderRadius: 8,
-            }}
+            style={styles.card}
+            onPress={() => navigation?.navigate?.("PostDetail", { postId: item.postId })}
           >
-            <Text style={{ fontSize: 16, fontWeight: "bold", marginBottom: 4 }}>
-              {item.chatName} ({item.crrentCount}/{item.chatLimitCount})
-            </Text>
-            <Text numberOfLines={1} style={{ color: "#666", marginBottom: 2 }}>
-              {item.lastMessage || "메시지 없음"}
-            </Text>
-            <Text style={{ fontSize: 12, color: "#aaa" }}>
-              {item.lastMessageTime}
-              {item.unReadCount > 0 && `  ·  안읽음 ${item.unReadCount}개`}
-            </Text>
+            {item.postImageUrl && (
+              <Image source={{ uri: item.postImageUrl }} style={styles.thumbnail} />
+            )}
+            <View style={styles.textSection}>
+              <Text style={styles.title}>{item.title}</Text>
+              <Text style={styles.meta}>
+                {item.memberImageUrl} · {item.memberName} · {item.timeAgo} · 조회수 {item.viewCount} · 좋아요 {item.likeCount}
+              </Text>
+            </View>
           </TouchableOpacity>
         )}
       />
 
-      <TouchableOpacity
-        onPress={() => {
-          navigation.navigate("PersonalChattingListScreen");
-        }}
-        style={{
-          marginTop: 16,
-          padding: 12,
-          backgroundColor: "#0066cc",
-          borderRadius: 8,
-          alignItems: "center",
-        }}
-      >
-        <Text style={{ color: "#fff", fontWeight: "bold" }}>개인 채팅방 보기</Text>
-      </TouchableOpacity>
+      <View style={styles.pagination}>
+        {Array.from({ length: TOTAL_PAGES }, (_, idx) => (
+          <TouchableOpacity
+            key={idx}
+            style={[styles.pageButton, idx === page && styles.pageButtonSelected]}
+            onPress={() => setPage(idx)}
+          >
+            <Text style={[styles.pageText, idx === page && styles.pageTextSelected]}>{idx + 1}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <Modal visible={addModalVisible} transparent animationType="slide">
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>✍️ 새 게시글</Text>
+
+            <View style={styles.imageUploadBox}>
+              <Feather name="image" size={20} color="#7EC8C2" style={{ marginRight: 8 }} />
+              <Text style={styles.imageUploadText}>이미지 첨부 (선택)</Text>
+            </View>
+
+            {formData.postImageFile ? (
+              <View style={{ alignItems: "center", marginBottom: 12 }}>
+                <Text style={{ color: "#666", marginBottom: 6 }}>
+                  선택된 파일: {formData.postImageFile.split("/").pop()}
+                </Text>
+                <Image
+                  source={{ uri: formData.postImageFile }}
+                  style={{ width: 120, height: 120, borderRadius: 8, borderWidth: 1, borderColor: "#ccc" }}
+                />
+              </View>
+            ) : null}
+
+            <TextInput
+              placeholder="제목을 입력해주세요"
+              value={formData.title}
+              onChangeText={(text) => setFormData({ ...formData, title: text })}
+              style={styles.input}
+            />
+            <TextInput
+              placeholder="내용을 입력해주세요"
+              value={formData.content}
+              onChangeText={(text) => setFormData({ ...formData, content: text })}
+              style={[styles.input, { height: 100 }]}
+              multiline
+            />
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={() => {
+                resetData();
+                setAddModalVisible(false);
+              }} style={styles.cancelButton}>
+                <Text style={styles.cancelText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleAddPost} style={styles.submitButton}>
+                <Text style={styles.submitText}>등록</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
 
-export default GroupChattingListScreen;
+export default PostListScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "white",
+    paddingHorizontal: 16,
+    paddingTop: 12,
+  },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+  },
+  sectionTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#4A7B9D",
+    flex: 1,
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    marginBottom: 12,
+    padding: 12,
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
+    elevation: 2,
+  },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: "#ddd",
+  },
+  textSection: {
+    flex: 1,
+  },
+  title: {
+    fontSize: 16,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  meta: {
+    fontSize: 12,
+    color: "#666",
+  },
+  pagination: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
+    flexWrap: "wrap",
+  },
+  pageButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    marginHorizontal: 4,
+    marginVertical: 4,
+    backgroundColor: "#ddd",
+    borderRadius: 6,
+  },
+  pageButtonSelected: {
+    backgroundColor: "#E78F81",
+    marginBottom: 40,
+  },
+  pageText: {
+    color: "#333",
+    fontWeight: "500",
+  },
+  pageTextSelected: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.4)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    width: "90%",
+    padding: 20,
+    borderRadius: 16,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 16,
+    color: "#4A7B9D",
+  },
+  imageUploadBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#E7F6F2",
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    marginBottom: 16,
+  },
+  imageUploadText: {
+    fontSize: 14,
+    color: "#4A4A4A",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 14,
+    backgroundColor: "#FDFDFD",
+    fontSize: 14,
+  },
+  modalActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 10,
+  },
+  cancelButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: "#F2F2F2",
+  },
+  submitButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    backgroundColor: "#F47C7C",
+  },
+  cancelText: {
+    color: "#888",
+    fontWeight: "500",
+  },
+  submitText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+});

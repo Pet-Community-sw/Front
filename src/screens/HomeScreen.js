@@ -42,7 +42,7 @@ const HomeScreen = () => {
       <View style={styles.headerRow}>
         <Text style={styles.headerInfoText}>5월 24일 ☀️ 맑음 24º</Text>
         <View style={styles.rightHeader}>
-          <NotificationBell onPress={() => navigation.navigate("NotificationList")} />
+          <NotificationBell onPress={() => navigation.navigate("NotificationList")}/>
           <TouchableOpacity onPress={() => navigation.navigate("MyProfile")} style={styles.iconBtn}>
             <MaterialIcons name="person" size={28} color="#333" />
           </TouchableOpacity>

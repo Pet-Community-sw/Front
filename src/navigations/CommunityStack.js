@@ -8,8 +8,8 @@ const Stack = createNativeStackNavigator();
 const CommunityStack = () => {
   return(
     <Stack.Navigator>
-      <Stack.Screen name="PostList" component={PostListScreen}></Stack.Screen>
-      <Stack.Screen name="PostDetail" component={PostDetailScreen}></Stack.Screen>
+      <Stack.Screen name="PostList" component={PostListScreen} options={{ headerShown: false }}></Stack.Screen>
+      <Stack.Screen name="PostDetail" component={PostDetailScreen} options={{ headerShown: false }}></Stack.Screen>
     </Stack.Navigator>
   )
 }

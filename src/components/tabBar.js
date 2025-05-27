@@ -8,6 +8,8 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import CommunityStack from "../navigations/CommunityStack";
 import GroupChattingListScreen from "../screens/Chatting/GroupChattingListScreen"
 import { View, Text } from "react-native";
+import PostListScreen from "../screens/Community/PostListScreen";
+
 
 const Tab = createBottomTabNavigator();
 
@@ -55,11 +57,11 @@ const TabBar = () => {
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <MaterialCommunityIcons
                 name="paw"
-                size={22}
+                size={30}
                 color="#FDFBEE"
                 style={{ marginRight: 6, marginTop: 4 }}
               />
-              <Text style={{ color: "white", fontSize:40, fontFamily: 'cute'}}>
+              <Text style={{ color: "white", fontSize: 40, fontFamily: 'cute' }}>
                 멍냥로드
               </Text>
             </View>
@@ -68,20 +70,14 @@ const TabBar = () => {
             backgroundColor: "#57B4BA",
           },
         }}></Tab.Screen>
-      <Tab.Screen name="Community" component={CommunityStack}
-      options={{
+      <Tab.Screen name="Community" component={PostListScreen}
+        options={{
           headerShown: true,
           headerTitleAlign: "center",
           headerTitle: () => (
             <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <MaterialCommunityIcons
-                name="paw"
-                size={22}
-                color="#FDFBEE"
-                style={{ marginRight: 6, marginTop: 4 }}
-              />
-              <Text style={{ color: "white", fontSize:40, fontFamily: 'cute'}}>
-                멍냥로드
+              <Text style={{ color: "white", fontSize: 40, fontFamily: 'cute' }}>
+                자유게시판
               </Text>
             </View>
           ),
@@ -90,7 +86,21 @@ const TabBar = () => {
           },
         }}></Tab.Screen>
       <Tab.Screen name="Map" component={MapScreen}></Tab.Screen>
-      <Tab.Screen name="Chatting" component={GroupChattingListScreen}></Tab.Screen>
+      <Tab.Screen name="Chatting" component={GroupChattingListScreen}
+        options={{
+          headerShown: true,
+          headerTitleAlign: "center",
+          headerTitle: () => (
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={{ color: "white", fontSize: 40, fontFamily: 'cute' }}>
+                채팅
+              </Text>
+            </View>
+          ),
+          headerStyle: {
+            backgroundColor: "#57B4BA",
+          },
+        }}></Tab.Screen>
     </Tab.Navigator>
 
 

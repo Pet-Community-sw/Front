@@ -73,7 +73,7 @@ const MainNavigator = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: true }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       {token && (
         <>
           <Stack.Screen
