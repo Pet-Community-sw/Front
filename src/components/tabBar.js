@@ -3,12 +3,11 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "../screens/HomeScreen";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import MapScreen from "../screens/Map/MapScreen";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import CommunityStack from "../navigations/CommunityStack";
-import GroupChattingListScreen from "../screens/Chatting/GroupChattingListScreen"
+import ChattingStack from "../navigations/ChattingStack";
+import MapScreen from "../screens/MapScreen";
 import { View, Text } from "react-native";
-import PostListScreen from "../screens/Community/PostListScreen";
 
 
 const Tab = createBottomTabNavigator();
@@ -70,14 +69,15 @@ const TabBar = () => {
             backgroundColor: "#57B4BA",
           },
         }}></Tab.Screen>
-      <Tab.Screen name="Community" component={PostListScreen}
+      <Tab.Screen name="Community" component={CommunityStack}></Tab.Screen>
+      <Tab.Screen name="Map" component={MapScreen}
         options={{
           headerShown: true,
           headerTitleAlign: "center",
           headerTitle: () => (
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text style={{ color: "white", fontSize: 40, fontFamily: 'cute' }}>
-                자유게시판
+                지도
               </Text>
             </View>
           ),
@@ -85,22 +85,7 @@ const TabBar = () => {
             backgroundColor: "#57B4BA",
           },
         }}></Tab.Screen>
-      <Tab.Screen name="Map" component={MapScreen}></Tab.Screen>
-      <Tab.Screen name="Chatting" component={GroupChattingListScreen}
-        options={{
-          headerShown: true,
-          headerTitleAlign: "center",
-          headerTitle: () => (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={{ color: "white", fontSize: 40, fontFamily: 'cute' }}>
-                채팅
-              </Text>
-            </View>
-          ),
-          headerStyle: {
-            backgroundColor: "#57B4BA",
-          },
-        }}></Tab.Screen>
+      <Tab.Screen name="Chatting" component={ChattingStack}></Tab.Screen>
     </Tab.Navigator>
 
 

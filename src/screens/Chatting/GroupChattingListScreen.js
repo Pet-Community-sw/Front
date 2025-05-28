@@ -51,7 +51,7 @@ const GroupChattingListScreen = ({ navigation }) => {
         <View style={{ flex: 1 }} />
         <TouchableOpacity
           style={styles.smallButton}
-          onPress={() => navigation.navigate("PersonalChattingListScreen")}
+          onPress={() => navigation.navigate("PersonalChattingList")}
         >
           <Text style={styles.smallButtonText}>👤 개인 채팅방</Text>
         </TouchableOpacity>
@@ -193,7 +193,7 @@ const GroupChattingListScreen = ({ navigation }) => {
         <Text style={styles.sectionTitle}>💬 단체 채팅방</Text>
         <TouchableOpacity
           style={styles.smallButton}
-          onPress={() => navigation.navigate("PersonalChattingListScreen")}
+          onPress={() => navigation.navigate("PersonalChattingList")}
         >
           <Text style={styles.smallButtonText}>👤 개인 채팅방</Text>
         </TouchableOpacity>
