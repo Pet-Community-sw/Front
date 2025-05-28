@@ -1,4 +1,3 @@
-// 감성 스타일 적용된 PostListScreen + 상단 버튼 개선/작성 메시지/작성자 프로필 추가
 import React, { useState } from "react";
 import {
   View,
@@ -7,113 +6,77 @@ import {
   Image,
   StyleSheet,
   TouchableOpacity,
-  Modal,
-  TextInput,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-
-const samplePosts = [
+// 임의의 단체 채팅방 데이터
+const sampleGroupChats = [
   {
-    postId: 1,
-    title: "오늘 강아지랑 한강 다녀왔어요!",
-    memberName: "효빈",
-    memberImageUrl: "https://placekitten.com/50/50",
+    id: 1,
+    name: "강아지 산책 메이트 🐾",
+    lastMessage: "내일 산책 어때요?",
     timeAgo: "2시간 전",
-    viewCount: 123,
-    likeCount: 15,
-    postImageUrl: "https://placekitten.com/200/200",
+    unreadCount: 3,
+    avatar: "https://placekitten.com/60/60",
+    current: 5,
+    limit: 10,
   },
   {
-    postId: 2,
-    title: "산책로 추천해주세요~",
-    memberName: "댕댕맘",
-    memberImageUrl: "https://placekitten.com/51/51",
+    id: 2,
+    name: "댕댕이 정보방",
+    lastMessage: "이 사료 어떤가요?",
     timeAgo: "어제",
-    viewCount: 87,
-    likeCount: 7,
-    postImageUrl: "",
+    unreadCount: 0,
+    avatar: "https://placekitten.com/61/61",
+    current: 10,
+    limit: 10,
   },
 ];
 
-const PostListScreen = () => {
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [formData, setFormData] = useState({ title: "", content: "" });
+const MockUI = ({ navigation }) => {
+  const [chatRooms] = useState(sampleGroupChats);
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity style={styles.card}>
+      <Image source={{ uri: item.avatar }} style={styles.profileImage} />
+      <View style={styles.textSection}>
+        <Text style={styles.title}>
+          {item.name} ({item.current}/{item.limit})
+        </Text>
+        <Text style={styles.lastMessage} numberOfLines={1}>
+          {item.lastMessage}
+        </Text>
+        <Text style={styles.meta}>
+          {item.timeAgo}
+          {item.unreadCount > 0 && ` · 안읽음 ${item.unreadCount}개`}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>💬 자유롭게 올리고 싶은 걸 올려보세요!</Text>
-        <TouchableOpacity style={{ padding: 12, borderRadius: 100 }}
-           onPress={() => setAddModalVisible(true)}>
-          <MaterialCommunityIcons name="pencil-plus" size={30} color="#2A4759" />
+        <Text style={styles.sectionTitle}>💬 단체 채팅방</Text>
+        <TouchableOpacity
+          style={styles.smallButton}
+          onPress={() => navigation.navigate("PersonalChattingListScreen")}
+        >
+          <Text style={styles.smallButtonText}>👤 개인 채팅방</Text>
         </TouchableOpacity>
       </View>
 
       <FlatList
-        data={samplePosts}
-        keyExtractor={(item) => item.postId.toString()}
-        contentContainerStyle={{ paddingBottom: 32 }}
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.card}>
-            {item.postImageUrl ? (
-              <Image source={{ uri: item.postImageUrl }} style={styles.thumbnail} />
-            ) : null}
-            <View style={styles.textSection}>
-              <Text style={styles.title}>{item.title}</Text>
-              <View style={styles.metaRow}>
-                {item.memberImageUrl && (
-                  <Image source={{ uri: item.memberImageUrl }} style={styles.profileImage} />
-                )}
-                <Text style={styles.meta}>
-                  {item.memberName} · {item.timeAgo} · 조회수 {item.viewCount} · 좋아요 {item.likeCount}
-                </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
+        data={chatRooms}
+        keyExtractor={(item) => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 20 }}
       />
-
-      <Modal visible={addModalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>✍️ 새 게시글</Text>
-
-            <View style={styles.imageUploadBox}>
-              <Feather name="image" size={20} color="#7EC8C2" style={{ marginRight: 8 }} />
-              <Text style={styles.imageUploadText}>이미지 첨부 (선택)</Text>
-            </View>
-
-            <TextInput
-              placeholder="제목을 입력해주세요"
-              value={formData.title}
-              onChangeText={(text) => setFormData({ ...formData, title: text })}
-              style={styles.input}
-            />
-            <TextInput
-              placeholder="내용을 입력해주세요"
-              value={formData.content}
-              onChangeText={(text) => setFormData({ ...formData, content: text })}
-              style={[styles.input, { height: 100 }]}
-              multiline
-            />
-            <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setAddModalVisible(false)} style={styles.cancelButton}>
-                <Text style={styles.cancelText}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.submitButton}>
-                <Text style={styles.submitText}>등록</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
 
-export default PostListScreen;
+export default MockUI;
 
 const styles = StyleSheet.create({
   container: {
@@ -132,12 +95,19 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#4A7B9D",
-    flex: 1,
   },
-  addIconWrapper: {
-    backgroundColor: "#F47C7C",
-    padding: 10,
-    borderRadius: 100,
+  smallButton: {
+    backgroundColor: "white",
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderColor: "#7EC8C2",
+    borderWidth: 1,
+  },
+  smallButtonText: {
+    color: "#4A7B9D",
+    fontSize: 13,
+    fontWeight: "600",
   },
   card: {
     backgroundColor: "#FAFAFA",
@@ -153,11 +123,11 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  thumbnail: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    backgroundColor: "#ddd",
+  profileImage: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "#E7F6F2",
   },
   textSection: {
     flex: 1,
@@ -166,90 +136,15 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     color: "#2C3E50",
-    marginBottom: 6,
+    marginBottom: 4,
   },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  profileImage: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    marginRight: 6,
+  lastMessage: {
+    fontSize: 13,
+    color: "#6B7B8C",
+    marginBottom: 2,
   },
   meta: {
     fontSize: 12,
-    color: "#6B7B8C",
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    width: "90%",
-    padding: 20,
-    borderRadius: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 6,
-  },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
-    color: "#4A7B9D",
-  },
-  imageUploadBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#E7F6F2",
-    borderRadius: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    marginBottom: 16,
-  },
-  imageUploadText: {
-    fontSize: 14,
-    color: "#4A4A4A",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 14,
-    backgroundColor: "#FDFDFD",
-    fontSize: 14,
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 10,
-  },
-  cancelButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: "#F2F2F2",
-  },
-  submitButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    backgroundColor: "#F47C7C",
-  },
-  cancelText: {
-    color: "#888",
-    fontWeight: "500",
-  },
-  submitText: {
-    color: "#fff",
-    fontWeight: "bold",
+    color: "#999",
   },
 });

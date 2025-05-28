@@ -3,7 +3,7 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import HomeScreen from "../screens/HomeScreen";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import Ionicons from "react-native-vector-icons/Ionicons";
-import MapScreen from "../screens/MapScreen";
+import MapScreen from "../screens/Map/MapScreen";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import CommunityStack from "../navigations/CommunityStack";
 import GroupChattingListScreen from "../screens/Chatting/GroupChattingListScreen"

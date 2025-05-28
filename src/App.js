@@ -24,9 +24,9 @@ import TabBar from "./components/tabBar";
 import LoadingScreen from "./components/Loading";
 
 
-import Mock from "./screens/MockUI";
+import MockUI from "./screens/MockUI";
 
-//npx expo run:androida
+//npx expo run:android
 
 const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();

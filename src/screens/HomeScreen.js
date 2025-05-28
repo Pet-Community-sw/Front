@@ -15,12 +15,15 @@ import { NotificationBell } from "../components/notification";
 
 const pet = {
   name: "멍멍이",
-  birthdate: "2025-05-24",
+  birthdate: "2025-05-27",
 };
 
 const posts = [
   { id: 1, title: "오늘 강아지랑 한강 다녀왔어요!", author: "효빈", date: "2025.04.21", likes: 12, comments: 3 },
   { id: 2, title: "산책로 추천해주세요~", author: "댕댕맘", date: "2025.04.20", likes: 5, comments: 1 },
+  { id: 3, title: "우리 고양이 예쁘죠??", author: "냥이맘", date: "2025.04.20", likes: 0, comments: 1 },
+  { id: 4, title: "산책 갔다왔어요~", author: "선재", date: "2025.04.20", likes: 4, comments: 1 },
+  { id: 5, title: "이 간식 추천합니다~", author: "에렌", date: "2025.04.20", likes: 2, comments: 1 },
 ];
 
 const HomeScreen = () => {
