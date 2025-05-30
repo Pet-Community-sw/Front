@@ -11,7 +11,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 
 //산책길 추천 게시글 추가
-export const useAddRecommend = () => {
+const useAddRecommend = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: addRecommendRoute,
@@ -24,7 +24,7 @@ export const useAddRecommend = () => {
 };
 
 //지도 범위 기반 산책길 추천 글 목록 조회 (사용자가 직접 지도 움직임)
-export const useViewLocation = (params) => {
+const useViewLocation = (params) => {
     return useQuery({
         queryKey: ["recommendPosts", "location", params],
         queryFn: () => viewLocationRoutePosts(params),
@@ -33,7 +33,7 @@ export const useViewLocation = (params) => {
 }
 
 //장소 기반 산책길 추천 글 목록 조회 (사용자가 장소 입력)
-export const useViewPlace = (params) => {
+const useViewPlace = (params) => {
     return useQuery({
         queryKey: ["recommendPosts", "place", params],
         queryFn: () => viewPlaceRoutePosts(params),
@@ -42,7 +42,7 @@ export const useViewPlace = (params) => {
 }
 
 //글 상세 조회
-export const useViewRecommendPostDetail = (recommendRoutePostId) => {
+const useViewRecommendPostDetail = (recommendRoutePostId) => {
     return useQuery({
         queryKey: ["recommendPosts", recommendRoutePostId],
         queryFn: () => viewRecommendPostDetail(recommendRoutePostId),
@@ -51,7 +51,7 @@ export const useViewRecommendPostDetail = (recommendRoutePostId) => {
 }
 
 //글 수정
-export const useModifyRecommendPost = () => {
+const useModifyRecommendPost = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: modifyRecommendPost,
@@ -66,7 +66,7 @@ export const useModifyRecommendPost = () => {
 };
 
 //글 삭제
-export const useRemoveRecommendPost = () => {
+const useRemoveRecommendPost = () => {
     const queryClient = useQueryClient();
     return useMutation({
         mutationFn: deleteRecommendPost,
@@ -81,3 +81,5 @@ export const useRemoveRecommendPost = () => {
         }
     })
 };
+
+export {useAddRecommend, useViewLocation, useViewPlace, useViewRecommendPostDetail, useModifyRecommendPost, useRemoveRecommendPost};

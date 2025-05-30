@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { useAddRecommend } from '../hooks/useRecommend';
 
 export default function MapScreen() {
   const [selectedTab, setSelectedTab] = useState('matching'); // 기본값: 산책 매칭
