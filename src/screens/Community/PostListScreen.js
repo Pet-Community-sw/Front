@@ -583,7 +583,7 @@ export default PostListScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+    backgroundColor: "##F6F6F6",
     paddingHorizontal: 16,
     paddingTop: 12,
   },
