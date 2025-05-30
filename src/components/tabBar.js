@@ -6,9 +6,10 @@ import Ionicons from "react-native-vector-icons/Ionicons";
 import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityIcons"
 import CommunityStack from "../navigations/CommunityStack";
 import ChattingStack from "../navigations/ChattingStack";
-import MapScreen from "../screens/MapScreen";
+import MapScreen from "../screens/Map/MapScreen";
 import { View, Text } from "react-native";
 
+import Mock from "../screens/MockUI";
 
 const Tab = createBottomTabNavigator();
 

@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useAddRecommend } from '../hooks/useRecommend';
+import MatchingTab from './MatchingTab';
+import DelegateTab from './DelegateTab';
 
 export default function MapScreen() {
-  const [selectedTab, setSelectedTab] = useState('matching'); // 기본값: 산책 매칭
+  const [selectedTab, setSelectedTab] = useState('matching'); // 기본값: 산책 친구 찾기
 
   return (
     <View style={styles.container}>
@@ -21,7 +22,7 @@ export default function MapScreen() {
               selectedTab === 'matching' ? styles.activeText : styles.inactiveText,
             ]}
           >
-            산책길 추천 & 매칭
+            산책 친구 찾기
           </Text>
         </TouchableOpacity>
 
@@ -38,17 +39,14 @@ export default function MapScreen() {
               selectedTab === 'delegate' ? styles.activeText : styles.inactiveText,
             ]}
           >
-            대리 산책자
+            대리 산책자 구하기
           </Text>
         </TouchableOpacity>
       </View>
 
       <View style={styles.contentArea}>
-        {selectedTab === 'matching' ? (
-          <Text style={styles.fakeContent}>[산책길 추천 & 매칭 화면]</Text>
-        ) : (
-          <Text style={styles.fakeContent}>[대리 산책자 화면]</Text>
-        )}
+        {selectedTab === 'matching' && <MatchingTab />}
+        {selectedTab === 'delegate' && <DelegateTab />}
       </View>
     </View>
   );
@@ -57,47 +55,39 @@ export default function MapScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 60,
     backgroundColor: '#F6F6F6',
-    paddingHorizontal: 20,
   },
   tabWrapper: {
     flexDirection: 'row',
-    borderRadius: 12,
-    overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#537D5D',
-    marginTop: -40, 
+    height: 50,
+    elevation: 2,
+    shadowColor: '#000',
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 4,
   },
   tabButton: {
     flex: 1,
-    paddingVertical: 14,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
   activeButton: {
-    backgroundColor: '#D2D0A0',
+    backgroundColor: '#8DB596',
   },
   inactiveButton: {
-    backgroundColor: '#E0E0E0',
+    backgroundColor: '#EAEFEF',
   },
   tabText: {
-    fontSize: 20,
-    fontFamily: 'cute',
+    fontSize: 17,
+    fontFamily: "fontExtra"
   },
   activeText: {
-    color: 'black',
+    color: 'white',
   },
   inactiveText: {
-    color: '#666',
+    color: '#444',
   },
   contentArea: {
-    marginTop: 40,
-    alignItems: 'center',
-  },
-  fakeContent: {
-    fontSize: 18,
-    color: '#333',
-    fontWeight: '500',
+    flex: 1,
   },
 });

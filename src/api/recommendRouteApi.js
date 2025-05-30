@@ -22,25 +22,17 @@ const addRecommendRoute = async (
 };
 
 //산책길 추천 글 목록 조회(2개의 위도, 경도)
-const viewLocationRoutePosts = async () => {
+const viewLocationRoutePosts = async (params) => {
     const response = await apiClient.get("/recommend-route-posts/by-location", {
-        params: {
-            minLatitude: minLat,
-            maxLatitude: maxLat,
-            minLongitude: minLng,
-            maxLongitude: maxLng,
-        }, 
+        params, 
     });
     return response.data;
 } 
 
 //산책길 추천 글 목록 조회(특정 장소의 반경 1km)
-const viewPlaceRoutePosts = async () => {
+const viewPlaceRoutePosts = async (params) => {
     const response = await apiClient.get("/recommend-route-posts/by-place", {
-        params: {
-            longitude: longitude, 
-            latitude: latitude, 
-        }, 
+        params, 
     });
     return response.data;
 } 

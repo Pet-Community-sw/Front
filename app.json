@@ -25,7 +25,8 @@
           "apiKey": "AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8"
         }
       }, 
-      "package": "com.anonymous.petapp"
+      "package": "com.anonymous.petapp", 
+      "permissions": ["ACCESS_FINE_LOCATION"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
