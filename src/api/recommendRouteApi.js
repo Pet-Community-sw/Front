@@ -4,8 +4,8 @@ import apiClient from "./apiClient";
 //산책길 추천 게시글 추가
 const addRecommendRoute = async (
     {
-        locationLongitude,
-        locationLatitude,
+        locationLongitude,  //경도
+        locationLatitude,   //위도
         locationName,
         content,
         title
