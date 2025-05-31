@@ -1,26 +1,69 @@
-import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import React, { useEffect } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TextInput,
+  TouchableOpacity,
+  FlatList,
+} from "react-native";
+import { useViewRecommendPostDetail } from "../../hooks/useRecommend";
+import { useLikePost } from "../../hooks/useLikePost";
 
-const feedbacks = [
-  { id: 1, user: "효빈", content: "앱 너무 귀여워요! 산책 기능 잘 쓰고 있어요 💛" },
-  { id: 2, user: "멍뭉맘", content: "피드 기능도 생기면 좋을 것 같아요~" },
-  { id: 3, user: "고양이집사", content: "지도 기능이 조금 더 정확했으면 해요!" },
-];
+export const FeedbackTab = ({ recommendRoutePostId }) => {
+  const {
+    data: feedback,
+    refetch,
+    isLoading,
+    isError,
+  } = useViewRecommendPostDetail(recommendRoutePostId);
 
-export const FeedbackTab = () => {
+  const { mutate: like, isLoading: isLiking } = useLikePost();
+
+  useEffect(() => {
+    refetch(); // 컴포넌트 진입 시 데이터 요청
+  }, []);
+
+  const handleLike = () => {
+    if (!isLiking) {
+      like({ postId: recommendRoutePostId });
+    }
+  };
+
+  if (isLoading) return <Text>불러오는 중...</Text>;
+  if (isError || !feedback) return <Text>피드백을 불러오지 못했어요</Text>;
+
   return (
     <View style={styles.container}>
       <Text style={styles.title}>📝 유저 피드백</Text>
-      <FlatList
-        data={feedbacks}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.card}>
-            <Text style={styles.user}>{item.user}</Text>
-            <Text style={styles.content}>{item.content}</Text>
+
+      <View style={styles.card}>
+        <View style={styles.profileRow}>
+          <Image source={{ uri: feedback.memberImageUrl }} style={styles.avatar} />
+          <View>
+            <Text style={styles.user}>{feedback.memberName}</Text>
+            <Text style={styles.time}>{feedback.createdAt}</Text>
           </View>
+        </View>
+
+        <Text style={styles.feedbackTitle}>{feedback.title}</Text>
+        {feedback.content ? (
+          <Text style={styles.content}>{feedback.content}</Text>
+        ) : (
+          <Text style={styles.content}>아직 피드백 내용이 없습니다.</Text>
         )}
-      />
+
+        {/* ❤️ 좋아요 */}
+        <TouchableOpacity style={styles.likeRow} onPress={handleLike}>
+          <Text style={[styles.heart, feedback.like ? styles.heartFilled : styles.heartEmpty]}>
+            {feedback.like ? "❤️" : "🤍"}
+          </Text>
+          <Text style={styles.likes}>
+            {feedback.likeCount}명에게 도움이 되었어요
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -36,21 +79,60 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: "#F9F9F9",
-    padding: 14,
+    padding: 16,
     borderRadius: 12,
-    marginBottom: 10,
     borderWidth: 1,
     borderColor: "#E6E6E6",
+  },
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
   },
   user: {
     fontWeight: "600",
     fontSize: 14,
-    marginBottom: 4,
     color: "#6D9886",
+  },
+  time: {
+    fontSize: 12,
+    color: "#888",
+  },
+  feedbackTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 4,
+    color: "#2C3E50",
   },
   content: {
     fontSize: 14,
     color: "#444",
     fontFamily: "font",
+    marginBottom: 8,
+  },
+  likeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  heart: {
+    fontSize: 18,
+    marginRight: 6,
+  },
+  heartFilled: {
+    color: "red",
+  },
+  heartEmpty: {
+    color: "#aaa",
+  },
+  likes: {
+    fontSize: 13,
+    color: "#999",
   },
 });

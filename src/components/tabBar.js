@@ -9,7 +9,7 @@ import ChattingStack from "../navigations/ChattingStack";
 import MapScreen from "../screens/Map/MapScreen";
 import { View, Text } from "react-native";
 
-import Mock from "../screens/MockUI";
+import { Mock } from "../screens/MockUI";
 
 const Tab = createBottomTabNavigator();
 
@@ -71,7 +71,7 @@ const TabBar = () => {
           },
         }}></Tab.Screen>
       <Tab.Screen name="Community" component={CommunityStack}></Tab.Screen>
-      <Tab.Screen name="Map" component={MapScreen}
+      <Tab.Screen name="Map" component={Mock}
         options={{
           headerShown: true,
           headerTitleAlign: "center",

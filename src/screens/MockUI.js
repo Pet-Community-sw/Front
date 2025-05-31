@@ -1,328 +1,217 @@
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
-  Modal,
-  TextInput,
   StyleSheet,
-  Keyboard,
+  Image,
+  TextInput,
   TouchableOpacity,
-} from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import Geocoder from 'react-native-geocoding';
+  FlatList,
+} from "react-native";
 
-// 임의 컴포넌트
-const FeedbackTab = () => {
-  const dummyComments = [
-    { id: 1, writer: '쪼꼬미맘', content: '여기 진짜 좋아요!' },
-    { id: 2, writer: '두부아빠', content: '사람도 많지 않고 조용해서 강추' },
-  ];
-
-  return (
-    <View style={styles.tabContent}>
-      {dummyComments.map((c) => (
-        <View key={c.id} style={styles.commentBox}>
-          <Text style={styles.writer}>{c.writer}</Text>
-          <Text style={styles.content}>{c.content}</Text>
-        </View>
-      ))}
-    </View>
-  );
-};
-
-const WalkingTogetherTab = () => {
-  const dummyPosts = [
-    {
-      id: 101,
-      petName: '초코',
-      scheduledTime: '2025-06-01 17:00',
-      limitCount: 3,
-      currentCount: 2,
-      petImageUrl: 'https://via.placeholder.com/50',
-    },
-  ];
-
-  return (
-    <View style={styles.tabContent}>
-      {dummyPosts.map((p) => (
-        <View key={p.id} style={styles.card}>
-          <View style={styles.circle} />
-          <View>
-            <Text style={styles.petName}>{p.petName}</Text>
-            <Text style={styles.info}>인원: {p.currentCount}/{p.limitCount}</Text>
-            <Text style={styles.time}>{p.scheduledTime}</Text>
-          </View>
-        </View>
-      ))}
-    </View>
-  );
-};
-
-Geocoder.init('YOUR_API_KEY');
-
-export default function Mock() {
-  const [region, setRegion] = useState({
-    latitude: 37.648931,
-    longitude: 127.064411,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
+export const Mock = () => {
+  const [feedback, setFeedback] = useState({
+    memberImageUrl: "https://placekitten.com/100/100",
+    memberName: "김효빈",
+    createdAt: "2025-05-15",
+    title: "정말 좋은 산책길이었어요!",
+    content: "햇살도 좋고 강아지가 좋아했어요. 추천합니다!",
+    likeCount: 12,
+    like: false,
+    comments: [
+      {
+        commentId: 1,
+        memberImageUrl: "https://placekitten.com/101/101",
+        memberName: "멍멍이주인",
+        createdAt: "2025-05-16",
+        content: "저도 여기 자주 가요!",
+        likeCount: 5,
+      },
+    ],
   });
 
-  const [searchInput, setSearchInput] = useState('');
-  const [modalVisible, setModalVisible] = useState(false);
-  const [activeTab, setActiveTab] = useState('feedback');
+  const [commentInput, setCommentInput] = useState("");
 
-  const handleSearch = async () => {
-    if (!searchInput.trim()) {
-      alert('장소를 입력해주세요.');
-      return;
-    }
-
-    try {
-      const geo = await Geocoder.from(searchInput);
-      const { lat, lng } = geo.results[0].geometry.location;
-
-      setRegion({
-        latitude: lat,
-        longitude: lng,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      });
-
-      setSearchInput('');
-      Keyboard.dismiss();
-    } catch (err) {
-      alert('장소를 찾을 수 없습니다.');
-    }
+  const handleSubmitComment = () => {
+    if (!commentInput.trim()) return;
+    const newComment = {
+      commentId: Date.now(),
+      memberImageUrl: "https://placekitten.com/102/102",
+      memberName: "새 유저",
+      createdAt: new Date().toISOString().split("T")[0],
+      content: commentInput,
+      likeCount: 0,
+    };
+    setFeedback((prev) => ({
+      ...prev,
+      comments: [...prev.comments, newComment],
+    }));
+    setCommentInput("");
   };
 
-  const handleRegionChange = useCallback(
-    (newRegion) => {
-      if (
-        Math.abs(newRegion.latitude - region.latitude) > 0.0001 ||
-        Math.abs(newRegion.longitude - region.longitude) > 0.0001
-      ) {
-        setRegion(newRegion);
-      }
-    },
-    [region]
-  );
+  const handleLike = () => {
+    setFeedback((prev) => ({
+      ...prev,
+      like: !prev.like,
+      likeCount: prev.like ? prev.likeCount - 1 : prev.likeCount + 1,
+    }));
+  };
 
   return (
-    <View style={{ flex: 1 }}>
-      <MapView
-        provider="google"
-        style={{ flex: 1 }}
-        region={region}
-        onRegionChangeComplete={handleRegionChange}
-      >
-        <Marker
-          coordinate={{
-            latitude: 37.648931,
-            longitude: 127.064411,
-          }}
-          title="추천 산책길"
-          description="효빈이가 추천했어요"
-          onPress={() => {
-            setActiveTab('feedback');
-            setModalVisible(true);
-          }}
-        />
-      </MapView>
+    <View style={styles.container}>
+      <Text style={styles.title}>📝 유저 피드백</Text>
 
-      <View style={styles.searchBox}>
-        <TextInput
-          style={styles.input}
-          placeholder="📍 장소를 입력해주세요"
-          value={searchInput}
-          onChangeText={setSearchInput}
-          placeholderTextColor="#888"
-        />
-        <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
-          <Text style={styles.searchButtonText}>검색</Text>
+      <View style={styles.card}>
+        <View style={styles.profileRow}>
+          <Image
+            source={{ uri: feedback.memberImageUrl }}
+            style={styles.avatar}
+          />
+          <View>
+            <Text style={styles.user}>{feedback.memberName}</Text>
+            <Text style={styles.time}>{feedback.createdAt}</Text>
+          </View>
+        </View>
+
+        <Text style={styles.feedbackTitle}>{feedback.title}</Text>
+        {feedback.content ? (
+          <Text style={styles.content}>{feedback.content}</Text>
+        ) : (
+          <Text style={styles.content}>아직 피드백 내용이 없습니다.</Text>
+        )}
+
+        <TouchableOpacity style={styles.likeRow} onPress={handleLike}>
+          <Text
+            style={[styles.heart, feedback.like ? styles.heartFilled : styles.heartEmpty]}
+          >
+            {feedback.like ? "❤️" : "🤍"}
+          </Text>
+          <Text style={styles.likes}>
+            {feedback.likeCount}명에게 도움이 되었어요
+          </Text>
         </TouchableOpacity>
       </View>
 
-      <Modal visible={modalVisible} transparent animationType="slide">
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>한적한 공원 산책길</Text>
-            <Text style={styles.modalText}>강아지와 함께 걷기 좋은 조용한 공원이에요!</Text>
-            <Text style={styles.modalText}>작성자: 효빈</Text>
-
-            <View style={styles.tabWrapper}>
-              <TouchableOpacity
-                style={[styles.tabButton, activeTab === 'feedback' && styles.activeTab]}
-                onPress={() => setActiveTab('feedback')}
-              >
-                <Text style={[styles.tabText, activeTab === 'feedback' && styles.activeTabText]}>
-                  💬 피드백
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.tabButton, activeTab === 'walking' && styles.activeTab]}
-                onPress={() => setActiveTab('walking')}
-              >
-                <Text style={[styles.tabText, activeTab === 'walking' && styles.activeTabText]}>
-                  🐾 함께 산책해요
-                </Text>
-              </TouchableOpacity>
+      <View style={{ marginTop: 24 }}>
+        <Text style={{ fontWeight: "600", marginBottom: 6 }}>🖍️ 댓글 목록</Text>
+        {feedback.comments.length > 0 ? (
+          feedback.comments.map((comment) => (
+            <View key={comment.commentId} style={{ marginBottom: 16 }}>
+              <View style={styles.profileRow}>
+                <Image
+                  source={{ uri: comment.memberImageUrl }}
+                  style={styles.avatar}
+                />
+                <View>
+                  <Text style={styles.user}>{comment.memberName}</Text>
+                  <Text style={styles.time}>{comment.createdAt}</Text>
+                </View>
+              </View>
+              <Text style={styles.content}>{comment.content}</Text>
+              <Text style={styles.likes}>❤️ {comment.likeCount}</Text>
             </View>
+          ))
+        ) : (
+          <Text style={{ color: "#888" }}>댓글이 아직 없습니다.</Text>
+        )}
+      </View>
 
-            {activeTab === 'feedback' ? <FeedbackTab /> : <WalkingTogetherTab />}
-
-            <TouchableOpacity
-              style={styles.closeButton}
-              onPress={() => setModalVisible(false)}
-            >
-              <Text style={styles.closeButtonText}>닫기</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <View style={{ marginTop: 20 }}>
+        <Text style={{ fontWeight: "600", marginBottom: 6 }}>✍️ 댓글 달기</Text>
+        <TextInput
+          value={commentInput}
+          onChangeText={setCommentInput}
+          placeholder="댓글을 입력하세요"
+          style={styles.input}
+        />
+        <TouchableOpacity onPress={handleSubmitComment} style={styles.submitBtn}>
+          <Text style={{ color: "#fff", fontWeight: "600" }}>댓글 등록</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  searchBox: {
-    position: 'absolute',
-    top: 10,
-    left: 20,
-    right: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
-    zIndex: 10,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#eee',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 40,
-  },
-  searchButton: {
-    backgroundColor: '#8DB596',
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-    flexShrink: 0,
-    marginRight: 2,
-  },
-  searchButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '90%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
-    maxHeight: '85%',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  modalText: {
-    fontSize: 15,
-    marginBottom: 4,
-    color: '#555',
-  },
-  tabWrapper: {
-    flexDirection: 'row',
-    marginTop: 16,
-    marginBottom: 10,
-    backgroundColor: '#F0F4F3',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: '#8DB596',
-  },
-  tabText: {
-    fontSize: 14,
-    color: '#555',
-    fontWeight: '600',
-  },
-  activeTabText: {
-    color: '#fff',
-  },
-  tabContent: {
-    gap: 10,
-  },
-  commentBox: {
-    backgroundColor: '#F9F9F9',
-    padding: 10,
-    borderRadius: 10,
-  },
-  writer: {
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  content: {
-    color: '#555',
+  container: { flex: 1, padding: 16, backgroundColor: "#FFF" },
+  title: {
+    fontSize: 22,
+    fontWeight: "600",
+    marginBottom: 12,
+    fontFamily: "cute",
+    color: "#333",
   },
   card: {
-    flexDirection: 'row',
-    backgroundColor: '#F0F4F3',
-    borderRadius: 10,
-    padding: 10,
-    gap: 12,
-    alignItems: 'center',
+    backgroundColor: "#F9F9F9",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#E6E6E6",
   },
-  circle: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#ccc',
+  profileRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
   },
-  petName: {
-    fontWeight: 'bold',
-    fontSize: 15,
+  avatar: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    marginRight: 10,
   },
-  info: {
-    fontSize: 13,
-    color: '#444',
+  user: {
+    fontWeight: "600",
+    fontSize: 14,
+    color: "#6D9886",
   },
   time: {
     fontSize: 12,
-    color: '#888',
+    color: "#888",
   },
-  closeButton: {
-    marginTop: 20,
-    backgroundColor: '#ccc',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontWeight: 'bold',
+  feedbackTitle: {
     fontSize: 15,
+    fontWeight: "600",
+    marginBottom: 4,
+    color: "#2C3E50",
+  },
+  content: {
+    fontSize: 14,
+    color: "#444",
+    fontFamily: "font",
+    marginBottom: 8,
+  },
+  likeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 10,
+  },
+  heart: {
+    fontSize: 18,
+    marginRight: 6,
+  },
+  heartFilled: {
+    color: "red",
+  },
+  heartEmpty: {
+    color: "#aaa",
+  },
+  likes: {
+    fontSize: 13,
+    color: "#999",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  submitBtn: {
+    backgroundColor: "#8DB596",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
   },
 });
+
+export default Mock;

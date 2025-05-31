@@ -1,5 +1,5 @@
 //지도 기반 산책 추천글, 산책 매칭 모달 이동
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,9 @@ import {
   StyleSheet,
   Keyboard,
   TouchableOpacity,
+  FlatList,
+  Image,
+  Alert,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
@@ -17,8 +20,9 @@ import {
   useViewPlace,
   useViewRecommendPostDetail,
 } from '../../hooks/useRecommend';
-import { MockFeedbackTab } from './MockFeedback';
-import { MockMatchingTab } from './MockMatching';
+import { WalkingTogetherTab } from './WalkingTogetherTab';
+import { FeedbackTab } from './FeedbackTab';
+import { usePostComment } from '../../hooks/usePostComment';
 
 Geocoder.init('AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8');
 
@@ -35,6 +39,8 @@ export default function RecommendTab() {
   const [modalVisible, setModalVisible] = useState(false);
   const [usePlaceMode, setUsePlaceMode] = useState(false);
   const [activeTab, setActiveTab] = useState('feedback');
+  const [newComment, setNewComment] = useState('');
+  const [like, setLike] = useState(false);
 
   const {
     data: locationData = [],
@@ -56,9 +62,18 @@ export default function RecommendTab() {
 
   const {
     data: postDetail,
+    refetch: refetchPostDetail,
   } = useViewRecommendPostDetail(selectedPostId, {
     enabled: !!selectedPostId,
   });
+
+  const { mutate: addComment } = usePostComment();
+
+  useEffect(() => {
+    if (postDetail) {
+      setLike(postDetail.like);
+    }
+  }, [postDetail]);
 
   //지도 움직일 시 데이터 새로고침
   useFocusEffect(
@@ -111,6 +126,26 @@ export default function RecommendTab() {
     },
     [region]
   );
+
+  const handleAddComment = () => {
+    if (!newComment.trim()) return;
+    addComment(
+      {
+        postId: selectedPostId,
+        content: newComment,
+        postType: 'RECOMMEND',
+      },
+      {
+        onSuccess: () => {
+          refetchPostDetail();
+          setNewComment('');
+        },
+        onError: () => {
+          Alert.alert('댓글 등록 실패', '잠시 후 다시 시도해주세요.');
+        },
+      }
+    );
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -165,6 +200,42 @@ export default function RecommendTab() {
                 <Text style={styles.modalText}>{postDetail.content}</Text>
                 <Text style={styles.modalText}>작성자: {postDetail.memberName}</Text>
 
+                <TouchableOpacity
+                  style={{ marginVertical: 8 }}
+                  onPress={() => setLike((prev) => !prev)}
+                >
+                  <Text style={{ fontSize: 16 }}>{like ? '❤️ 좋아요 취소' : '🤍 좋아요'}</Text>
+                </TouchableOpacity>
+
+                <FlatList
+                  data={postDetail.comments}
+                  keyExtractor={(item) => item.commentId.toString()}
+                  renderItem={({ item }) => (
+                    <View style={{ marginVertical: 4 }}>
+                      <Text style={{ fontWeight: 'bold' }}>{item.memberName}</Text>
+                      <Text>{item.content}</Text>
+                      <Text style={{ fontSize: 12, color: '#888' }}>{item.createdAt}</Text>
+                    </View>
+                  )}
+                  ListHeaderComponent={<Text style={{ fontSize: 16, fontWeight: 'bold' }}>💬 댓글</Text>}
+                  ListEmptyComponent={<Text>댓글이 아직 없어요.</Text>}
+                />
+
+                <View style={{ flexDirection: 'row', marginTop: 10 }}>
+                  <TextInput
+                    value={newComment}
+                    onChangeText={setNewComment}
+                    placeholder="댓글을 입력하세요"
+                    style={{ flex: 1, borderColor: '#ccc', borderWidth: 1, borderRadius: 8, padding: 8 }}
+                  />
+                  <TouchableOpacity
+                    onPress={handleAddComment}
+                    style={{ marginLeft: 8, paddingVertical: 10, paddingHorizontal: 14, backgroundColor: '#8DB596', borderRadius: 8 }}
+                  >
+                    <Text style={{ color: '#fff' }}>등록</Text>
+                  </TouchableOpacity>
+                </View>
+
                 <View style={styles.tabWrapper}>
                   <TouchableOpacity
                     style={[styles.tabButton, activeTab === 'feedback' && styles.activeTab]}
@@ -186,9 +257,9 @@ export default function RecommendTab() {
 
                 <View style={styles.tabContent}>
                   {activeTab === 'feedback' ? (
-                    <MockFeedbackTab />
+                    <FeedbackTab recommendRoutePostId={postDetail.recommendRoutePostId} />
                   ) : (
-                    <MockMatchingTab />
+                    <WalkingTogetherTab recommendRoutePostId={postDetail.recommendRoutePostId} />
                   )}
                 </View>
               </>
@@ -208,120 +279,3 @@ export default function RecommendTab() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  searchBox: {
-    position: 'absolute',
-    top: 10,
-    left: 20,
-    right: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 16,
-    padding: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 4,
-    zIndex: 10,
-  },
-  input: {
-    flex: 1,
-    backgroundColor: '#eee',
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    height: 40,
-  },
-  searchButton: {
-    backgroundColor: '#8DB596',
-    paddingVertical: 10,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginLeft: 8,
-    flexShrink: 0,
-    marginRight: 2,
-  },
-  searchButtonText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  modalContainer: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    width: '85%',
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 16,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  modalText: {
-    fontSize: 15,
-    marginBottom: 6,
-  },
-  emptyBox: {
-    position: 'absolute',
-    top: 100,
-    left: 0,
-    right: 0,
-    alignItems: 'center',
-  },
-  emptyText: {
-    backgroundColor: 'white',
-    padding: 10,
-    borderRadius: 10,
-    elevation: 3,
-  },
-  tabWrapper: {
-    flexDirection: 'row',
-    marginTop: 16,
-    marginBottom: 10,
-    backgroundColor: '#F0F4F3',
-    borderRadius: 12,
-    overflow: 'hidden',
-  },
-  tabButton: {
-    flex: 1,
-    paddingVertical: 8,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: '#8DB596',
-  },
-  tabText: {
-    fontSize: 14,
-    color: '#555',
-    fontWeight: '600',
-  },
-  activeTabText: {
-    color: '#fff',
-  },
-  tabContent: {
-    marginTop: 10,
-    maxHeight: 250,
-  },
-  closeButton: {
-    marginTop: 20,
-    backgroundColor: '#ccc',
-    paddingVertical: 10,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  closeButtonText: {
-    fontWeight: 'bold',
-    fontSize: 15,
-  },
-});
