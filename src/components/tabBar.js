@@ -71,7 +71,7 @@ const TabBar = () => {
           },
         }}></Tab.Screen>
       <Tab.Screen name="Community" component={CommunityStack}></Tab.Screen>
-      <Tab.Screen name="Map" component={MapScreen}
+      <Tab.Screen name="Map" component={Mock}
         options={{
           headerShown: true,
           headerTitleAlign: "center",

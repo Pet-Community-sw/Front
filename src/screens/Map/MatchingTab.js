@@ -1,3 +1,4 @@
+//지도 기반 산책 추천글, 산책 매칭 모달 이동
 import React, { useState, useCallback } from 'react';
 import {
   View,
@@ -21,11 +22,11 @@ import {
 Geocoder.init('AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8');
 
 export default function MatchingTab() {
-  const [region, setRegion] = useState({
-    latitude: 37.648931,
-    longitude: 127.064411,
-    latitudeDelta: 0.05,
-    longitudeDelta: 0.05,
+  const [region, setRegion] = useState({  //중심 좌표, 확대 정도 저장
+    latitude: 37.648931,    //중심 위도
+    longitude: 127.064411,  //중심 경도
+    latitudeDelta: 0.05,    //위아래 전체 높이(줌 정도), 위로 약 3키로 정도
+    longitudeDelta: 0.05,   //좌우 전체 너비(줌 정도), 아래로 약 3키로 정도
   });
 
   const [searchInput, setSearchInput] = useState('');
@@ -37,10 +38,10 @@ export default function MatchingTab() {
     data: locationData = [],
     refetch: refetchLocation,
   } = useViewLocation({
-    minLatitude: region.latitude - region.latitudeDelta / 2,
-    maxLatitude: region.latitude + region.latitudeDelta / 2,
-    minLongitude: region.longitude - region.longitudeDelta / 2,
-    maxLongitude: region.longitude + region.longitudeDelta / 2,
+    minLatitude: region.latitude - region.latitudeDelta / 2,    //남쪽 하단
+    maxLatitude: region.latitude + region.latitudeDelta / 2,    //북쪽 상단
+    minLongitude: region.longitude - region.longitudeDelta / 2, //서쪽
+    maxLongitude: region.longitude + region.longitudeDelta / 2, //남쪽
   });
 
   const {
@@ -52,7 +53,9 @@ export default function MatchingTab() {
   });
 
   const { data: postDetail } = useViewRecommendPostDetail(selectedPostId);
-
+  
+  //지도 영역이 바뀌면 추천글 데이터 새로 불러옴
+  //단, usePlace 모드 일때는 다시 불러오지 않음
   useFocusEffect(
     useCallback(() => {
       if (!usePlaceMode) {
@@ -93,7 +96,7 @@ export default function MatchingTab() {
 
   const handleRegionChange = useCallback(
     (newRegion) => {
-      if (
+      if (  //기존 좌표와 바뀐 좌표의 차이가 어느정도 날 때만 (대략 10m)
         Math.abs(newRegion.latitude - region.latitude) > 0.0001 ||
         Math.abs(newRegion.longitude - region.longitude) > 0.0001
       ) {
@@ -110,7 +113,7 @@ export default function MatchingTab() {
         provider="google"
         style={{ flex: 1 }}
         region={region}
-        onRegionChangeComplete={handleRegionChange}
+        onRegionChangeComplete={handleRegionChange}   //지도가 움직일 때마다 좌표 확인
       >
         {postList.map((post) => (
           <Marker
