@@ -38,7 +38,7 @@ export const modifyWalkingTogetherPost = async ({ walkingTogetherPostId, schedul
     return response.data;
 }
 
-//매칭 글 삭제
+//함께 산책해요 글 삭제
 export const deleteWalkingTogetherPost = async ({ walkingTogetherPostId }) => {
     const response = await apiClient.delete(`/walking-together-posts/${walkingTogetherPostId}`)
     return response.data;
