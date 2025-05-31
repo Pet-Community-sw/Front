@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import MatchingTab from './MatchingTab';
+import RecommendTab from './RecommendTab';
 import DelegateTab from './DelegateTab';
 
 export default function MapScreen() {
-  const [selectedTab, setSelectedTab] = useState('matching'); // 기본값: 산책 친구 찾기
+  const [selectedTab, setSelectedTab] = useState('recommend'); // 기본값: 산책 친구 찾기
 
   return (
     <View style={styles.container}>
@@ -12,17 +12,17 @@ export default function MapScreen() {
         <TouchableOpacity
           style={[
             styles.tabButton,
-            selectedTab === 'matching' ? styles.activeButton : styles.inactiveButton,
+            selectedTab === 'recommend' ? styles.activeButton : styles.inactiveButton,
           ]}
-          onPress={() => setSelectedTab('matching')}
+          onPress={() => setSelectedTab('recommend')}
         >
           <Text
             style={[
               styles.tabText,
-              selectedTab === 'matching' ? styles.activeText : styles.inactiveText,
+              selectedTab === 'recommend' ? styles.activeText : styles.inactiveText,
             ]}
           >
-            산책 친구 찾기
+            산책길 추천 코스 & 산책 매칭
           </Text>
         </TouchableOpacity>
 
@@ -45,7 +45,7 @@ export default function MapScreen() {
       </View>
 
       <View style={styles.contentArea}>
-        {selectedTab === 'matching' && <MatchingTab />}
+        {selectedTab === 'recommend' && <RecommendTab />}
         {selectedTab === 'delegate' && <DelegateTab />}
       </View>
     </View>
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#EAEFEF',
   },
   tabText: {
-    fontSize: 17,
+    fontSize: 15,
     fontFamily: "fontExtra"
   },
   activeText: {

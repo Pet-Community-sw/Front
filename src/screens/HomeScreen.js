@@ -45,7 +45,7 @@ const HomeScreen = () => {
       <View style={styles.headerRow}>
         <Text style={styles.headerInfoText}>5월 24일 ☀️ 맑음 24º</Text>
         <View style={styles.rightHeader}>
-          <NotificationBell onPress={() => navigation.navigate("NotificationList")}/>
+          <NotificationBell onPress={() => navigation.navigate("NotificationList")} />
           <TouchableOpacity onPress={() => navigation.navigate("MyProfile")} style={styles.iconBtn}>
             <MaterialIcons name="person" size={28} color="#333" />
           </TouchableOpacity>
@@ -62,7 +62,6 @@ const HomeScreen = () => {
             : `오늘도 ${pet.name}와 좋은 하루 보내세요 💛`}
         </Text>
       </View>
-
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>🐾 내 반려동물</Text>
@@ -135,7 +134,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: 10,
     marginBottom: 10,
   },
   headerInfoText: {
@@ -143,7 +142,8 @@ const styles = StyleSheet.create({
     color: "#444",
     fontFamily: "font",
     flex: 1,
-    marginLeft: 15
+    marginLeft: 15,
+    lineHeight: 20,
   },
   rightHeader: {
     flexDirection: "row",
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginLeft: 3,
     marginTop: 5,
+    lineHeight: 30,
   },
   buttonRow: {
     flexDirection: "row",
@@ -235,22 +236,18 @@ const styles = StyleSheet.create({
     color: "#333",
     fontFamily: "cute",
   },
+  // ✅ 스레드형 커뮤니티용 스타일 수정
   threadCard: {
-    backgroundColor: "#FDFDFD",
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 14,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 3,
-    elevation: 2,
+    borderBottomWidth: 1,
+    borderColor: "#E0E0E0",
+    paddingVertical: 10,
+    paddingHorizontal: 4,
     marginHorizontal: 5,
   },
   threadTitle: {
     fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 10,
+    fontWeight: "500",
+    marginBottom: 6,
     color: "#2C3E50",
   },
   threadMetaRow: {

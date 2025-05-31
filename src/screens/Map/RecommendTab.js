@@ -4,11 +4,10 @@ import {
   View,
   Text,
   Modal,
-  Button,
   TextInput,
   StyleSheet,
   Keyboard,
-  TouchableOpacity, 
+  TouchableOpacity,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
@@ -18,30 +17,33 @@ import {
   useViewPlace,
   useViewRecommendPostDetail,
 } from '../../hooks/useRecommend';
+import { MockFeedbackTab } from './MockFeedback';
+import { MockMatchingTab } from './MockMatching';
 
 Geocoder.init('AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8');
 
-export default function MatchingTab() {
-  const [region, setRegion] = useState({  //중심 좌표, 확대 정도 저장
-    latitude: 37.648931,    //중심 위도
-    longitude: 127.064411,  //중심 경도
-    latitudeDelta: 0.05,    //위아래 전체 높이(줌 정도), 위로 약 3키로 정도
-    longitudeDelta: 0.05,   //좌우 전체 너비(줌 정도), 아래로 약 3키로 정도
+export default function RecommendTab() {
+  const [region, setRegion] = useState({    //초기값, 지도 이동, 장소 검색
+    latitude: 37.648931,    //위도
+    longitude: 127.064411,  //경도
+    latitudeDelta: 0.01,    //위아래 줌 정도 (동네 정도)
+    longitudeDelta: 0.01,   //좌우 줌 정도
   });
 
   const [searchInput, setSearchInput] = useState('');
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [usePlaceMode, setUsePlaceMode] = useState(false);
+  const [activeTab, setActiveTab] = useState('feedback');
 
   const {
     data: locationData = [],
     refetch: refetchLocation,
   } = useViewLocation({
-    minLatitude: region.latitude - region.latitudeDelta / 2,    //남쪽 하단
-    maxLatitude: region.latitude + region.latitudeDelta / 2,    //북쪽 상단
-    minLongitude: region.longitude - region.longitudeDelta / 2, //서쪽
-    maxLongitude: region.longitude + region.longitudeDelta / 2, //남쪽
+    minLatitude: region.latitude - region.latitudeDelta / 2,
+    maxLatitude: region.latitude + region.latitudeDelta / 2,
+    minLongitude: region.longitude - region.longitudeDelta / 2,
+    maxLongitude: region.longitude + region.longitudeDelta / 2,
   });
 
   const {
@@ -52,10 +54,13 @@ export default function MatchingTab() {
     longitude: region.longitude,
   });
 
-  const { data: postDetail } = useViewRecommendPostDetail(selectedPostId);
-  
-  //지도 영역이 바뀌면 추천글 데이터 새로 불러옴
-  //단, usePlace 모드 일때는 다시 불러오지 않음
+  const {
+    data: postDetail,
+  } = useViewRecommendPostDetail(selectedPostId, {
+    enabled: !!selectedPostId,
+  });
+
+  //지도 움직일 시 데이터 새로고침
   useFocusEffect(
     useCallback(() => {
       if (!usePlaceMode) {
@@ -82,7 +87,6 @@ export default function MatchingTab() {
       });
 
       await refetchPlace({ latitude: lat, longitude: lng });
-
       setUsePlaceMode(true);
       setSearchInput('');
       Keyboard.dismiss();
@@ -92,11 +96,12 @@ export default function MatchingTab() {
     }
   };
 
+  //지도 or 장소 글 목록 가져옴
   const postList = usePlaceMode ? placeData : locationData;
 
   const handleRegionChange = useCallback(
     (newRegion) => {
-      if (  //기존 좌표와 바뀐 좌표의 차이가 어느정도 날 때만 (대략 10m)
+      if (    //약 10m 정도 이동해야 렌더링
         Math.abs(newRegion.latitude - region.latitude) > 0.0001 ||
         Math.abs(newRegion.longitude - region.longitude) > 0.0001
       ) {
@@ -113,7 +118,7 @@ export default function MatchingTab() {
         provider="google"
         style={{ flex: 1 }}
         region={region}
-        onRegionChangeComplete={handleRegionChange}   //지도가 움직일 때마다 좌표 확인
+        onRegionChangeComplete={handleRegionChange}
       >
         {postList.map((post) => (
           <Marker
@@ -149,9 +154,7 @@ export default function MatchingTab() {
         <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
           <Text style={styles.searchButtonText}>검색</Text>
         </TouchableOpacity>
-
       </View>
-
 
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
@@ -161,11 +164,44 @@ export default function MatchingTab() {
                 <Text style={styles.modalTitle}>{postDetail.title}</Text>
                 <Text style={styles.modalText}>{postDetail.content}</Text>
                 <Text style={styles.modalText}>작성자: {postDetail.memberName}</Text>
+
+                <View style={styles.tabWrapper}>
+                  <TouchableOpacity
+                    style={[styles.tabButton, activeTab === 'feedback' && styles.activeTab]}
+                    onPress={() => setActiveTab('feedback')}
+                  >
+                    <Text style={[styles.tabText, activeTab === 'feedback' && styles.activeTabText]}>
+                      💬 피드백
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.tabButton, activeTab === 'walking' && styles.activeTab]}
+                    onPress={() => setActiveTab('walking')}
+                  >
+                    <Text style={[styles.tabText, activeTab === 'walking' && styles.activeTabText]}>
+                      🐾 함께 산책해요
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+
+                <View style={styles.tabContent}>
+                  {activeTab === 'feedback' ? (
+                    <MockFeedbackTab />
+                  ) : (
+                    <MockMatchingTab />
+                  )}
+                </View>
               </>
             ) : (
               <Text>불러오는 중...</Text>
             )}
-            <Button title="닫기" onPress={() => setModalVisible(false)} />
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>닫기</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -179,7 +215,7 @@ const styles = StyleSheet.create({
     top: 10,
     left: 20,
     right: 20,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // 반투명 배경
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 16,
     padding: 10,
     flexDirection: 'row',
@@ -207,8 +243,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     marginLeft: 8,
-    flexShrink: 0,  
-    marginRight: 2, 
+    flexShrink: 0,
+    marginRight: 2,
   },
   searchButtonText: {
     color: 'white',
@@ -248,5 +284,44 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 10,
     elevation: 3,
+  },
+  tabWrapper: {
+    flexDirection: 'row',
+    marginTop: 16,
+    marginBottom: 10,
+    backgroundColor: '#F0F4F3',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: '#8DB596',
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#555',
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  tabContent: {
+    marginTop: 10,
+    maxHeight: 250,
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#ccc',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });

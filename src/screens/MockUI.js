@@ -3,35 +3,62 @@ import {
   View,
   Text,
   Modal,
-  Button,
   TextInput,
   StyleSheet,
   Keyboard,
   TouchableOpacity,
 } from 'react-native';
-import MapView, { Marker,  } from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 import Geocoder from 'react-native-geocoding';
 
-Geocoder.init('YOUR_API_KEY'); // 실제 동작 필요 시 유효한 Google Maps API 키
+// 임의 컴포넌트
+const FeedbackTab = () => {
+  const dummyComments = [
+    { id: 1, writer: '쪼꼬미맘', content: '여기 진짜 좋아요!' },
+    { id: 2, writer: '두부아빠', content: '사람도 많지 않고 조용해서 강추' },
+  ];
 
-const mockPosts = [
-  {
-    recommendRoutePostId: 1,
-    title: '한적한 공원 산책길',
-    content: '강아지와 함께 걷기 좋은 조용한 공원이에요!',
-    memberName: '효빈님',
-    locationLatitude: 37.648931,
-    locationLongitude: 127.064411,
-  },
-  {
-    recommendRoutePostId: 2,
-    title: '카페 옆 강변길',
-    content: '물소리를 들으며 산책할 수 있는 강변입니다.',
-    memberName: '현서님',
-    locationLatitude: 37.6495,
-    locationLongitude: 127.0622,
-  },
-];
+  return (
+    <View style={styles.tabContent}>
+      {dummyComments.map((c) => (
+        <View key={c.id} style={styles.commentBox}>
+          <Text style={styles.writer}>{c.writer}</Text>
+          <Text style={styles.content}>{c.content}</Text>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+const WalkingTogetherTab = () => {
+  const dummyPosts = [
+    {
+      id: 101,
+      petName: '초코',
+      scheduledTime: '2025-06-01 17:00',
+      limitCount: 3,
+      currentCount: 2,
+      petImageUrl: 'https://via.placeholder.com/50',
+    },
+  ];
+
+  return (
+    <View style={styles.tabContent}>
+      {dummyPosts.map((p) => (
+        <View key={p.id} style={styles.card}>
+          <View style={styles.circle} />
+          <View>
+            <Text style={styles.petName}>{p.petName}</Text>
+            <Text style={styles.info}>인원: {p.currentCount}/{p.limitCount}</Text>
+            <Text style={styles.time}>{p.scheduledTime}</Text>
+          </View>
+        </View>
+      ))}
+    </View>
+  );
+};
+
+Geocoder.init('YOUR_API_KEY');
 
 export default function Mock() {
   const [region, setRegion] = useState({
@@ -42,8 +69,8 @@ export default function Mock() {
   });
 
   const [searchInput, setSearchInput] = useState('');
-  const [selectedPostId, setSelectedPostId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
+  const [activeTab, setActiveTab] = useState('feedback');
 
   const handleSearch = async () => {
     if (!searchInput.trim()) {
@@ -65,8 +92,7 @@ export default function Mock() {
       setSearchInput('');
       Keyboard.dismiss();
     } catch (err) {
-      console.error('Geocode error:', err);
-      alert('장소를 찾을 수 없습니다. 정확한 명칭으로 다시 시도해주세요.');
+      alert('장소를 찾을 수 없습니다.');
     }
   };
 
@@ -82,8 +108,6 @@ export default function Mock() {
     [region]
   );
 
-  const selectedPost = mockPosts.find((post) => post.recommendRoutePostId === selectedPostId);
-
   return (
     <View style={{ flex: 1 }}>
       <MapView
@@ -92,27 +116,24 @@ export default function Mock() {
         region={region}
         onRegionChangeComplete={handleRegionChange}
       >
-        {mockPosts.map((post) => (
-          <Marker
-            key={post.recommendRoutePostId}
-            coordinate={{
-              latitude: Number(post.locationLatitude),
-              longitude: Number(post.locationLongitude),
-            }}
-            title={post.title}
-            description={post.memberName}
-            onPress={() => {
-              setSelectedPostId(post.recommendRoutePostId);
-              setModalVisible(true);
-            }}
-          />
-        ))}
+        <Marker
+          coordinate={{
+            latitude: 37.648931,
+            longitude: 127.064411,
+          }}
+          title="추천 산책길"
+          description="효빈이가 추천했어요"
+          onPress={() => {
+            setActiveTab('feedback');
+            setModalVisible(true);
+          }}
+        />
       </MapView>
 
       <View style={styles.searchBox}>
         <TextInput
           style={styles.input}
-          placeholder="📍 원하시는 장소를 입력해주세요"
+          placeholder="📍 장소를 입력해주세요"
           value={searchInput}
           onChangeText={setSearchInput}
           placeholderTextColor="#888"
@@ -125,16 +146,37 @@ export default function Mock() {
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            {selectedPost ? (
-              <>
-                <Text style={styles.modalTitle}>{selectedPost.title}</Text>
-                <Text style={styles.modalText}>{selectedPost.content}</Text>
-                <Text style={styles.modalText}>작성자: {selectedPost.memberName}</Text>
-              </>
-            ) : (
-              <Text>불러오는 중...</Text>
-            )}
-            <Button title="닫기" onPress={() => setModalVisible(false)} />
+            <Text style={styles.modalTitle}>한적한 공원 산책길</Text>
+            <Text style={styles.modalText}>강아지와 함께 걷기 좋은 조용한 공원이에요!</Text>
+            <Text style={styles.modalText}>작성자: 효빈</Text>
+
+            <View style={styles.tabWrapper}>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === 'feedback' && styles.activeTab]}
+                onPress={() => setActiveTab('feedback')}
+              >
+                <Text style={[styles.tabText, activeTab === 'feedback' && styles.activeTabText]}>
+                  💬 피드백
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tabButton, activeTab === 'walking' && styles.activeTab]}
+                onPress={() => setActiveTab('walking')}
+              >
+                <Text style={[styles.tabText, activeTab === 'walking' && styles.activeTabText]}>
+                  🐾 함께 산책해요
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {activeTab === 'feedback' ? <FeedbackTab /> : <WalkingTogetherTab />}
+
+            <TouchableOpacity
+              style={styles.closeButton}
+              onPress={() => setModalVisible(false)}
+            >
+              <Text style={styles.closeButtonText}>닫기</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -191,10 +233,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalContent: {
-    width: '85%',
+    width: '90%',
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 16,
+    maxHeight: '85%',
   },
   modalTitle: {
     fontSize: 18,
@@ -203,6 +246,83 @@ const styles = StyleSheet.create({
   },
   modalText: {
     fontSize: 15,
-    marginBottom: 6,
+    marginBottom: 4,
+    color: '#555',
+  },
+  tabWrapper: {
+    flexDirection: 'row',
+    marginTop: 16,
+    marginBottom: 10,
+    backgroundColor: '#F0F4F3',
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 8,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: '#8DB596',
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#555',
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  tabContent: {
+    gap: 10,
+  },
+  commentBox: {
+    backgroundColor: '#F9F9F9',
+    padding: 10,
+    borderRadius: 10,
+  },
+  writer: {
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  content: {
+    color: '#555',
+  },
+  card: {
+    flexDirection: 'row',
+    backgroundColor: '#F0F4F3',
+    borderRadius: 10,
+    padding: 10,
+    gap: 12,
+    alignItems: 'center',
+  },
+  circle: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#ccc',
+  },
+  petName: {
+    fontWeight: 'bold',
+    fontSize: 15,
+  },
+  info: {
+    fontSize: 13,
+    color: '#444',
+  },
+  time: {
+    fontSize: 12,
+    color: '#888',
+  },
+  closeButton: {
+    marginTop: 20,
+    backgroundColor: '#ccc',
+    paddingVertical: 10,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  closeButtonText: {
+    fontWeight: 'bold',
+    fontSize: 15,
   },
 });
