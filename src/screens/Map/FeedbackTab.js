@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -10,6 +10,11 @@ import {
 } from "react-native";
 import { useViewRecommendPostDetail } from "../../hooks/useRecommend";
 import { useLikePost } from "../../hooks/useLikePost";
+import {
+  usePostComment,
+  useRemoveComment,
+  useModifyComment, }
+  from "../../hooks/usePostComment"
 
 export const FeedbackTab = ({ recommendRoutePostId }) => {
   const {
@@ -20,15 +25,65 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
   } = useViewRecommendPostDetail(recommendRoutePostId);
 
   const { mutate: like, isLoading: isLiking } = useLikePost();
+  const { mutate: postComment } = usePostComment();
+  const { mutate: removeComment } = useRemoveComment();
+  const { mutate: modifyComment } = useModifyComment();
+
+  const [commentInput, setCommentInput] = useState("");
+  const [editCommentId, setEditCommentId] = useState(null);
+  const [editCommentInput, setEditCommentInput] = useState("");
 
   useEffect(() => {
-    refetch(); // 컴포넌트 진입 시 데이터 요청
+    refetch();
   }, []);
 
   const handleLike = () => {
     if (!isLiking) {
       like({ postId: recommendRoutePostId });
     }
+  };
+
+  const handleSubmitComment = () => {
+    if (!commentInput.trim()) return;
+    postComment(
+      {
+        postId: recommendRoutePostId,
+        content: commentInput,
+        postType: "RECOMMEND",
+      },
+      {
+        onSuccess: () => {
+          setCommentInput("");
+        },
+      }
+    );
+  };
+
+  const handleDeleteComment = (commentId) => {
+    removeComment({ commentId, postId: recommendRoutePostId, postType: "RECOMMEND" });
+  };
+
+  const handleEditComment = (commentId, content) => {
+    setEditCommentId(commentId);
+    setEditCommentInput(content);
+  };
+
+  const handleSubmitEdit = () => {
+    if (!editCommentInput.trim()) return;
+    modifyComment(
+      {
+        commentId: editCommentId,
+        content: editCommentInput,
+        postId: recommendRoutePostId,
+        postType: "RECOMMEND",
+      },
+      {
+        onSuccess: () => {
+          setEditCommentId(null);
+          setEditCommentInput("");
+        },
+      }
+    );
   };
 
   if (isLoading) return <Text>불러오는 중...</Text>;
@@ -48,20 +103,77 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
         </View>
 
         <Text style={styles.feedbackTitle}>{feedback.title}</Text>
-        {feedback.content ? (
-          <Text style={styles.content}>{feedback.content}</Text>
-        ) : (
-          <Text style={styles.content}>아직 피드백 내용이 없습니다.</Text>
-        )}
+        <Text style={styles.content}>{feedback.content || "아직 피드백 내용이 없습니다."}</Text>
 
-        {/* ❤️ 좋아요 */}
         <TouchableOpacity style={styles.likeRow} onPress={handleLike}>
           <Text style={[styles.heart, feedback.like ? styles.heartFilled : styles.heartEmpty]}>
             {feedback.like ? "❤️" : "🤍"}
           </Text>
-          <Text style={styles.likes}>
-            {feedback.likeCount}명에게 도움이 되었어요
-          </Text>
+          <Text style={styles.likes}>{feedback.likeCount}명에게 도움이 되었어요</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 댓글 목록 */}
+      <View style={{ marginTop: 24 }}>
+        <Text style={{ fontWeight: "600", marginBottom: 6 }}>🖍️ 댓글 목록</Text>
+        {feedback.comments?.length > 0 ? (
+          <FlatList
+            data={feedback.comments}
+            keyExtractor={(item) => item.commentId.toString()}
+            renderItem={({ item }) => (
+              <View style={{ marginBottom: 16 }}>
+                <View style={styles.profileRow}>
+                  <Image source={{ uri: item.memberImageUrl }} style={styles.avatar} />
+                  <View>
+                    <Text style={styles.user}>{item.memberName}</Text>
+                    <Text style={styles.time}>{item.createdAt}</Text>
+                  </View>
+                </View>
+                {editCommentId === item.commentId ? (
+                  <>
+                    <TextInput
+                      value={editCommentInput}
+                      onChangeText={setEditCommentInput}
+                      style={styles.input}
+                    />
+                    <TouchableOpacity onPress={handleSubmitEdit} style={styles.submitBtn}>
+                      <Text style={{ color: "#fff" }}>수정 완료</Text>
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    <Text style={styles.content}>{item.content}</Text>
+                    {item.owner && (
+                      <View style={{ flexDirection: "row", gap: 10 }}>
+                        <TouchableOpacity onPress={() => handleEditComment(item.commentId, item.content)}>
+                          <Text style={{ fontSize: 13, color: "#555" }}>수정</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleDeleteComment(item.commentId)}>
+                          <Text style={{ fontSize: 13, color: "red" }}>삭제</Text>
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
+            )}
+          />
+        ) : (
+          <Text style={{ color: "#888" }}>댓글이 아직 없습니다.</Text>
+        )}
+      </View>
+
+      {/* 댓글 입력 */}
+      <View style={{ marginTop: 20 }}>
+        <Text style={{ fontWeight: "600", marginBottom: 6 }}>✍️ 댓글 달기</Text>
+        <TextInput
+          value={commentInput}
+          onChangeText={setCommentInput}
+          placeholder="댓글을 입력하세요"
+          style={styles.input}
+        />
+        <TouchableOpacity onPress={handleSubmitComment} style={styles.submitBtn}>
+          <Text style={{ color: "#fff", fontWeight: "600" }}>댓글 등록</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -134,5 +246,18 @@ const styles = StyleSheet.create({
   likes: {
     fontSize: 13,
     color: "#999",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
+  },
+  submitBtn: {
+    backgroundColor: "#8DB596",
+    padding: 10,
+    borderRadius: 8,
+    alignItems: "center",
   },
 });
