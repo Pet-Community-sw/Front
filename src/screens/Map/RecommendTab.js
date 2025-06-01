@@ -1,4 +1,7 @@
 //지도 기반 산책 추천글, 산책 매칭 모달 이동
+//마커 클릭 시 피드백, 함께 산책해요 탭으로 이동
+//어떤 탭으로 보여줄지만 결정하는 역할.
+//실제로 데이터 불러오는 탭은 FeedbackTab, WalkingTogetherTab
 import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
@@ -23,6 +26,7 @@ import {
 import { WalkingTogetherTab } from './WalkingTogetherTab';
 import { FeedbackTab } from './FeedbackTab';
 import { usePostComment } from '../../hooks/usePostComment';
+import { useLikePost } from '../../hooks/useLikePost';
 
 Geocoder.init('AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8');
 
@@ -30,11 +34,11 @@ export default function RecommendTab() {
   const [region, setRegion] = useState({    //초기값, 지도 이동, 장소 검색
     latitude: 37.648931,    //위도
     longitude: 127.064411,  //경도
-    latitudeDelta: 0.01,    //위아래 줌 정도 (동네 정도)
+    latitudeDelta: 0.05,    //위아래 줌 정도 (동네 정도)
     longitudeDelta: 0.01,   //좌우 줌 정도
   });
 
-  const [searchInput, setSearchInput] = useState('');
+  const [searchInput, setSearchInput] = useState('');   //원하는 장소 입력
   const [selectedPostId, setSelectedPostId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [usePlaceMode, setUsePlaceMode] = useState(false);
@@ -68,14 +72,16 @@ export default function RecommendTab() {
   });
 
   const { mutate: addComment } = usePostComment();
+  const { mutate: toggleLike } = useLikePost();
 
+  //게시글 상세 불러올 때마다 좋아요 수 새로고침
   useEffect(() => {
     if (postDetail) {
       setLike(postDetail.like);
     }
   }, [postDetail]);
 
-  //지도 움직일 시 데이터 새로고침
+  //지도 움직일 시, 마커 새로 받아옴
   useFocusEffect(
     useCallback(() => {
       if (!usePlaceMode) {
@@ -84,6 +90,7 @@ export default function RecommendTab() {
     }, [region, usePlaceMode])
   );
 
+  //사용자가 장소 입력 시, 장소 1km 반경 마커 받아옴
   const handleSearch = async () => {
     if (!searchInput.trim()) {
       alert('장소를 입력해주세요.');
@@ -127,6 +134,7 @@ export default function RecommendTab() {
     [region]
   );
 
+  //댓글 반영
   const handleAddComment = () => {
     if (!newComment.trim()) return;
     addComment(
@@ -147,6 +155,25 @@ export default function RecommendTab() {
     );
   };
 
+  //좋아요 반영
+  const handleToggleLike = () => {
+    toggleLike(
+      {
+        postId: selectedPostId, // = recommendRoutePostId
+        postType: "RECOMMEND",
+      },
+      {
+        onSuccess: () => {
+          setLike((prev) => !prev);
+          refetchPostDetail(); 
+        },
+        onError: () => {
+          Alert.alert("오류", "좋아요 요청에 실패했습니다.");
+        },
+      }
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <MapView
@@ -155,6 +182,7 @@ export default function RecommendTab() {
         region={region}
         onRegionChangeComplete={handleRegionChange}
       >
+        {/* 마커 표시 */}
         {postList.map((post) => (
           <Marker
             key={post.recommendRoutePostId}
@@ -191,6 +219,7 @@ export default function RecommendTab() {
         </TouchableOpacity>
       </View>
 
+      {/* 피드백, 함께 산책해요 탭으로 나뉨 */}
       <Modal visible={modalVisible} transparent animationType="slide">
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
@@ -202,7 +231,7 @@ export default function RecommendTab() {
 
                 <TouchableOpacity
                   style={{ marginVertical: 8 }}
-                  onPress={() => setLike((prev) => !prev)}
+                  onPress={handleToggleLike}
                 >
                   <Text style={{ fontSize: 16 }}>{like ? '❤️ 좋아요 취소' : '🤍 좋아요'}</Text>
                 </TouchableOpacity>
@@ -279,3 +308,122 @@ export default function RecommendTab() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  searchBox: {
+    position: "absolute",
+    top: 15,
+    left: 16,
+    right: 16,
+    backgroundColor: "white",
+    borderRadius: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 5,
+  },
+  input: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+    paddingVertical: 4,
+    fontFamily: "font"
+  },
+  searchButton: {
+    backgroundColor: "#8DB596",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    width: "20%", 
+  },
+  searchButtonText: {
+    color: "#fff",
+    fontFamily: "fontExtra", 
+    fontSize: 15,
+    alignSelf: "center"
+  },
+  emptyBox: {
+    position: "absolute",
+    top: 100,
+    alignSelf: "center",
+    backgroundColor: "#fff",
+    padding: 12,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  emptyText: {
+    color: "#999",
+    fontSize: 14,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    maxHeight: "90%",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  modalText: {
+    fontSize: 14,
+    marginBottom: 6,
+    color: "#333",
+  },
+  closeButton: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  closeButtonText: {
+    fontSize: 14,
+    color: "#999",
+  },
+  tabWrapper: {
+  flexDirection: 'row',
+  backgroundColor: '#F0F4F3',
+  borderRadius: 12,
+  overflow: 'hidden',
+  marginTop: 20,
+  marginBottom: 12,
+},
+tabButton: {
+  flex: 1,
+  paddingVertical: 10,
+  alignItems: 'center',
+},
+activeTab: {
+  backgroundColor: '#8DB596',
+},
+tabText: {
+  fontSize: 14,
+  fontWeight: '600',
+  color: '#777',
+},
+activeTabText: {
+  color: '#fff',
+},
+tabContent: {
+  backgroundColor: '#FAFAFA',
+  borderRadius: 12,
+  padding: 12,
+  borderWidth: 1,
+  borderColor: '#E0E0E0',
+},
+
+});

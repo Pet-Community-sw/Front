@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
     View,
     Text,
@@ -7,24 +7,46 @@ import {
     TouchableOpacity,
     Modal,
     Alert,
+    TextInput,
 } from "react-native";
-import { MaterialIcons, Feather } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { useFocusEffect } from "@react-navigation/native";
 import {
     useViewWalkingTogether,
     useViewWalkingTogetherPostDetail,
+    useAddWalkingTogether,
+    useModifyWalkingTogether,
+    useRemoveWalkingTogether
 } from "../../hooks/useWalkingTogether";
 
 export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState(null);
+    const [writeModalVisible, setWriteModalVisible] = useState(false);
 
+    const [scheduledTime, setScheduledTime] = useState(null);
+    const [limitCount, setLimitCount] = useState("");
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+
+    const [editModalVisible, setEditModalVisible] = useState(false);
+    const [editScheduledTime, setEditScheduledTime] = useState(null);
+    const [editLimitCount, setEditLimitCount] = useState('');
+    const [isEditDatePickerVisible, setEditDatePickerVisibility] = useState(false);
+
+    const { mutate: createMatch } = useAddWalkingTogether();
+    const { mutate: deletePost } = useRemoveWalkingTogether();
+    const { mutate: updatePost } = useModifyWalkingTogether();
+
+
+    //글 목록 조회
     const {
         data: walks = [],
         refetch,
         isLoading,
     } = useViewWalkingTogether({ recommendRoutePostId });
 
+    //글 상세 조회
     const {
         data: selectedPost,
         refetch: refetchDetail,
@@ -33,21 +55,135 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
         walkingTogetherPostId: selectedPostId,
     });
 
+    //탭이 활성화 될 때마다 글 목록 불러옴
     useFocusEffect(
         useCallback(() => {
             refetch();
         }, [])
     );
 
+    //postId가 바뀐 후에 상세 불러옴
+    useEffect(() => {
+        if (selectedPostId) {
+            refetchDetail();
+        }
+    }, [selectedPostId]);
+
+    //선택된 게시글의 ID 가 전달됨
     const openModal = (postId) => {
         setSelectedPostId(postId);
         setModalVisible(true);
-        refetchDetail();
     };
+
+
+    //날짜, 시간 선택
+    const handleConfirmDate = (date) => {
+        setScheduledTime(date);
+        setDatePickerVisibility(false);
+    };
+
+    //글 수정 날짜, 시간 선택
+    const handleConfirmEditDate = (date) => {
+        setEditScheduledTime(date.toISOString());
+        setEditDatePickerVisibility(false);
+    };
+
+    //매칭 글 추가
+    const handleSubmit = () => {
+        if (!scheduledTime || !limitCount) {
+            Alert.alert("입력 오류", "날짜/시간과 인원 수를 모두 입력해주세요.");
+            return;
+        }
+        createMatch(
+            {
+                recommendRoutePostId,
+                scheduledTime: scheduledTime.toISOString(),
+                limitCount: Number(limitCount),
+            },
+            {
+                onSuccess: () => {
+                    Alert.alert("등록 완료", "매칭 글이 등록되었습니다.");
+                    setWriteModalVisible(false);
+                    setScheduledTime(null);
+                    setLimitCount("");
+                    refetch();
+                },
+                onError: () => {
+                    Alert.alert("오류", "매칭 글 등록에 실패했습니다.");
+                },
+            }
+        );
+    };
+
+    //매칭 글 수정
+    const handleEditFromList = (item) => {
+        setSelectedPostId(item.walkingTogetherPostId);
+        setEditScheduledTime(item.scheduledTime);
+        setEditLimitCount(item.limitCount.toString());
+        setEditModalVisible(true);
+    };
+
+    const handleSubmitEdit = () => {
+        if (!editScheduledTime || !editLimitCount) {
+            Alert.alert("입력 오류", "모든 항목을 입력해주세요.");
+            return;
+        }
+
+        updatePost(
+            {
+                walkingTogetherPostId: selectedPostId,
+                recommendRoutePostId,
+                scheduledTime: editScheduledTime,
+                limitCount: Number(editLimitCount),
+            },
+            {
+                onSuccess: () => {
+                    Alert.alert("수정 완료", "게시글이 수정되었습니다.");
+                    setEditModalVisible(false);
+                    refetch();
+                },
+                onError: () => {
+                    Alert.alert("수정 실패", "게시글 수정에 실패했습니다.");
+                },
+            }
+        );
+    };
+
+    //매칭 글 삭제
+    const handleDeleteFromList = (item) => {
+        Alert.alert("삭제 확인", "정말 이 글을 삭제하시겠어요?", [
+            { text: "취소", style: "cancel" },
+            {
+                text: "삭제",
+                style: "destructive",
+                onPress: () => {
+                    deletePost(item.walkingTogetherPostId, {
+                        onSuccess: () => {
+                            Alert.alert("삭제 완료", "게시글이 삭제되었습니다.");
+                            refetch(); // 삭제 후 목록 다시 불러오기
+                        },
+                        onError: () => {
+                            Alert.alert("오류", "게시글 삭제에 실패했습니다.");
+                        },
+                    });
+                },
+            },
+        ]);
+    };
+
 
     return (
         <View style={styles.container}>
             <Text style={styles.title}>🐾 함께 산책해요</Text>
+
+            {/* 매칭 글 쓰기 버튼 */}
+            <TouchableOpacity
+                style={styles.matchButton}
+                onPress={() => setWriteModalVisible(true)}
+            >
+                <MaterialIcons name="check-circle" size={18} color="#7EC8C2" />
+                <Text style={styles.matchText}>매칭 글 쓰기</Text>
+            </TouchableOpacity>
 
             <FlatList
                 data={walks}
@@ -61,10 +197,16 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                         <Text style={styles.walkMeta}>
                             {item.scheduledTime || "시간 미정"} · {item.writerName || "작성자"}
                         </Text>
-                        <View style={styles.matchButton}>
-                            <MaterialIcons name="check-circle" size={18} color="#7EC8C2" />
-                            <Text style={styles.matchText}>매칭 신청</Text>
-                        </View>
+                        {item.isOwner && (
+                            <View style={styles.ownerButtonRow}>
+                                <TouchableOpacity onPress={() => handleEditFromList(item)}>
+                                    <Text style={styles.editButton}>수정</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDeleteFromList(item)}>
+                                    <Text style={styles.deleteButton}>삭제</Text>
+                                </TouchableOpacity>
+                            </View>
+                        )}
                     </TouchableOpacity>
                 )}
                 ListEmptyComponent={
@@ -72,7 +214,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                 }
             />
 
-            {/* 상세 모달 */}
+            {/* 글 상세 모달 */}
             <Modal visible={modalVisible} animationType="slide" transparent>
                 <View style={styles.modalWrapper}>
                     <View style={styles.modalContent}>
@@ -84,28 +226,20 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                                     🐶 {selectedPost?.petName}와 산책해요
                                 </Text>
                                 <Text style={styles.meta}>일시: {selectedPost?.scheduledTime}</Text>
-                                <Text style={styles.meta}>인원: {selectedPost?.currentCount} / {selectedPost?.limitCount}</Text>
+                                <Text style={styles.meta}>
+                                    인원: {selectedPost?.currentCount} / {selectedPost?.limitCount}
+                                </Text>
                                 <Text style={styles.meta}>등록일: {selectedPost?.createdAt}</Text>
 
                                 {selectedPost?.filtering ? (
                                     <Text style={[styles.meta, { color: "red" }]}>
                                         ⚠️ 함께 산책이 제한된 대상입니다
                                     </Text>
-                                ) : selectedPost?.isOwner ? (
-                                    <View style={styles.buttonRow}>
-                                        <TouchableOpacity onPress={handleEdit}>
-                                            <Text style={styles.editButton}>수정</Text>
-                                        </TouchableOpacity>
-                                        <TouchableOpacity onPress={handleDelete}>
-                                            <Text style={styles.deleteButton}>삭제</Text>
-                                        </TouchableOpacity>
-                                    </View>
                                 ) : (
                                     <TouchableOpacity style={styles.applyBtn}>
                                         <Text style={styles.applyText}>매칭 시작</Text>
                                     </TouchableOpacity>
                                 )}
-
 
                                 <TouchableOpacity
                                     style={styles.closeBtn}
@@ -118,6 +252,97 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                     </View>
                 </View>
             </Modal>
+
+            {/* 매칭 글 쓰기 모달 */}
+            <Modal visible={writeModalVisible} animationType="fade" transparent>
+                <View style={styles.modalWrapper}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>매칭 글 작성</Text>
+                        <TouchableOpacity
+                            style={styles.dateButton}
+                            onPress={() => setDatePickerVisibility(true)}
+                        >
+                            <Text>
+                                {scheduledTime
+                                    ? scheduledTime.toLocaleString()
+                                    : "날짜/시간 선택"}
+                            </Text>
+                        </TouchableOpacity>
+                        <TextInput
+                            placeholder="최대 인원 수"
+                            value={limitCount}
+                            onChangeText={setLimitCount}
+                            keyboardType="number-pad"
+                            style={styles.input}
+                        />
+                        <TouchableOpacity style={styles.applyBtn} onPress={handleSubmit}>
+                            <Text style={styles.applyText}>등록</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={styles.closeBtn}
+                            onPress={() => setWriteModalVisible(false)}
+                        >
+                            <Text style={styles.closeText}>닫기</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+            <DateTimePickerModal
+                isVisible={isDatePickerVisible}
+                mode="datetime"
+                onConfirm={handleConfirmDate}
+                onCancel={() => setDatePickerVisibility(false)}
+            />
+
+            {/* 매칭 글 수정 모달 */}
+            <Modal visible={editModalVisible} animationType="slide" transparent>
+                <View style={styles.modalWrapper}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>✏️ 글 수정하기</Text>
+
+                        <TouchableOpacity
+                            style={styles.dateButton}
+                            onPress={() => setEditDatePickerVisibility(true)}
+                        >
+                            <Text>
+                                {editScheduledTime
+                                    ? new Date(editScheduledTime).toLocaleString()
+                                    : "날짜/시간 선택"}
+                            </Text>
+                        </TouchableOpacity>
+
+
+                        <Text>모집 인원</Text>
+                        <TextInput
+                            value={editLimitCount}
+                            onChangeText={setEditLimitCount}
+                            keyboardType="numeric"
+                            style={styles.input}
+                        />
+
+                        <View style={{ marginTop: 16, flexDirection: "row", justifyContent: "space-between" }}>
+                            <TouchableOpacity
+                                style={styles.applyBtn}
+                                onPress={handleSubmitEdit}
+                            >
+                                <Text style={styles.applyText}>수정 완료</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.closeBtn}
+                                onPress={() => setEditModalVisible(false)}
+                            >
+                                <Text style={styles.closeText}>닫기</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </View>
+            </Modal>
+            <DateTimePickerModal
+                isVisible={isEditDatePickerVisible}
+                mode="datetime"
+                onConfirm={handleConfirmEditDate}
+                onCancel={() => setEditDatePickerVisibility(false)}
+            />
         </View>
     );
 };
@@ -158,6 +383,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 8,
+        marginBottom: 10,
     },
     matchText: {
         marginLeft: 6,
@@ -191,6 +417,23 @@ const styles = StyleSheet.create({
         fontSize: 14,
         marginBottom: 6,
         color: "#333",
+    },
+    input: {
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        padding: 10,
+        marginTop: 6,
+        marginBottom: 10,
+        fontSize: 14,
+        color: "#333",
+    },
+    dateButton: {
+        borderWidth: 1,
+        borderColor: "#ccc",
+        borderRadius: 8,
+        padding: 12,
+        marginBottom: 10,
     },
     applyBtn: {
         marginTop: 10,
