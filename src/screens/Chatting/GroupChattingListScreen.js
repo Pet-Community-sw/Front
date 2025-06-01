@@ -32,7 +32,7 @@ const GroupChattingListScreen = ({ navigation }) => {
       style={styles.chatItem}
     >
       <Text style={styles.chatName}>
-        {item.chatName} ({item.crrentCount}/{item.chatLimitCount})
+        {item.chatName} ({item.currentCount}/{item.chatLimitCount})
       </Text>
       <Text numberOfLines={1} style={styles.lastMessage}>
         {item.lastMessage || "메시지 없음"}
