@@ -17,7 +17,8 @@ import {
     useViewWalkingTogetherPostDetail,
     useAddWalkingTogether,
     useModifyWalkingTogether,
-    useRemoveWalkingTogether
+    useRemoveWalkingTogether,
+    useStartWalking
 } from "../../hooks/useWalkingTogether";
 
 export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
@@ -37,6 +38,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     const { mutate: createMatch } = useAddWalkingTogether();
     const { mutate: deletePost } = useRemoveWalkingTogether();
     const { mutate: updatePost } = useModifyWalkingTogether();
+    const { mutate: startMatching } = useStartWalking();
 
 
     //글 목록 조회
@@ -171,6 +173,30 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
         ]);
     };
 
+    //매칭 시작
+    const handleStartMatching = (walkingTogetherPostId) => {
+        startMatching(walkingTogetherPostId, {
+            onSuccess: (response) => {
+                if (response?.chatRoomId) {
+                    // 새 채팅방 or 기존 채팅방 모두 chatRoomId와 chatName 포함됨
+                    navigation.navigate("ChattingScreen", {
+                        chatRoomId: response.chatRoomId,
+                        chatRoomType: "MANY", // 매칭 기반은 무조건 단체
+                        chatName: response.chatName, // 서버에서 제공된 이름 그대로 사용
+                    });
+                } else {
+                    // 혹시 모를 예외 대응
+                    Alert.alert("오류", "채팅방 정보를 불러올 수 없습니다.");
+                }
+            },
+            onError: (error) => {
+                const message = error?.response?.data || "매칭에 실패했습니다.";
+                Alert.alert("오류", message);
+            },
+        });
+    };
+
+
 
     return (
         <View style={styles.container}>
@@ -236,7 +262,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                                         ⚠️ 함께 산책이 제한된 대상입니다
                                     </Text>
                                 ) : (
-                                    <TouchableOpacity style={styles.applyBtn}>
+                                    <TouchableOpacity style={styles.applyBtn} onPress={handleStartMatching}>
                                         <Text style={styles.applyText}>매칭 시작</Text>
                                     </TouchableOpacity>
                                 )}
