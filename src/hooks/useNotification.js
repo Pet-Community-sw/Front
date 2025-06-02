@@ -6,6 +6,8 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';  
 import axios from 'axios';              
 import { NotificationContext } from '../context/Notification';
+import NotificationList from '../api/notificationApi';
+import { useQuery } from '@tanstack/react-query';
 
 let eventSourceRef = null;  //전역 관리
 
@@ -19,7 +21,7 @@ export const disconnectNotification = () => {
 
 //sse 알림
 const useNotification = (onMessage) => {
-  const { setHasNewNoti } = useContext(NotificationContext);  //알림 빨간 뱃지 전역 상태
+  const { setNewNoti } = useContext(NotificationContext);  //알림 빨간 뱃지 전역 상태
   const retryRef = useRef(null);  //자동 재연결을 위한 타이머 반환 id
 
   useEffect(() => {
@@ -80,7 +82,7 @@ const useNotification = (onMessage) => {
           trigger: null, //즉시 실행
         });
 
-        setHasNewNoti(true); // 빨간 뱃지 표시 ON
+        setNewNoti(true); // 빨간 뱃지 표시 ON
         if (onMessage) onMessage(data);
       });
 
@@ -106,4 +108,12 @@ const useNotification = (onMessage) => {
   }, []);
 };
 
-export default useNotification;
+//알림 내역 조회
+const useNotificationList = () => {
+  return useQuery({
+    queryKey: ['notifications'],
+    queryFn: NotificationList,
+  });
+};
+
+export {useNotification, useNotificationList};

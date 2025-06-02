@@ -1,7 +1,7 @@
 import React, {useState} from "react";
 import {View, TextInput, StyleSheet, Text} from "react-native"
 import Button from "../components/button";
-import { useFindid } from "../hooks/useFindid";
+import { useFindId } from "../../hooks/useMember";
 
 const FindidScreen = () => {
   const [formData, setFormData] = useState({

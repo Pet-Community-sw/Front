@@ -1,7 +1,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import { View, TextInput, Text, StyleSheet, TouchableOpacity, Alert } from "react-native"
 import Button from "../../components/button";
-import { useLogin } from "../hooks/useLogin";
+import { useLogin } from "../../hooks/useMember";
 import FindidScreen from "./FindidScreen";
 import FindpasswordScreen from "./FindpasswordScreen";
 import { UserContext } from "../../context/User";

@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Image, 
 } from "react-native";
-import { useSignup } from "../hooks/useSignup";
+import { useSignup } from "../../hooks/useMember";
 import Button from "../components/button";
 import { useNavigation } from "@react-navigation/native";
 

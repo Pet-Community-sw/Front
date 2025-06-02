@@ -20,10 +20,9 @@ import LoginScreen from "./screens/Member/LoginScreen";
 import FindidScreen from "./screens/Member/FindidScreen";
 import FindpasswordScreen from "./screens/Member/FindpasswordScreen";
 
-import NotificationScreen from "./screens/NotificationListScreen";
+import NotificationScreen from "./screens/Member/NotificationListScreen";
 import TabBar from "./components/tabBar";
 import LoadingScreen from "./components/Loading";
-
 
 import MockUI from "./screens/MockUI";
 

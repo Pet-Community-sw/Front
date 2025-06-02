@@ -45,7 +45,8 @@
     "react-native-screens": "^4.9.2",
     "react-native-sse": "^1.2.1",
     "react-native-vector-icons": "^10.2.0",
-    "websocket": "^1.0.35"
+    "websocket": "^1.0.35",
+    "expo-device": "~7.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.26.10",

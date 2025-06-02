@@ -13,11 +13,8 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { UserContext } from "../context/User";
 import { useLogout } from "../hooks/useMember";
 import { NotificationBell } from "../components/notification";
-
-const pet = {
-  name: "멍멍이",
-  birthdate: "2025-05-27",
-};
+import PetProfile from "../components/PetProfile";
+import { useViewProfile } from "../hooks/useProfile";
 
 const posts = [
   { id: 1, title: "오늘 강아지랑 한강 다녀왔어요!", author: "효빈", date: "2025.04.21", likes: 12, comments: 3 },
@@ -32,23 +29,31 @@ const HomeScreen = () => {
   const { mutateAsync: LogoutMutate } = useLogout();
   const navigation = useNavigation();
 
+  const { data: profiles = [] } = useViewProfile();
+
+  const today = new Date().toISOString().slice(5, 10);
+  const birthdayPet = profiles.find((p) => p.petBirthDate?.slice(5, 10) === today);
+
+  const greetingText = birthdayPet
+    ? `🎉 오늘은 ${birthdayPet.petName}의 생일이에요! 축하합니다 🥳`
+    : profiles.length > 0
+      ? `오늘도 ${profiles[0].petName}와 좋은 하루 보내세요 💛`
+      : "등록된 반려동물이 없습니다.";
+
   if (loading) return null;
 
-   const handleLogout = async () => {
+  const handleLogout = async () => {
     try {
-      await LogoutMutate();   // 1. 서버 로그아웃 요청
+      await LogoutMutate();   
     } catch (e) {
       console.log("서버 로그아웃 실패:", e);  
     }
-    await logout();           // 2. 클라이언트 상태 정리
+    await logout();           
     navigation.reset({
       index: 0,
       routes: [{ name: "Welcome" }],
-    });                       // 3. 네비게이션 리셋 (뒤로가기 방지)
+    });                       
   };
-
-  const today = new Date().toISOString().slice(5, 10);
-  const isBirthday = pet.birthdate?.slice(5, 10) === today;
 
   return (
     <ScrollView style={styles.container}>
@@ -66,24 +71,10 @@ const HomeScreen = () => {
       </View>
 
       <View style={styles.petGreetingBox}>
-        <Text style={styles.petGreetingText}>
-          {isBirthday
-            ? `🎉 오늘은 ${pet.name}의 생일이에요! 축하합니다 🥳`
-            : `오늘도 ${pet.name}와 좋은 하루 보내세요 💛`}
-        </Text>
+        <Text style={styles.petGreetingText}>{greetingText}</Text>
       </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>🐾 내 반려동물</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={styles.petItem}>
-            <View style={styles.placeholderCircle} />
-            <Text style={styles.petName}>{pet.name}</Text>
-          </View>
-        </ScrollView>
-      </View>
-
-      <View style={styles.divider} />
+      <PetProfile />
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>📍 산책 기능 바로가기</Text>
@@ -227,26 +218,6 @@ const styles = StyleSheet.create({
     color: "#333",
     fontFamily: "font",
   },
-  petItem: {
-    alignItems: "center",
-    marginRight: 16,
-    marginLeft: 10,
-  },
-  placeholderCircle: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 2,
-    borderColor: "#6B7B8C",
-  },
-  petName: {
-    marginTop: 6,
-    fontSize: 17,
-    color: "#333",
-    fontFamily: "cute",
-  },
-  // ✅ 스레드형 커뮤니티용 스타일 수정
   threadCard: {
     borderBottomWidth: 1,
     borderColor: "#E0E0E0",
