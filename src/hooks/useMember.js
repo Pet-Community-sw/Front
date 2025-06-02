@@ -7,7 +7,8 @@ import {
     findid,
     sendemail, 
     verify, 
-    resetpassword, 
+    resetpassword,
+    deleteMember, 
  } from "../api/membersApi";
 
 //회원가입
@@ -52,4 +53,9 @@ export const useResetpassword = () => {
 //로그아웃
 export const useLogout = () => {
     return useMutation(logout);
+}
+
+//회원 탈퇴
+export const useDeleteMember = () => {
+    return useMutation(deleteMember)
 }

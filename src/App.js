@@ -15,10 +15,10 @@ import { NotificationProvider } from "./context/Notification";
 import { useFonts } from "expo-font";
 
 import SignupScreen from "./screens/SignupScreen";
-import LoginScreen from "./screens/LoginScreen";
+import LoginScreen from "./screens/Member/LoginScreen";
 import FindidScreen from "./screens/FindidScreen";
 import FindpasswordScreen from "./screens/FindpasswordScreen";
-import WelcomeScreen from "./screens/WelcomeScreen";
+import WelcomeScreen from "./screens/Member/WelcomeScreen";
 import NotificationScreen from "./screens/NotificationListScreen";
 import TabBar from "./components/tabBar";
 import LoadingScreen from "./components/Loading";

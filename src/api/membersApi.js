@@ -14,6 +14,12 @@ const login = async (userData) => {
   return response.data;
 };
 
+//로그아웃
+const logout = async () => {
+  const response = await apiClient.delete("/members/logout");
+  return response.data;
+}
+
 //아이디 찾기
 const findid = async (userData) => {
   const response = await apiClient.post("/members/find-id", userData);
@@ -44,4 +50,4 @@ const deleteMember = async () => {
   return response.data;
 }
 
-export {signup, login, findid, sendemail, verify, resetpassword, deleteMember};
+export {signup, login, logout, findid, sendemail, verify, resetpassword, deleteMember};

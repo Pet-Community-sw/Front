@@ -11,6 +11,7 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
 import { UserContext } from "../context/User";
+import { useLogout } from "../hooks/useMember";
 import { NotificationBell } from "../components/notification";
 
 const pet = {
@@ -28,13 +29,22 @@ const posts = [
 
 const HomeScreen = () => {
   const { logout, loading } = useContext(UserContext);
+  const { mutateAsync: LogoutMutate } = useLogout();
   const navigation = useNavigation();
 
   if (loading) return null;
 
-  const handleLogout = async () => {
-    await logout();
-    navigation.navigate("Welcome");
+   const handleLogout = async () => {
+    try {
+      await LogoutMutate();   // 1. 서버 로그아웃 요청
+    } catch (e) {
+      console.log("서버 로그아웃 실패:", e);  
+    }
+    await logout();           // 2. 클라이언트 상태 정리
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "Welcome" }],
+    });                       // 3. 네비게이션 리셋 (뒤로가기 방지)
   };
 
   const today = new Date().toISOString().slice(5, 10);
