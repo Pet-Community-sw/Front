@@ -14,11 +14,12 @@ import { ChatProvider } from "./context/Chatting";
 import { NotificationProvider } from "./context/Notification";
 import { useFonts } from "expo-font";
 
-import SignupScreen from "./screens/SignupScreen";
-import LoginScreen from "./screens/Member/LoginScreen";
-import FindidScreen from "./screens/FindidScreen";
-import FindpasswordScreen from "./screens/FindpasswordScreen";
 import WelcomeScreen from "./screens/Member/WelcomeScreen";
+import SignupScreen from "./screens/Member/SignupScreen";
+import LoginScreen from "./screens/Member/LoginScreen";
+import FindidScreen from "./screens/Member/FindidScreen";
+import FindpasswordScreen from "./screens/Member/FindpasswordScreen";
+
 import NotificationScreen from "./screens/NotificationListScreen";
 import TabBar from "./components/tabBar";
 import LoadingScreen from "./components/Loading";

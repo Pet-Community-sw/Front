@@ -2,10 +2,25 @@
 import apiClient from "./apiClient";
 
 //프로필 추가
-const addProfile = async (formData) => {
-  const response = await apiClient.post("/profiles", formData);
+const addProfile = async (data) => {
+  const formData = new FormData();
+
+  formData.append("petName", data.petName);
+  formData.append("petBreed", data.petBreed);
+  formData.append("petBirthDate", data.petBirthDate);
+  formData.append("avoidBreeds", data.avoidBreeds);
+  formData.append("extraInfo", data.extraInfo);
+  formData.append("petImageUrl", data.petImageUrl); // 이미지 URL도 그냥 문자열로 append
+
+  const response = await axios.post(`${BASE_URL}/profiles`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
   return response.data;
-}
+};
+
 
 //전체 프로필 조회
 const viewProfiles = async () => {

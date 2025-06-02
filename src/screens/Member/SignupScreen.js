@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Alert,
   TouchableOpacity,
+  Image, 
 } from "react-native";
 import { useSignup } from "../hooks/useSignup";
 import Button from "../components/button";
