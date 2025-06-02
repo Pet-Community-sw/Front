@@ -3,18 +3,65 @@ import { EventSource } from 'react-native-sse';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BASE_URL } from '../api/apiClient';
 import * as Notifications from 'expo-notifications';
+import * as Device from 'expo-device';  
+import axios from 'axios';              
 import { NotificationContext } from '../context/Notification';
+
+let eventSourceRef = null;  //전역 관리
+
+export const disconnectNotification = () => {
+  if (eventSourceRef) {
+    eventSourceRef.close();
+    eventSourceRef = null;
+    console.log("🔌 SSE 연결 종료됨");
+  }
+};
 
 //sse 알림
 const useNotification = (onMessage) => {
-  const {setHasNewNoti} = useContext(NotificationContext);  //알림 빨간 뱃지 전역 상태
-  const eventSourceRef = useRef(null);  //서버와 연결된 이벤트 객체 저장
+  const { setHasNewNoti } = useContext(NotificationContext);  //알림 빨간 뱃지 전역 상태
   const retryRef = useRef(null);  //자동 재연결을 위한 타이머 반환 id
 
   useEffect(() => {
     const subscribe = async () => {
       const token = await AsyncStorage.getItem('accessToken');
-      if (!token) return;
+      const memberId = await AsyncStorage.getItem('memberId');
+      if (!token || !memberId) return;
+
+      // FCM 토큰 등록 요청
+      if (Device.isDevice) {
+        try {
+          const { status: existingStatus } = await Notifications.getPermissionsAsync();
+          let finalStatus = existingStatus;
+
+          if (existingStatus !== 'granted') {
+            const { status } = await Notifications.requestPermissionsAsync();
+            finalStatus = status;
+          }
+
+          if (finalStatus === 'granted') {
+            const fcmToken = (await Notifications.getExpoPushTokenAsync()).data;
+
+            // FCM 토큰 서버에 등록
+            await axios.post(`${BASE_URL}/members/fcm-token`, {
+              memberId: Number(memberId),
+              fcmToken,
+            }, {
+              headers: {
+                accessToken: token,
+              },
+            });
+
+            console.log("FCM 토큰 서버 등록 완료");
+          } else {
+            console.log("알림 권한 거부됨");
+          }
+        } catch (err) {
+          console.error("FCM 토큰 등록 실패:", err);
+        }
+      } else {
+        console.log("FCM 등록은 실기기에서만 가능");
+      }
 
       const url = `${BASE_URL}/notifications/subscribe?token=${token}`;
       const eventSource = new EventSource(url);
@@ -46,14 +93,14 @@ const useNotification = (onMessage) => {
         }, 5000);
       });
 
-      eventSourceRef.current = eventSource;
+      eventSourceRef = eventSource;
     };
 
     subscribe();
 
     //컴포넌트 언마운트 될 때 자동 실행
     return () => {
-      if (eventSourceRef.current) eventSourceRef.current.close();   //서버 연결 종료
+      disconnectNotification();
       if (retryRef.current) clearTimeout(retryRef.current);   //예약된 재연결 취소
     };
   }, []);
