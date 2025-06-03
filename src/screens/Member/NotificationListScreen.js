@@ -9,7 +9,7 @@ import {
 import { useNotificationList } from "../../hooks/useNotification";
 import { useNavigation } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
-import { NotificationContext } from "../context/Notification";
+import { NotificationContext } from "../../context/Notification";
 
 const NotificationScreen = () => {
   const navigation = useNavigation();

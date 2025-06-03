@@ -3,18 +3,21 @@ import apiClient from "./apiClient";
 
 //게시물 추가
 // 게시물 추가 - 이미지 URL을 문자열로 보내는 경우
-const addPost = async (data) => {
+// hooks/usePost.js 안에 정의된 API 함수 예시
+const addPost = async (postData) => {
   const formData = new FormData();
+  formData.append("profileId", postData.profileId);
+  formData.append("title", postData.title);
+  formData.append("content", postData.content);
 
-  formData.append("title", data.title);
-  formData.append("content", data.content);
-
-  // 이미지 URL을 문자열로 append (파일 자체를 업로드하지 않는 경우)
-  if (data.postImageUrl) {
-    formData.append("postImageUrl", data.postImageUrl);
+  if (postData.postImageFile) {
+    formData.append("postImageFile", {
+      uri: postData.postImageFile.uri,
+      name: postData.postImageFile.name,
+    });
   }
 
-  const response = await apiClient.post("/posts", formData, {
+  const response = await axios.post(`${BASE_URL}/posts`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -22,6 +25,7 @@ const addPost = async (data) => {
 
   return response.data;
 };
+
 
 
 //게시물 목록 조회

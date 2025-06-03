@@ -9,7 +9,7 @@ import { BASE_URL } from "../api/apiClient";
 const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
-  const [token, setToken] = useState(false);
+  const [token, setToken] = useState(true);
   const [name, setName] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [loading, setLoading] = useState(true);

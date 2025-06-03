@@ -10,7 +10,13 @@ const addProfile = async (data) => {
   formData.append("petBirthDate", data.petBirthDate);
   formData.append("avoidBreeds", data.avoidBreeds);
   formData.append("extraInfo", data.extraInfo);
-  formData.append("petImageUrl", data.petImageUrl); // 이미지 URL도 그냥 문자열로 append
+
+  if (data.petImageUrl?.uri) {
+    formData.append("petImageUrl", {
+      uri: data.petImageUrl.uri,
+      name: data.petImageUrl.name || "photo.jpg",
+    });
+  }
 
   const response = await axios.post(`${BASE_URL}/profiles`, formData, {
     headers: {
@@ -46,4 +52,4 @@ const removeProfile = async (profileId) => {
   return response.data;
 }
 
-export {addProfile, viewProfiles, viewOneProfile, modifyProfile, removeProfile};
+export { addProfile, viewProfiles, viewOneProfile, modifyProfile, removeProfile };

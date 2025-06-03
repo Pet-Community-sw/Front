@@ -11,7 +11,12 @@ const signup = async (userData) => {
   formData.append("email", userData.email);
   formData.append("password", userData.password);
   formData.append("phoneNumber", userData.phoneNumber);
-  formData.append("memberImageUrl", data.memberImageUrl);
+
+  // 이미지 파일 객체로 추가 (type 없이)
+  formData.append("memberImageUrl", {
+    uri: userData.memberImageUrl.uri,
+    name: userData.memberImageUrl.name,
+  });
 
   const response = await axios.post(`${BASE_URL}/members/signup`, formData, {
     headers: {

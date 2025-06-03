@@ -1,4 +1,4 @@
-/*
+
 import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
@@ -83,13 +83,18 @@ const PostListScreen = ({ navigation }) => {
   };
 
   const pickImage = () => {
-    handleImagePick((imageUri) => {
+    handleImagePick((uri) => {
       setFormData((prevData) => ({
         ...prevData,
-        postImageFile: imageUri,
+        postImageFile: {
+          uri,
+          name: uri.split("/").pop(),
+          type: "image/jpeg", // 기본적으로 jpeg로 가정
+        },
       }));
     });
   };
+
 
   return (
     <View style={styles.container}>
@@ -152,10 +157,10 @@ const PostListScreen = ({ navigation }) => {
             {formData.postImageFile ? (
               <View style={{ alignItems: "center", marginBottom: 12 }}>
                 <Text style={{ color: "#666", marginBottom: 6 }}>
-                  선택된 파일: {formData.postImageFile.split("/").pop()}
+                  선택된 파일: {formData.postImageFile.name}
                 </Text>
                 <Image
-                  source={{ uri: formData.postImageFile }}
+                  source={{ uri: formData.postImageFile.uri }}
                   style={{ width: 120, height: 120, borderRadius: 8, borderWidth: 1, borderColor: "#ccc" }}
                 />
               </View>
@@ -351,8 +356,9 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
-*/
 
+
+/*
 import React, { useState } from "react";
 import {
   View,
@@ -715,3 +721,4 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
 });
+*/

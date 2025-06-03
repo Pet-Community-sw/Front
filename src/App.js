@@ -9,7 +9,7 @@ import MaterialCommunityIcons from "react-native-vector-icons/MaterialCommunityI
 import * as Notifications from "expo-notifications";
 import { UserProvider, UserContext } from "./context/User";
 import { PetProvider } from "./context/PetProfiles";
-import useNotification from "./hooks/useNotification";
+import { useNotification } from "./hooks/useNotification";
 import { ChatProvider } from "./context/Chatting";
 import { NotificationProvider } from "./context/Notification";
 import { useFonts } from "expo-font";

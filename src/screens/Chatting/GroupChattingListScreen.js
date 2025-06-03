@@ -1,4 +1,3 @@
-/*
 import React, { useCallback } from "react";
 import {
   View,
@@ -7,6 +6,7 @@ import {
   FlatList,
   Image,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { useGroupChattingList } from "../../hooks/useChatting";
 import { useFocusEffect } from "@react-navigation/native";
@@ -19,6 +19,14 @@ const GroupChattingListScreen = ({ navigation }) => {
       refetch();
     }, [])
   );
+
+  const handleEdit = (chatRoomId) => {
+    Alert.alert("수정 기능", `방 ID ${chatRoomId} 수정 클릭`);
+  };
+
+  const handleDelete = (chatRoomId) => {
+    Alert.alert("삭제 기능", `방 ID ${chatRoomId} 삭제 클릭`);
+  };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
@@ -34,6 +42,18 @@ const GroupChattingListScreen = ({ navigation }) => {
       <Text style={styles.chatName}>
         {item.chatName} ({item.currentCount}/{item.chatLimitCount})
       </Text>
+
+      {/* 썸네일 이미지 */}
+      <View style={styles.thumbnailRow}>
+        {item.profiles?.map((profile) => (
+          <Image
+            key={profile.profileId}
+            source={{ uri: profile.profileImageUrl }}
+            style={styles.thumbnail}
+          />
+        ))}
+      </View>
+
       <Text numberOfLines={1} style={styles.lastMessage}>
         {item.lastMessage || "메시지 없음"}
       </Text>
@@ -41,12 +61,29 @@ const GroupChattingListScreen = ({ navigation }) => {
         {item.lastMessageTime}
         {item.unReadCount > 0 && `  ·  안읽음 ${item.unReadCount}개`}
       </Text>
+
+      {/* 수정/삭제 버튼 */}
+      {item.owner && (
+        <View style={styles.ownerButtons}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => handleEdit(item.chatRoomId)}
+          >
+            <Text style={styles.buttonText}>수정</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.deleteButton}
+            onPress={() => handleDelete(item.chatRoomId)}
+          >
+            <Text style={styles.buttonText}>삭제</Text>
+          </TouchableOpacity>
+        </View>
+      )}
     </TouchableOpacity>
   );
 
   return (
     <View style={styles.container}>
-
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }} />
         <TouchableOpacity
@@ -57,7 +94,6 @@ const GroupChattingListScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-      
       <FlatList
         data={chatRooms}
         keyExtractor={(item) => item.chatRoomId.toString()}
@@ -68,7 +104,6 @@ const GroupChattingListScreen = ({ navigation }) => {
     </View>
   );
 };
-
 
 export default GroupChattingListScreen;
 
@@ -86,18 +121,18 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   smallButton: {
-  backgroundColor: "white",
-  paddingHorizontal: 17,
-  paddingVertical: 8,
-  borderRadius: 20,
-  borderColor: "black",
-  borderWidth: 2, 
-}, 
+    backgroundColor: "white",
+    paddingHorizontal: 17,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderColor: "black",
+    borderWidth: 2,
+  },
   smallButtonText: {
     color: "black",
     fontSize: 20,
     fontWeight: "600",
-    fontFamily: "cute"
+    fontFamily: "cute",
   },
   chatItem: {
     backgroundColor: "#FAFAFA",
@@ -118,19 +153,53 @@ const styles = StyleSheet.create({
   lastMessage: {
     color: "#6B7B8C",
     fontSize: 13,
-    marginBottom: 2,
+    marginVertical: 4,
   },
   meta: {
     fontSize: 12,
     color: "#999",
   },
+  thumbnailRow: {
+    flexDirection: "row",
+    marginBottom: 6,
+  },
+  thumbnail: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    marginRight: 6,
+    borderWidth: 1,
+    borderColor: "#ccc",
+  },
+  ownerButtons: {
+    flexDirection: "row",
+    marginTop: 8,
+  },
+  editButton: {
+    backgroundColor: "#6A9C89",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  deleteButton: {
+    backgroundColor: "#E57373",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 13,
+  },
 });
 
-*/
+
 
 //임의 데이터 추가
 
-
+/*
 import React, { useState } from "react";
 import {
   View,
@@ -282,3 +351,4 @@ const styles = StyleSheet.create({
   },
 });
 
+*/

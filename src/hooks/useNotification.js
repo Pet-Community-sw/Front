@@ -20,7 +20,7 @@ export const disconnectNotification = () => {
 };
 
 //sse 알림
-const useNotification = (onMessage) => {
+export const useNotification = (onMessage) => {
   const { setNewNoti } = useContext(NotificationContext);  //알림 빨간 뱃지 전역 상태
   const retryRef = useRef(null);  //자동 재연결을 위한 타이머 반환 id
 
@@ -109,11 +109,10 @@ const useNotification = (onMessage) => {
 };
 
 //알림 내역 조회
-const useNotificationList = () => {
+export const useNotificationList = () => {
   return useQuery({
     queryKey: ['notifications'],
     queryFn: NotificationList,
   });
 };
 
-export {useNotification, useNotificationList};

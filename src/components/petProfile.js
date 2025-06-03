@@ -15,7 +15,7 @@ const PetProfile = () => {
   const navigation = useNavigation();
 
   //각각의 프로필 데이터 구조 분해 할당
-  const {data: profiles = [], refetch} = useViewProfile();
+  const { data: profiles = [], refetch } = useViewProfile();
   const [selectProfile, setSelectProfile] = useState(null);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
@@ -25,87 +25,86 @@ const PetProfile = () => {
   const { data: profileDetail, isLoading } = useViewOneProfile(selectProfile?.profileId);
 
   //이 컴포넌트가 화면에 다시 나타날 때마다 프로필 목록 새로 가져옴
-    useFocusEffect(
-      useCallback(() => {
-        refetch();
-      }, [])
-    );
+  useFocusEffect(
+    useCallback(() => {
+      refetch();
+    }, [])
+  );
 
-  const {mutate: modifyMutate} = useModifyProfile();
-  const {mutate: removeMutate} = useRemoveProfile();
-  const {mutate: addMutate} = useAddProfile();
+  const { mutate: modifyMutate } = useModifyProfile();
+  const { mutate: removeMutate } = useRemoveProfile();
+  const { mutate: addMutate } = useAddProfile();
 
   //프로필 추가 데이터
   const [formData, setFormData] = useState({
-    petImageUrl: "", 
-    petName: "", 
-    petBreed: "", 
-    petBirthDate: "", 
-    avoidBreeds: "", 
+    petImageUrl: "",
+    petName: "",
+    petBreed: "",
+    petBirthDate: "",
+    avoidBreeds: "",
     extraInfo: ""
   });
 
   //추가 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetData = () => {
-      setFormData({
-        petImageUrl: "", 
-        petName: "", 
-        petBreed: "", 
-        petBirthDate: "", 
-        avoidBreeds: "", 
-        extraInfo: ""
-      });
+    setFormData({
+      petImageUrl: "",
+      petName: "",
+      petBreed: "",
+      petBirthDate: "",
+      avoidBreeds: "",
+      extraInfo: ""
+    });
   };
 
-   //프로필 수정 데이터
-   const [editData, setEditData] = useState({
-    petImageUrl: "", 
-    petName: "", 
-    petBreed: "", 
-    petBirthDate: "", 
-    avoidBreeds: "", 
+  //프로필 수정 데이터
+  const [editData, setEditData] = useState({
+    petImageUrl: "",
+    petName: "",
+    petBreed: "",
+    petBirthDate: "",
+    avoidBreeds: "",
     extraInfo: ""
-  })
+  });
 
   //수정 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetEditData = () => {
     if (profileDetail) {
       setEditData({
-        petImageUrl: profileDetail.petImageUrl || "", 
-        petName: profileDetail.petName || "", 
-        petBreed: profileDetail.petBreed || "", 
-        petBirthDate: profileDetail.petBirthDate || "", 
-        avoidBreeds: profileDetail.avoidBreeds || "", 
+        petImageUrl: profileDetail.petImageUrl || "",
+        petName: profileDetail.petName || "",
+        petBreed: profileDetail.petBreed || "",
+        petBirthDate: profileDetail.petBirthDate || "",
+        avoidBreeds: profileDetail.avoidBreeds || "",
         extraInfo: profileDetail.extraInfo || ""
       });
     }
   };
-  
+
   //선택한 프로필 id 가져옴
   useEffect(() => {
-    if(selectProfile) {
-      viewOneProfileMutate(selectProfile.profileId);
+    if (selectProfile) {
+      // viewOneProfileMutate(selectProfile.profileId); // 주석 유지 (사용 안 함)
     }
   }, [selectProfile]);
 
   useEffect(() => {
-    if(profileDetail) {
+    if (profileDetail) {
       setEditData({
-        profileImageFile: profileDetail.petImageUrl || "", 
-        petName: profileDetail.petName || "", 
-        petBreed: profileDetail.petBreed || "", 
-        petBirthDate: profileDetail.petBirthDate || "", 
-        avoidBreeds: profileDetail.avoidBreeds || "", 
+        petImageUrl: profileDetail.petImageUrl || "",
+        petName: profileDetail.petName || "",
+        petBreed: profileDetail.petBreed || "",
+        petBirthDate: profileDetail.petBirthDate || "",
+        avoidBreeds: profileDetail.avoidBreeds || "",
         extraInfo: profileDetail.extraInfo || ""
-      })
+      });
     }
-  }, [profileDetail])
-
+  }, [profileDetail]);
 
   const handleChange = (field, value) => {
     const isKoreanOnly = /^[가-힣\s,]*$/.test(value);
     const isDateValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
-  
+
     if (
       (["petName", "petBreed", "avoidBreeds", "extraInfo"].includes(field) && !isKoreanOnly) ||
       (field === "petBirthDate" && !isDateValid)
@@ -118,15 +117,14 @@ const PetProfile = () => {
       );
       return;
     }
-  
+
     setFormData({ ...formData, [field]: value });
   };
-  
 
   const handleEditData = (field, value) => {
     const isKoreanOnly = /^[가-힣\s,]*$/.test(value);
     const isDateValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
-  
+
     if (
       (["petName", "petBreed", "avoidBreeds", "extraInfo"].includes(field) && !isKoreanOnly) ||
       (field === "petBirthDate" && !isDateValid)
@@ -139,17 +137,15 @@ const PetProfile = () => {
       );
       return;
     }
-  
+
     setEditData({ ...editData, [field]: value });
   };
-  
-
 
   //프로필 클릭 시 모달 열음
   const openProfile = (profile) => {
     setSelectProfile(profile);  //useEffect 실행
     setDetailModalVisible(true);
-  }
+  };
 
   //프로필 수정
   const handlemodify = () => {
@@ -158,10 +154,10 @@ const PetProfile = () => {
         Alert.alert("프로필 수정 성공!");
         refetch();
         navigation.navigate("Home");
-      }, 
+      },
       onError: (err) => {
         Alert.alert("프로필 수정 실패: ", err.message);
-      }, 
+      },
     });
   };
 
@@ -170,12 +166,11 @@ const PetProfile = () => {
       resetEditData();
     }
   }, [editModalVisible]);
-  
 
   //프로필 추가
   //invalidateQueries 서버 데이터 연동
   const handleAddProfile = () => {
-    if((profiles || []).length >= maxProfiles) {
+    if ((profiles || []).length >= maxProfiles) {
       Alert.alert("프로필은 최대 4개까지 등록 가능합니다!");
     }
     addMutate(formData, {
@@ -183,11 +178,11 @@ const PetProfile = () => {
         Alert.alert(`프로필 추가 성공! Id: ${data.profileId}`);
         refetch();
         navigation.navigate("Home");
-      }, 
+      },
       onError: (err) => {
         Alert.alert("프로필 등록 실패: " + err.message);
       }
-    })
+    });
   };
 
   useEffect(() => {
@@ -195,337 +190,263 @@ const PetProfile = () => {
       resetData(); // 열릴 때도 무조건 초기화
     }
   }, [addModalVisible]);
-  
 
-// 공통 이미지 선택 함수
-const handleImagePick = async (callback) => {
-  const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-  if (permissionResult.status !== 'granted') {
-    alert("이미지 접근 권한이 필요합니다.");
-    return;
-  }
+  // 공통 이미지 선택 함수
+  const handleImagePick = async (callback) => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    console.log("권한 상태:", permissionResult.status); // 여기까지 로그 나옴?
 
-  const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    allowsEditing: false,
-    aspect: [1, 1],
-    quality: 1,
-  });
+    if (permissionResult.status !== 'granted') {
+      Alert.alert("권한 없음", "이미지 접근 권한이 필요합니다.");
+      return;
+    }
 
-  if (!result.canceled && result.assets.length > 0) {
-    callback(result.assets[0].uri);
-  } else {
-    console.log("사용자가 선택을 취소함");
-  }
-};
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
 
-// 펫 이미지 업로드
-const pickImage = () => {
-  handleImagePick((imageUri) => {
-    setFormData((prevData) => ({
-      ...prevData,
-      petImageUrl: imageUri,
-    }));
-  });
-};
+    console.log("ImagePicker result:", result);
 
-// 펫 이미지 수정
-const pickEditImage = () => {
-  handleImagePick((imageUri) => {
-    setEditData((prevData) => ({
-      ...prevData,
-      petImageUrl: imageUri,
-    }));
-  });
-};
+    if (!result.canceled && result.assets.length > 0) {
+      callback(result.assets[0]);
+    } else {
+      console.log("취소되었거나 assets 없음");
+    }
+  };
 
+
+  // 펫 이미지 업로드
+  const pickImage = () => {
+    handleImagePick((asset) => {
+      setFormData((prevData) => ({
+        ...prevData,
+        petImageUrl: {
+          uri: asset.uri,
+          name: asset.uri.split("/").pop(),
+        }
+      }));
+    });
+  };
+
+  // 펫 이미지 수정
+  const pickEditImage = () => {
+    handleImagePick((asset) => {
+      setEditData((prevData) => ({
+        ...prevData,
+        petImageUrl: {
+          uri: asset.uri,
+          name: asset.uri.split("/").pop(),
+        },
+      }));
+    });
+  };
 
   //프로필 삭제
   const handledelete = () => {
     Alert.alert("정말 삭제하시겠습니까?", [
-      {text: "취소", style: "cancel"}, 
-      {text: "삭제", 
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
         onPress: () => {
           removeMutate(selectProfile.profileId, {
             onSuccess: () => {
               Alert.alert("프로필이 삭제되었습니다.");
               refetch();
-            }, 
+            },
             onError: (err) => {
               Alert.alert("오류: ", err.message);
-            }, 
+            },
           });
-        }, 
-      }, 
+        },
+      },
     ]);
   };
 
-
-  return(
+  return (
     <View style={styles.container}>
-      <View style={{width: "100%", alignItems: "flex-start"}}>
-      <Text style={styles.title}>Your Pets 💕</Text>
+      <View style={{ width: "100%", alignItems: "flex-start" }}>
+        <Text style={styles.title}>Your Pets 💕</Text>
       </View>
       <TouchableOpacity style={styles.add} onPress={() => setAddModalVisible(true)}>
         <Entypo name="plus" size={24} color="#EC5228" />
       </TouchableOpacity>
 
-        {/*프로필 목록, 프로필 이미지 리스트*/}
-        <View style={styles.profileContainer}>
-          {profiles.map((profile) => (
-            <TouchableOpacity key={profile.profileId} onPress={() => openProfile(profile)}>
-              <Image source={{uri: profile.petImageUrl}} style={styles.profileImage}></Image>
-            </TouchableOpacity>
-          ))}
-        </View>
+      {/*프로필 목록, 감성 카드 UI로 스타일 적용*/}
+      <View style={styles.profileContainer}>
+        {profiles.map((profile) => (
+          <TouchableOpacity
+            key={profile.profileId}
+            onPress={() => openProfile(profile)}
+            style={styles.profileCard}
+          >
+            <Image source={{ uri: profile.petImageUrl }} style={styles.profileImage} />
+            <Text style={styles.profileName}>{profile.petName}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-        {/*프로필 상세 보기 모달*/}
-        <Modal animationType="slide" transparent={true} visible={detailModalVisible} onRequestClose={() => setDetailModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              {isLoading ? (
-                <ActivityIndicator size="large" color="#0000ff"></ActivityIndicator>
-              ): profileDetail ? (
-                <ScrollView style={{ maxHeight: '80%' }}>
-                <Image source = {{uri: profileDetail.petImageUrl}} style={styles.modalImage}></Image>
-                <Text>이름: {profileDetail.petName}</Text>
-                <Text>종: {profileDetail.petBreed}</Text>
-                <Text>생일: {profileDetail.petBirthDate}</Text>
-                <Text>피해야 하는 종: {profileDetail.avoidBreeds}</Text>
-                <Text>기타사항: {profileDetail.extraInfo}</Text>
-                <TouchableOpacity style={styles.modify} onPress={() => setEditModalVisible(true)}>
-                 <Entypo name="pencil" size={24} color="black" />
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.delete} onPress={handledelete}>
-                  <AntDesign name="delete" size={24} color="red" />
-                </TouchableOpacity>
-                <Button title="닫기" onPress={() => setDetailModalVisible(false)}></Button>
-                </ScrollView>
-              ) : (
-                <Text>해당 프로필은 없습니다.</Text>
-              )}
-            </View>
-          </View>
-        </Modal>
-
-      {/* 프로필 추가 모달 */}
+      {/* 프로필 상세 모달 */}
       <Modal
+        visible={detailModalVisible}
         animationType="slide"
         transparent={true}
-        visible={addModalVisible}
-        onRequestClose={() => setAddModalVisible(false)}>
+        onRequestClose={() => setDetailModalVisible(false)}
+      >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>펫 추가하기</Text>
-            <ScrollView style={{ maxHeight: '80%' }}>
-            <TouchableOpacity 
-              onPress={pickImage}
-              style={[styles.petAddButton, { backgroundColor: "#9ACBD0" }]}>
-              <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>이미지 등록</Text>
-            </TouchableOpacity>
-
-            {/* 추가한 이미지 미리보기 */} 
-            {formData.petImageUrl ? (
-              <View style={{ alignItems: 'center', marginBottom: 12 }}>
-                <Text style={{ color: "#666", marginBottom: 6 }}>
-                  선택된 파일: {formData.petImageUrl.split("/").pop()}
-                </Text>
-                <Image
-                  source={{ uri: formData.petImageUrl }}
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 8,
-                    borderWidth: 1,
-                    borderColor: "#ccc",
-                  }}
-                />
-              </View>
-            ) : null}
-        
-            <TextInput
-              style={styles.input}
-              placeholder="Pet Name"
-              value={formData.petName}
-              onChangeText={(text) => handleChange("petName", text)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Pet Breed"
-              value={formData.petBreed}
-              onChangeText={(text) => handleChange("petBreed", text)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Pet BirthDate"
-              value={formData.petBirthDate}
-              onChangeText={(text) => handleChange("petBirthDate", text)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="avoid Breeds"
-              value={formData.avoidBreeds}
-              onChangeText={(text) => handleChange("avoidBreeds", text)}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="extra Info"
-              value={formData.extraInfo}
-              onChangeText={(text) => handleChange("extraInfo", text)}
-            />
-
-            <TouchableOpacity 
-              onPress={handleAddProfile} 
-              disabled={profiles.length >= maxProfiles} 
-              style={[styles.petAddButton, { backgroundColor: profiles.length >= maxProfiles ? "gray" : "#99BC85" }]}>
-              <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>
-                추가
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity 
-              onPress={() => {resetData(); setAddModalVisible(false)}} 
-              style={[styles.petAddButton, { backgroundColor: "#FFC1B4" }]}>
-              <Text style={{ color: 'white', fontSize: 20, textAlign: 'center' }}>
-                취소
-              </Text>
-            </TouchableOpacity>
-            </ScrollView> 
+            {isLoading ? (
+              <ActivityIndicator size="large" color="#000" />
+            ) : (
+              <ScrollView>
+                <Image source={{ uri: profileDetail?.petImageUrl }} style={styles.modalImage} />
+                <Text style={styles.detailText}>이름: {profileDetail?.petName}</Text>
+                <Text style={styles.detailText}>견종: {profileDetail?.petBreed}</Text>
+                <Text style={styles.detailText}>생일: {profileDetail?.petBirthDate}</Text>
+                <Text style={styles.detailText}>피해야 할 종: {profileDetail?.avoidBreeds}</Text>
+                <Text style={styles.detailText}>기타 정보: {profileDetail?.extraInfo}</Text>
+                <Button title="수정" onPress={() => { setEditModalVisible(true); setDetailModalVisible(false); }} />
+                <Button title="삭제" color="red" onPress={handledelete} />
+                <Button title="닫기" onPress={() => setDetailModalVisible(false)} />
+              </ScrollView>
+            )}
           </View>
         </View>
       </Modal>
 
-      {/*프로필 수정 모달*/}
+      {/* 프로필 추가 모달 */}
       <Modal
+        visible={addModalVisible}
         animationType="slide"
         transparent={true}
-        visible={editModalVisible}
-        onRequestClose={() => setEditModalVisible(false)}
+        onRequestClose={() => setAddModalVisible(false)}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text>펫 정보 수정</Text>
-            <ScrollView style={{ maxHeight: "80%" }}>
-              <Button title="이미지 변경" onPress={pickEditImage} />
+            <ScrollView>
+              <Button title="이미지 선택" onPress={pickImage} />
+              {formData.petImageUrl?.uri && (
+                <Image
+                  source={{ uri: formData.petImageUrl.uri }}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 12,
+                    alignSelf: "center",
+                    marginBottom: 16,
+                  }}
+                />
+              )}
 
-              {/* 추가한 이미지 미리보기 */}
-              {editData.petImageUrl ? (
-                <View style={{ alignItems: "center", marginVertical: 10 }}>
-                  <Text style={{ color: "#666", marginBottom: 6 }}>
-                    선택된 파일: {editData.petImageUrl.split("/").pop()}
-                  </Text>
-                  <Image
-                    source={{ uri: editData.petImageUrl }}
-                    style={{
-                      width: 120,
-                      height: 120,
-                      borderRadius: 8,
-                      borderWidth: 1,
-                      borderColor: "#ccc",
-                    }}
-                  />
-                </View>
-              ) : null}
-
-              <TextInput
-                value={editData.petName}
-                placeholder="pet name"
-                onChangeText={(text) => handleEditData("petName", text)}
-              />
-              <TextInput
-                value={editData.petBreed}
-                placeholder="pet breed"
-                onChangeText={(text) => handleEditData("petBreed", text)}
-              />
-              <TextInput
-                value={editData.petBirthDate}
-                placeholder="pet birthDate"
-                onChangeText={(text) => handleEditData("petBirthDate", text)}
-              />
-              <TextInput
-                value={editData.avoidBreeds}
-                placeholder="avoidBreeds"
-                onChangeText={(text) => handleEditData("avoidBreeds", text)}
-              />
-              <TextInput
-                value={editData.extraInfo}
-                placeholder="extraInfo"
-                onChangeText={(text) => handleEditData("extraInfo", text)}
-              />
-              <Button title={"저장"} onPress={handlemodify} />
-              <Button title={"취소"} onPress={() => {resetEditData(); setEditModalVisible(false)}} />
+              <TextInput style={styles.input} placeholder="이름" value={formData.petName} onChangeText={(text) => handleChange("petName", text)} />
+              <TextInput style={styles.input} placeholder="견종" value={formData.petBreed} onChangeText={(text) => handleChange("petBreed", text)} />
+              <TextInput style={styles.input} placeholder="생일 (YYYY-MM-DD)" value={formData.petBirthDate} onChangeText={(text) => handleChange("petBirthDate", text)} />
+              <TextInput style={styles.input} placeholder="피해야 할 종" value={formData.avoidBreeds} onChangeText={(text) => handleChange("avoidBreeds", text)} />
+              <TextInput style={styles.input} placeholder="기타 정보" value={formData.extraInfo} onChangeText={(text) => handleChange("extraInfo", text)} />
+              <Button title="추가" onPress={handleAddProfile} />
+              <Button title="취소" onPress={() => setAddModalVisible(false)} />
             </ScrollView>
           </View>
         </View>
       </Modal>
 
+      {/* 프로필 수정 모달 */}
+      <Modal
+        visible={editModalVisible}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <ScrollView>
+              <Button title="이미지 변경" onPress={pickEditImage} />
+              {editData.petImageUrl?.uri && (
+                <Image
+                  source={{ uri: editData.petImageUrl.uri }}
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 12,
+                    alignSelf: "center",
+                    marginBottom: 16,
+                  }}
+                />
+              )}
+
+              <TextInput style={styles.input} placeholder="이름" value={editData.petName} onChangeText={(text) => handleEditData("petName", text)} />
+              <TextInput style={styles.input} placeholder="견종" value={editData.petBreed} onChangeText={(text) => handleEditData("petBreed", text)} />
+              <TextInput style={styles.input} placeholder="생일 (YYYY-MM-DD)" value={editData.petBirthDate} onChangeText={(text) => handleEditData("petBirthDate", text)} />
+              <TextInput style={styles.input} placeholder="피해야 할 종" value={editData.avoidBreeds} onChangeText={(text) => handleEditData("avoidBreeds", text)} />
+              <TextInput style={styles.input} placeholder="기타 정보" value={editData.extraInfo} onChangeText={(text) => handleEditData("extraInfo", text)} />
+              <Button title="저장" onPress={handlemodify} />
+              <Button title="취소" onPress={() => setEditModalVisible(false)} />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
     </View>
-  )
-}
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1, 
-    width: "100%", 
-    alignItems: "center", 
-    justifyContent: "center", 
+    flex: 1,
+    width: "100%",
+    alignItems: "center",
+    justifyContent: "center",
     padding: 16,
-  }, 
+  },
   profileContainer: {
     width: "100%",
-    backgroundColor: "#f9f9f9",
-    padding: 20,
-    borderRadius: 16,
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 5,
-    marginVertical: 16,
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "space-around",
-    height: "60", 
-    
-  }, 
-  profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 16,
-    marginHorizontal: 10,
-    borderWidth: 3,
-    borderColor: "#ff9800",
-  }, 
-  modalImage: {
-    width: "100%",
-    height: 250,
-    resizeMode: "cover",
+    justifyContent: "center",
+    padding: 10,
+  },
+  profileCard: {
+    width: 140,
+    height: 180,
+    backgroundColor: "#FFF5E4",
     borderRadius: 16,
-    marginBottom: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    margin: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 5,
+    padding: 12,
+  },
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    borderWidth: 2,
+    borderColor: "#FFD8B1",
+    marginBottom: 10,
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
+    textAlign: "center",
   },
   title: {
     fontSize: 22,
-    fontWeight: "700", 
+    fontWeight: "700",
     color: "#333",
-    textAlign: "left",  
+    textAlign: "left",
     alignSelf: "flex-start",
-    width: "100%", 
-    paddingLeft: 0, 
-    marginLeft: 0, 
-    marginTop: 15, 
-    marginBottom: -8, 
-  }, 
-  modify: {
-    padding: 12,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    marginVertical: 8,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-  }, 
+    width: "100%",
+    paddingLeft: 0,
+    marginLeft: 0,
+    marginTop: 15,
+    marginBottom: -8,
+  },
   add: {
     padding: 5,
     backgroundColor: "transparent",
@@ -537,103 +458,44 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 20,
     top: -10,
-  }, 
-  delete: {
-    padding: 12,
-    backgroundColor: "#ffebee",
-    borderRadius: 8,
-    marginVertical: 8,
-    alignItems: "center",
-    flexDirection: "row",
-    justifyContent: "center",
-  }, 
+  },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
     backgroundColor: '#fff',
-    width: '90%',
+    width: '85%',
     borderRadius: 16,
     padding: 20,
-    maxHeight: '80%',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  modalTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 20,
-    color: "#333",
-    textAlign: "center",
+  modalImage: {
+    width: '100%',
+    height: 200,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  detailText: {
+    fontSize: 16,
+    marginBottom: 8,
+    color: '#333',
   },
   input: {
-    height: 50,
+    height: 48,
+    borderColor: '#ccc',
     borderWidth: 1,
-    borderColor: '#e0e0e0',
-    borderRadius: 8,
-    marginBottom: 16,
+    borderRadius: 10,
     paddingHorizontal: 12,
-    fontSize: 16,
-    backgroundColor: "#f9f9f9",
-  },
-    detailText: {
-    fontSize: 16,
     marginBottom: 12,
-    color: "#333",
-    fontWeight: "500",
+    backgroundColor: '#fefefe',
   },
-  detailLabel: {
-    fontWeight: "700",
-    color: "#666",
-  },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginTop: 16,
-  },
-  actionButton: {
-    flex: 1,
-    padding: 14,
-    borderRadius: 8,
-    alignItems: "center",
-    marginHorizontal: 5,
-  },
-  saveButton: {
-    backgroundColor: "#ff9800",
-  },
-  cancelButton: {
-    backgroundColor: "#f0f0f0",
-  },
-  buttonText: {
-    fontWeight: "600",
-    fontSize: 16,
-  },
-  saveButtonText: {
-    color: "#fff",
-  },
-  cancelButtonText: {
-    color: "#666",
-  },
-  imageContainer: {
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  scrollViewContent: {
-    paddingBottom: 20,
-  },
-    petAddButton: {
-      marginBottom: 20,
-      paddingVertical: 10,
-      paddingHorizontal: 20,
-      borderRadius: 5,
-    }
-  });
-  
+});
 
 export default PetProfile;
