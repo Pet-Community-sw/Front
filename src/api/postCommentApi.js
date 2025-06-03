@@ -1,8 +1,8 @@
 //게시글 댓글 api
 import apiClient from "./apiClient";
 
-const postComment = async ({postId, memberId, content}) => {
-  const response = await apiClient.post("/comments", {postId, memberId, content});
+const postComment = async ({postId, content, postType}) => {
+  const response = await apiClient.post("/comments", {postId, content, postType});
   return response.data;
 }
 

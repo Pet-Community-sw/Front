@@ -25,16 +25,13 @@ const PostDetailScreen = ({ route }) => {
   //현재 로그인한 멤버 아이디 가져오기
   const { loggedId } = useContext(UserContext);
 
-  //좋아요 목록 가져오기
-  const {data: likeList} = useLikeList(postId);
-
   const { postId } = route.params;
 
   const { data: post } = useViewOnePost(postId);
   
   //게시글, 좋아요 목록 조회 훅
   const { refetch: refetchPosts } = useViewPosts();
-  const { refetch: refetchLikes } = useLikeList();
+  const { data: likeList, refetch: refetchLikes } = useLikeList(postId, "COMMUNITY");
 
   //게시글 수정, 삭제 훅
   const { mutate: modifyMutate } = useModifyPost();
@@ -124,7 +121,7 @@ const PostDetailScreen = ({ route }) => {
   //좋아요 버튼 클릭 시
   const handleLike = () => {
     likePostMutate(
-      {postId}, 
+      {postId, postType: "COMMUNITY"}, 
       {
         onSuccess: (data) => {
         if (data?.includes("생성")) {
@@ -145,14 +142,14 @@ const PostDetailScreen = ({ route }) => {
   //좋아요 목록 조회
   const handleLikeList = () => {
     refetchLikes();
-    likeModalVisible(true);
+    setLikeModalVisible(true);
   }
 
   //댓글 추가
   const handleAddComment = () => {
     if (!contentData?.trim()) return;
     postCommentMutate(
-      { postId, content: contentData, memberId: Number(loggedId) },
+      { postId, content: contentData, postType: "COMMUNITY" },
       {
         onSuccess: () => {
           setContentData("");     
