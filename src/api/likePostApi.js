@@ -3,7 +3,7 @@ import apiClient from "./apiClient";
 
 //좋아요 추가 및 삭제
 const likePost = async ({ postId, postType}) => {
-  const response = await apiClient.post("/likes", {postId});
+  const response = await apiClient.post("/likes", {postId, postType});
   return response.data;
 }
 
