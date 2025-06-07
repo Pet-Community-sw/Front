@@ -15,7 +15,7 @@ import { useLogout } from "../hooks/useMember";
 import { NotificationBell } from "../components/notification";
 import PetProfile from "../components/PetProfile";
 import { useViewProfile } from "../hooks/useProfile";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Weather } from "../components/weather";
 
 const posts = [
   { id: 1, title: "오늘 강아지랑 한강 다녀왔어요!", author: "효빈", date: "2025.04.21", likes: 12, comments: 3 },
@@ -28,9 +28,10 @@ const posts = [
 const HomeScreen = () => {
   const { logout, loading } = useContext(UserContext);
   const { mutateAsync: LogoutMutate } = useLogout();
+  const { data: profiles = [] } = useViewProfile();
   const navigation = useNavigation();
 
-  const { data: profiles = [] } = useViewProfile();
+  const weatherText = Weather();
 
   const today = new Date().toISOString().slice(5, 10);
   const birthdayPet = profiles.find((p) => p.petBirthDate?.slice(5, 10) === today);
@@ -55,7 +56,7 @@ const HomeScreen = () => {
   return (
     <ScrollView style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.headerInfoText}>5월 24일 ☀️ 맑음 24º</Text>
+        <Text style={styles.headerInfoText}>{weatherText}</Text>
         <View style={styles.rightHeader}>
           <NotificationBell onPress={() => navigation.navigate("NotificationList")} />
           <TouchableOpacity onPress={() => navigation.navigate("MyProfile")} style={styles.iconBtn}>
