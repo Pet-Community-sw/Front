@@ -15,6 +15,7 @@ import { useLogout } from "../hooks/useMember";
 import { NotificationBell } from "../components/notification";
 import PetProfile from "../components/PetProfile";
 import { useViewProfile } from "../hooks/useProfile";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const posts = [
   { id: 1, title: "오늘 강아지랑 한강 다녀왔어요!", author: "효빈", date: "2025.04.21", likes: 12, comments: 3 },
@@ -49,10 +50,6 @@ const HomeScreen = () => {
       console.log("서버 로그아웃 실패:", e);  
     }
     await logout();           
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Welcome" }],
-    });                       
   };
 
   return (

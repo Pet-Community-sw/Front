@@ -2,8 +2,9 @@
 // 자동인증 시스템
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
+import { refreshAccessToken } from "./tokenApi";
 
-export const BASE_URL = "http://192.210.160.1:8080";
+export const BASE_URL = "http://210.123.255.117:8080";
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -14,12 +15,50 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem("accessToken");
+
+  // 로그인과 회원가입 요청은 토큰 없이 보냄
+  if (
+    config.url?.includes("/members/login") ||
+    config.url?.includes("/members/signup")
+  ) {
+    console.log("🚫 로그인/회원가입 요청, 토큰 생략");
+    return config;
+  }
+
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+
   console.log("👉 서버 요청:", config.method.toUpperCase(), config.url);
   return config;
 });
 
+/*
+//응답 에러 발생 시 토큰 만료 처리
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
 
+    // 토큰 만료로 401이면서, 재시도 아직 안 했으면
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
+      try {
+        const newToken = await refreshAccessToken(); // → 갱신 API 요청
+        if (newToken) {
+          await AsyncStorage.setItem("accessToken", newToken); // 저장
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return apiClient(originalRequest); // 🔁 재요청
+        }
+      } catch (refreshError) {
+        console.log("토큰 갱신 실패:", refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+*/
 export default apiClient;

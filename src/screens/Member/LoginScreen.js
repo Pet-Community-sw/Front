@@ -1,98 +1,73 @@
-import React, { useContext, useEffect, useState } from "react";
-import {
-  View,
-  TextInput,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-} from "react-native";
+import React, { useState, useContext } from "react";
+import { View, TextInput, Alert, Text } from "react-native";
+import { useNavigation } from "@react-navigation/native";
 import { useLogin } from "../../hooks/useMember";
-import FindidScreen from "./FindidScreen";
-import FindpasswordScreen from "./FindpasswordScreen";
 import { UserContext } from "../../context/User";
 import CustomButton from "../../components/button";
+import { StyleSheet } from "react-native";
 
-const LoginScreen = ({ navigation }) => {
-  const { token, login } = useContext(UserContext);
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+const LoginScreen = () => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login } = useContext(UserContext);
+  const navigation = useNavigation();
 
-  const handleChange = (field, value) => {
-    setFormData({ ...formData, [field]: value });
+  const { mutate: loginMutate, isLoading } = useLogin();
+
+  const handleLogin = () => {
+    console.log("로그인 시도:", email, password);
+    loginMutate(
+      { email, password },
+      {
+        onSuccess: async (data) => {
+          console.log("✅ 서버 응답:", data);
+          await login(data.accessToken, data.name, data.memberId); // ✅ 저장
+          console.log("✅ context 저장 완료 후 token 확인:", data.accessToken);
+        },
+        onError: (error) => {
+          Alert.alert("로그인 실패", error.message);
+          console.log("에러 상세:", error.response?.data || error.message);
+        },
+      }
+    );
   };
 
-  const { mutate, isLoading, error } = useLogin();
 
-  const handleSubmit = () => {
-    mutate(formData, {
-      onSuccess: (data) => {
-        if (data && data.accessToken) {
-          Alert.alert("로그인 성공!");
-          login(data.accessToken, data.memberId, data.nickname);
-
-          setTimeout(() => {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "TabRoot" }],
-            });
-          }, 0);
-        } else {
-          Alert.alert("로그인 실패: 유효한 토큰이 없습니다.");
-        }
-      },
-      onError: (err) => {
-        Alert.alert("로그인 실패", err.response?.data?.message || err.message);
-      },
-    });
-  };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🐾 로그인</Text>
-      <Text style={styles.subtitle}>멍냥로드에 오신 것을 환영합니다!</Text>
+      <Text style={styles.title}>로그인</Text>
 
       <TextInput
+        style={styles.input}
+        value={email}
+        onChangeText={setEmail}
         placeholder="이메일"
-        value={formData.email}
-        onChangeText={(text) => handleChange("email", text)}
-        style={styles.input}
+        autoCapitalize="none"
       />
 
       <TextInput
-        placeholder="비밀번호"
-        value={formData.password}
-        onChangeText={(text) => handleChange("password", text)}
-        secureTextEntry
         style={styles.input}
+        value={password}
+        onChangeText={setPassword}
+        placeholder="비밀번호"
+        secureTextEntry
       />
 
-      <CustomButton
-        title={isLoading ? "로그인중.." : "로그인"}
-        onPress={handleSubmit}
-        disabled={isLoading}
-      />
+      <CustomButton title="로그인" onPress={handleLogin} disabled={isLoading} />
 
-      {error && <Text style={styles.errorText}>로그인 실패: {error.message}</Text>}
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Findid")}
-        style={styles.findbutton}
-      >
-        <Text style={styles.findtext}>아이디를 잊으셨나요?</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity
-        onPress={() => navigation.navigate("Findpassword")}
-        style={styles.findbutton}
-      >
-        <Text style={styles.findtext}>비밀번호를 잊으셨나요?</Text>
-      </TouchableOpacity>
+      <View style={styles.findContainer}>
+        <Text style={styles.findtext} onPress={() => navigation.navigate("Findid")}>
+          아이디 찾기
+        </Text>
+        <Text style={styles.divider}>|</Text>
+        <Text style={styles.findtext} onPress={() => navigation.navigate("Findpassword")}>
+          비밀번호 찾기
+        </Text>
+      </View>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -107,7 +82,7 @@ const styles = StyleSheet.create({
     fontFamily: "fontExtra",
     color: "#333",
     marginBottom: 8,
-    lineHeight: 55, 
+    lineHeight: 55,
   },
   subtitle: {
     fontSize: 18,
@@ -139,6 +114,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "font",
   },
+  findContainer: {
+  flexDirection: "row",
+  marginTop: 16,
+  alignItems: "center",
+  justifyContent: "center",
+},
+divider: {
+  marginHorizontal: 8,
+  color: "#999",
+  fontSize: 15,
+  fontFamily: "font",
+},
 });
 
 export default LoginScreen;

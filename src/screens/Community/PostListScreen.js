@@ -52,7 +52,10 @@ const PostListScreen = ({ navigation }) => {
         navigation.navigate("PostDetail", { postId: data.postId });
       },
       onError: (err) => {
-        Alert.alert("게시글 추가 실패", err.message);
+        
+        const errorMessage =
+          err?.response?.data?.message || "알 수 없는 오류가 발생했습니다.";
+        Alert.alert("게시글 추가 실패", errorMessage);
       },
     });
   };

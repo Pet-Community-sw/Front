@@ -2,6 +2,7 @@
 import apiClient from "./apiClient";
 import axios from "axios";
 import { BASE_URL } from "./apiClient";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //회원가입
 // FormData를 사용한 회원가입
@@ -12,19 +13,29 @@ const signup = async (userData) => {
   formData.append("password", userData.password);
   formData.append("phoneNumber", userData.phoneNumber);
 
-  // 이미지 파일 객체로 추가 (type 없이)
-  formData.append("memberImageUrl", {
-    uri: userData.memberImageUrl.uri,
-    name: userData.memberImageUrl.name,
-  });
+  if (userData.memberImageUrl) {
+    formData.append("memberImageUrl", {
+      uri: userData.memberImageUrl.uri,
+      name: userData.memberImageUrl.name,
+      type: "image/jpeg", // 확장자에 맞게 조정 가능
+    });
+  }
 
-  const response = await axios.post(`${BASE_URL}/members/signup`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+  try {
+    const response = await axios.post(`${BASE_URL}/members/signup`, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
 
-  return response.data;
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      (typeof error.response?.data === "string" ? error.response.data : null) ||
+      "회원가입 중 오류가 발생했습니다.";
+    throw new Error(message);
+  }
 };
 
 //로그인
@@ -35,15 +46,41 @@ const login = async (userData) => {
 
 //로그아웃
 const logout = async () => {
-  const response = await apiClient.delete("/members/logout");
-  return response.data;
-}
+  try {
+    const token = await AsyncStorage.getItem("accessToken");
+    console.log("🪪 로그아웃 시도 중 토큰:", token);
 
-//아이디 찾기
+    // 토큰이 없으면 서버에 요청 안 보냄
+    if (token) {
+      await apiClient.delete("/members/logout");
+    }
+
+  } catch (error) {
+    console.warn("❌ 로그아웃 실패:", error);
+  } finally {
+    // 무조건 토큰 제거 + 홈으로 이동
+    await AsyncStorage.removeItem("accessToken");
+    navigation.replace("Welcome");
+  }
+};
+
+
+// 아이디 찾기
 const findid = async (userData) => {
-  const response = await apiClient.post("/members/find-id", userData);
-  return response.data;
-}
+  try {
+    const res = await apiClient.get(`/members/find-id`, {
+      params: { phoneNumber: userData.phoneNumber },
+    });
+    return res.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      (typeof error.response?.data === "string" ? error.response.data : null) ||
+      "서버 요청 중 문제가 발생했습니다.";
+    throw new Error(message);
+  }
+};
+
 
 //비밀번호 이메일 인증
 const sendemail = async ({ email }) => {
@@ -59,14 +96,31 @@ const verify = async (userData) => {
   return response.data;
 }
 
-//비밀번호 재설정
-const resetpassword = async ({ newPassword }) => {
-  const response = await apiClient.put("/members/reset-password", {
-    newPassword,
+// 비밀번호 재설정 - 임시 토큰 같이 보냄
+const resetpassword = async ({ token, newPassword }) => {
+  try {
+    const response = await axios.put(
+      `${BASE_URL}/members/reset-password`,
+      { newPassword },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+      }
+    );
+    return response.data;
+  } catch (error) {
+    const message =
+      error.response?.data?.message ||
+      (typeof error.response?.data === "string" ? error.response.data : null) ||
+      error.message ||
+      "비밀번호 재설정 중 오류가 발생했습니다.";
+    throw new Error(message);
   }
-  );
-  return response.data;
-}
+};
+
+
 
 //회원 탈퇴
 const deleteMember = async () => {

@@ -8,23 +8,21 @@ import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from "@react-navigation/native";
 import { TextInput } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
+import axios from "axios";
 
 const maxProfiles = 4;
 
 const PetProfile = () => {
   const navigation = useNavigation();
 
-  //각각의 프로필 데이터 구조 분해 할당
   const { data: profiles = [], refetch } = useViewProfile();
   const [selectProfile, setSelectProfile] = useState(null);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
-  //특정 프로필 조회 데이터
   const { data: profileDetail, isLoading } = useViewOneProfile(selectProfile?.profileId);
 
-  //이 컴포넌트가 화면에 다시 나타날 때마다 프로필 목록 새로 가져옴
   useFocusEffect(
     useCallback(() => {
       refetch();
@@ -35,7 +33,6 @@ const PetProfile = () => {
   const { mutate: removeMutate } = useRemoveProfile();
   const { mutate: addMutate } = useAddProfile();
 
-  //프로필 추가 데이터
   const [formData, setFormData] = useState({
     petImageUrl: "",
     petName: "",
@@ -45,7 +42,6 @@ const PetProfile = () => {
     extraInfo: ""
   });
 
-  //추가 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetData = () => {
     setFormData({
       petImageUrl: "",
@@ -57,7 +53,6 @@ const PetProfile = () => {
     });
   };
 
-  //프로필 수정 데이터
   const [editData, setEditData] = useState({
     petImageUrl: "",
     petName: "",
@@ -67,7 +62,6 @@ const PetProfile = () => {
     extraInfo: ""
   });
 
-  //수정 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetEditData = () => {
     if (profileDetail) {
       setEditData({
@@ -81,10 +75,9 @@ const PetProfile = () => {
     }
   };
 
-  //선택한 프로필 id 가져옴
   useEffect(() => {
     if (selectProfile) {
-      // viewOneProfileMutate(selectProfile.profileId); // 주석 유지 (사용 안 함)
+      // viewOneProfileMutate(selectProfile.profileId);
     }
   }, [selectProfile]);
 
@@ -102,52 +95,18 @@ const PetProfile = () => {
   }, [profileDetail]);
 
   const handleChange = (field, value) => {
-    const isKoreanOnly = /^[가-힣\s,]*$/.test(value);
-    const isDateValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
-
-    if (
-      (["petName", "petBreed", "avoidBreeds", "extraInfo"].includes(field) && !isKoreanOnly) ||
-      (field === "petBirthDate" && !isDateValid)
-    ) {
-      Alert.alert(
-        "입력 오류",
-        field === "petBirthDate"
-          ? "생일은 YYYY-MM-DD 형식으로 입력해주세요."
-          : "한글만 입력할 수 있습니다."
-      );
-      return;
-    }
-
     setFormData({ ...formData, [field]: value });
   };
 
   const handleEditData = (field, value) => {
-    const isKoreanOnly = /^[가-힣\s,]*$/.test(value);
-    const isDateValid = /^\d{4}-\d{2}-\d{2}$/.test(value);
-
-    if (
-      (["petName", "petBreed", "avoidBreeds", "extraInfo"].includes(field) && !isKoreanOnly) ||
-      (field === "petBirthDate" && !isDateValid)
-    ) {
-      Alert.alert(
-        "입력 오류",
-        field === "petBirthDate"
-          ? "생일은 YYYY-MM-DD 형식으로 입력해주세요."
-          : "한글만 입력할 수 있습니다."
-      );
-      return;
-    }
-
     setEditData({ ...editData, [field]: value });
   };
 
-  //프로필 클릭 시 모달 열음
   const openProfile = (profile) => {
-    setSelectProfile(profile);  //useEffect 실행
+    setSelectProfile(profile);
     setDetailModalVisible(true);
   };
 
-  //프로필 수정
   const handlemodify = () => {
     modifyMutate(editData, {
       onSuccess: (data) => {
@@ -167,8 +126,6 @@ const PetProfile = () => {
     }
   }, [editModalVisible]);
 
-  //프로필 추가
-  //invalidateQueries 서버 데이터 연동
   const handleAddProfile = () => {
     if ((profiles || []).length >= maxProfiles) {
       Alert.alert("프로필은 최대 4개까지 등록 가능합니다!");
@@ -187,14 +144,13 @@ const PetProfile = () => {
 
   useEffect(() => {
     if (addModalVisible) {
-      resetData(); // 열릴 때도 무조건 초기화
+      resetData();
     }
   }, [addModalVisible]);
 
-  // 공통 이미지 선택 함수
   const handleImagePick = async (callback) => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    console.log("권한 상태:", permissionResult.status); // 여기까지 로그 나옴?
+    console.log("권한 상태:", permissionResult.status);
 
     if (permissionResult.status !== 'granted') {
       Alert.alert("권한 없음", "이미지 접근 권한이 필요합니다.");
@@ -217,8 +173,6 @@ const PetProfile = () => {
     }
   };
 
-
-  // 펫 이미지 업로드
   const pickImage = () => {
     handleImagePick((asset) => {
       setFormData((prevData) => ({
@@ -231,7 +185,6 @@ const PetProfile = () => {
     });
   };
 
-  // 펫 이미지 수정
   const pickEditImage = () => {
     handleImagePick((asset) => {
       setEditData((prevData) => ({
@@ -244,7 +197,6 @@ const PetProfile = () => {
     });
   };
 
-  //프로필 삭제
   const handledelete = () => {
     Alert.alert("정말 삭제하시겠습니까?", [
       { text: "취소", style: "cancel" },

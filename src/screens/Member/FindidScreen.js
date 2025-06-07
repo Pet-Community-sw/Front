@@ -11,7 +11,7 @@ import CustomButton from "../../components/button";
 
 const FindidScreen = () => {
   const [formData, setFormData] = useState({
-    phonenumber: "",
+    phoneNumber: "",
   });
 
   const handleChange = (field, value) => {
@@ -39,9 +39,9 @@ const FindidScreen = () => {
       <TextInput
         style={styles.input}
         placeholder="전화번호"
-        value={formData.phonenumber}
+        value={formData.phoneNumber}
         keyboardType="phone-pad"
-        onChangeText={(text) => handleChange("phonenumber", text)}
+        onChangeText={(text) => handleChange("phoneNumber", text)}
       />
 
       <CustomButton

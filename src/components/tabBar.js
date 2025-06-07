@@ -14,6 +14,7 @@ import Mock from "../screens/MockUI";
 const Tab = createBottomTabNavigator();
 
 const TabBar = () => {
+  console.log("✅ TabBar 진입");
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({

@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  ActivityIndicator,
   StyleSheet,
   Alert,
 } from "react-native";
@@ -11,13 +10,19 @@ import { useSendemail } from "../../hooks/useMember";
 import { useResetpassword } from "../../hooks/useMember";
 import { useVerify } from "../../hooks/useMember";
 import CustomButton from "../../components/button";
+import { useNavigation } from "@react-navigation/native";
+
 
 const FindpasswordScreen = () => {
+  const navigation = useNavigation();
+
   const [email, setEmail] = useState("");
   const [verifyCode, setVerifyCode] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [step, setStep] = useState(1);
+  const [tempToken, setTempToken] = useState("");
 
+  //1단계: 이메일 입력 후 인증번호 전송
   const { mutate: sendEmail, isLoading: sendingEmail } = useSendemail();
   const handleSendEmail = () => {
     sendEmail(
@@ -29,27 +34,37 @@ const FindpasswordScreen = () => {
     );
   };
 
+  //2단계: 인증번호 입력
+  //3단계: 비밀번호 재설정
   const { mutate: verify, isLoading: verifying } = useVerify();
-  const handleVerifyCode = () => {
-    verify(
-      { email, code: verifyCode },
-      {
-        onSuccess: () => setStep(3),
-        onError: (error) => Alert.alert(`인증 실패: ${error.message}`),
-      }
-    );
-  };
-
   const { mutate: resetPwd, isLoading: resetting } = useResetpassword();
+  const handleVerifyCode = () => {
+  verify(
+    { email, code: verifyCode },
+    {
+      onSuccess: (data) => {
+        setTempToken(data.newAccessToken); 
+        setStep(3); 
+      },
+      onError: (error) => Alert.alert(`인증 실패: ${error.message}`),
+    }
+  );
+};
+
   const handleResetPassword = () => {
-    resetPwd(
-      { newPassword },
-      {
-        onSuccess: () => Alert.alert("비밀번호가 성공적으로 변경되었습니다."),
-        onError: (error) => Alert.alert(`비밀번호 변경 실패: ${error.message}`),
-      }
-    );
-  };
+  resetPwd(
+    { newPassword, token: tempToken },
+    {
+      onSuccess: () => {
+        Alert.alert("비밀번호가 성공적으로 변경되었습니다.");
+        navigation.navigate("Login");
+      },
+      onError: (error) => {
+        Alert.alert(`비밀번호 변경 실패: ${error.message}`);
+      },
+    }
+  );
+};
 
   return (
     <View style={styles.container}>
@@ -112,7 +127,7 @@ const styles = StyleSheet.create({
     fontFamily: "fontExtra",
     color: "#333",
     marginBottom: 8,
-    lineHeight: 50, 
+    lineHeight: 50,
   },
   subtitle: {
     fontSize: 16,

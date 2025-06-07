@@ -23,6 +23,11 @@ const SignupScreen = () => {
     })();
   }, []);
 
+  useEffect(() => {
+  console.log("isLoading:", isLoading);
+}, [isLoading]);
+
+
 
   const [formData, setFormData] = useState({
     name: "",
@@ -50,7 +55,7 @@ const SignupScreen = () => {
         console.log("token");
       },
       onError: (err) => {
-        console.log("회원가입 실패:", err);
+        console.log("회원가입 실패:", err.message);
       },
     });
   };
