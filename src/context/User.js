@@ -6,6 +6,7 @@ import { disconnectNotification } from "../hooks/useNotification";
 import { BASE_URL } from "../api/apiClient";
 import apiClient from "../api/apiClient";
 import { useMemo } from "react";
+import { useProfileSession } from "./SelectProfile";
 
 const UserContext = createContext();
 
@@ -14,6 +15,7 @@ const UserProvider = ({ children }) => {
   const [name, setName] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { clearProfile } = useProfileSession();
 
   useEffect(() => {
     console.log("🧪 [UserContext] token 변경됨:", token);
@@ -81,7 +83,7 @@ const UserProvider = ({ children }) => {
 
 
 
-  // 로그아웃 시 토큰 삭제, 웹소켓 연결 해제
+  // 로그아웃 시 토큰 삭제, 웹소켓 연결 해제, 펫 프로필 토큰 삭제
   const logout = async () => {
     try {
       const accessToken = await AsyncStorage.getItem("accessToken");
@@ -103,6 +105,7 @@ const UserProvider = ({ children }) => {
     // 연결 해제
     await disconnectNotification();
     await disconnectStomp();
+    clearProfile();
   };
 
 

@@ -481,4 +481,22 @@ const styles = StyleSheet.create({
         color: "#7E7E7E",
         fontSize: 13,
     },
+    ownerButtonRow: {
+        flexDirection: "row",
+        justifyContent: "flex-end",
+        marginTop: 8,
+    },
+
+    editButton: {
+        marginRight: 12,
+        fontSize: 13,
+        color: "#4CA195",
+        fontWeight: "500",
+    },
+
+    deleteButton: {
+        fontSize: 13,
+        color: "#D94C4C",
+        fontWeight: "500",
+    },
 });

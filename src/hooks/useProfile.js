@@ -6,13 +6,14 @@ import { modifyProfile } from "../api/profileApi";
 import { removeProfile } from "../api/profileApi";
 import { viewOneProfile } from "../api/profileApi";
 import { fetchProfileToken } from "../api/profileApi";
+import { useProfileSession } from "../context/SelectProfile";
 
 //프로필 추가
 //setQueryData ui 업데이트
 const useAddProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: addProfile, 
+    mutationFn: addProfile,
     onSuccess: (newProfiles) => {
       queryClient.setQueryData(["profiles"], (oldProfiles = []) => {
         return [...oldProfiles, newProfiles];
@@ -25,14 +26,14 @@ const useAddProfile = () => {
 const useModifyProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: modifyProfile, 
+    mutationFn: modifyProfile,
     onSuccess: (modifiedProfile) => {
       queryClient.setQueryData(["profiles"], (oldProfiles = []) => {
-        return oldProfiles.map(profile => 
-          profile.id === modifiedProfile.id ? modifiedProfile: profile
+        return oldProfiles.map(profile =>
+          profile.id === modifiedProfile.id ? modifiedProfile : profile
         )
       });
-    }, 
+    },
   })
 };
 
@@ -40,12 +41,12 @@ const useModifyProfile = () => {
 const useRemoveProfile = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: removeProfile, 
+    mutationFn: removeProfile,
     onSuccess: (response, profileId) => {
       queryClient.setQueryData(["profiles"], (oldProfiles = []) => {
         return oldProfiles.filter(profile => profile.id !== profileId);
       });
-      
+
       //개별 프로필 데이터 Id 삭제
       queryClient.removeQueries(["profiles", profileId]);
     }
@@ -58,7 +59,7 @@ const useRemoveProfile = () => {
 const useViewProfile = () => {
   return useQuery({
     queryKey: ["profiles"], //모든 프로필 목록 데이터
-    queryFn: viewProfiles, 
+    queryFn: viewProfiles,
     enabled: false,
   });
 }
@@ -66,24 +67,21 @@ const useViewProfile = () => {
 //특정 프로필 조회
 const useViewOneProfile = (profileId) => {
   return useQuery({
-    queryKey: ["profiles", profileId], 
-    queryFn: () => viewOneProfile(profileId), 
+    queryKey: ["profiles", profileId],
+    queryFn: () => viewOneProfile(profileId),
     enabled: !!profileId,
   });
 }
 
 //펫 프로필 토큰 새로 발급
-export const useFetchAccessToken = (profileId) => {
+export const useFetchAccessToken = () => {
   return useMutation({
-    mutationFn: fetchProfileToken(profileId),
+    mutationFn: fetchProfileToken,
     onSuccess: (data) => {
-      const { accessToken, profileId} = data;
+      const { accessToken, profileId } = data;
 
       // 예시: axios에 토큰 설정
       apiClient.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-
-      // 필요하면 여기서 전역 상태도 설정 (예: Context나 Recoil 등)
-      // setProfileSession({ accessToken, profileId, nickname });
 
       console.log("✅ 프로필 토큰 발급 완료:", data);
     },
@@ -93,4 +91,4 @@ export const useFetchAccessToken = (profileId) => {
   });
 }
 
-export {useAddProfile, useViewProfile, useModifyProfile, useRemoveProfile, useViewOneProfile};
+export { useAddProfile, useViewProfile, useModifyProfile, useRemoveProfile, useViewOneProfile };
