@@ -12,6 +12,7 @@ import { useNotification } from "./hooks/useNotification";
 import { ChatProvider } from "./context/Chatting";
 import { NotificationProvider } from "./context/Notification";
 import { useFonts } from "expo-font";
+import { SelectProfileProvider } from "./context/SelectProfile";
 
 // Screens
 import WelcomeScreen from "./screens/Member/WelcomeScreen";
@@ -125,11 +126,13 @@ const App = () => {
       <QueryClientProvider client={queryClient}>
         <UserProvider>
           <NotificationProvider>
-            <PetProvider>
-              <ChatProvider>
-                <AppInner />
-              </ChatProvider>
-            </PetProvider>
+            <SelectProfileProvider>
+              <PetProvider>
+                <ChatProvider>
+                  <AppInner />
+                </ChatProvider>
+              </PetProvider>
+            </SelectProfileProvider>
           </NotificationProvider>
         </UserProvider>
       </QueryClientProvider>
