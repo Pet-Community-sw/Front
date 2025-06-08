@@ -1,3 +1,4 @@
+//산책길 추천 코스 -> 함께 산책해요 매칭 탭
 import React, { useState, useCallback, useEffect } from "react";
 import {
     View,

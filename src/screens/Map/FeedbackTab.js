@@ -1,3 +1,4 @@
+//산책길 추천 코스 -> 산책길 피드백 탭
 import React, { useEffect, useState } from "react";
 import {
   View,

@@ -1,3 +1,5 @@
+//지도 스크린
+//산책길 추천 코스 OR 대리 산책자 구하기 탭으로 나뉨
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import RecommendTab from './RecommendTab';
