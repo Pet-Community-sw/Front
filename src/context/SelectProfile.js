@@ -10,11 +10,21 @@ export const SelectProfileProvider = ({ children }) => {
     const [profileId, setProfileId] = useState(null);
 
     const selectProfile = async (profileId) => {
-        const data = await fetchProfileToken(profileId); // { accessToken, profileId }
+        const data = await fetchProfileToken(profileId);
+        const { accessToken } = data;
 
-        // axios 기본 헤더 변경
-        apiClient.defaults.headers.common["Authorization"] = `Bearer ${data.accessToken}`;
+        // axios 기본 헤더 설정
+        apiClient.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+
+        // AsyncStorage 저장
+        await AsyncStorage.setItem("accessToken", accessToken);
+        await AsyncStorage.setItem("profileId", profileId.toString());
+
+        // 전역 상태 저장
+        setProfileToken(accessToken);
+        setProfileId(profileId);
     };
+
 
     //로그아웃, 프로필 변경 시 프로필 정보 초기화
     const clearProfile = () => {

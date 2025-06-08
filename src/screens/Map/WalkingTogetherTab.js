@@ -21,12 +21,18 @@ import {
     useRemoveWalkingTogether,
     useStartWalking
 } from "../../hooks/useWalkingTogether";
+import { useViewProfile } from "../../hooks/useProfile";
+import { useProfileSession } from "../../context/SelectProfile";
+import { useFetchAccessToken } from "../../hooks/useProfile";
 
 export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState(null);
     const [writeModalVisible, setWriteModalVisible] = useState(false);
+    const [selectProfileModalVisible, setSelectProfileModalVisible] = useState(false);
+    const [selectedPetProfileId, setSelectedPetProfileId] = useState(null);
 
+    //선택한 펫 전역으로 저장
     const [scheduledTime, setScheduledTime] = useState(null);
     const [limitCount, setLimitCount] = useState("");
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
@@ -40,6 +46,25 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     const { mutate: deletePost } = useRemoveWalkingTogether();
     const { mutate: updatePost } = useModifyWalkingTogether();
     const { mutate: startMatching } = useStartWalking();
+
+    const { selectProfile } = useProfileSession();
+
+    const handleSelectProfile = async () => {
+        if (!selectedPetProfileId) return;
+
+        try {
+            // 1. 통합 함수 호출
+            await selectProfile(selectedPetProfileId);
+
+            // 2. 모달 전환
+            setSelectProfileModalVisible(false);
+            setWriteModalVisible(true);
+        }
+        catch (error) {
+            Alert.alert("토큰 발급 실패", "프로필 선택 중 오류가 발생했습니다.");
+            console.error("❌ selectProfile 에러:", error);
+        }
+    };
 
 
     //글 목록 조회
@@ -57,6 +82,12 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     } = useViewWalkingTogetherPostDetail({
         walkingTogetherPostId: selectedPostId,
     });
+
+    //펫 프로필 목록 불러오기
+    const {
+        data: profiles = [],
+    } = useViewProfile();
+
 
     //탭이 활성화 될 때마다 글 목록 불러옴
     useFocusEffect(
@@ -206,12 +237,13 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
             {/* 매칭 글 쓰기 버튼 */}
             <TouchableOpacity
                 style={styles.matchButton}
-                onPress={() => setWriteModalVisible(true)}
+                onPress={() => setSelectProfileModalVisible(true)}
             >
                 <MaterialIcons name="check-circle" size={18} color="#7EC8C2" />
                 <Text style={styles.matchText}>매칭 글 쓰기</Text>
             </TouchableOpacity>
 
+            {/* 매칭 글 목록 */}
             <FlatList
                 data={walks}
                 keyExtractor={(item) => item.walkingTogetherPostId?.toString()}
@@ -240,6 +272,39 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                     !isLoading && <Text style={styles.empty}>등록된 글이 없어요!</Text>
                 }
             />
+
+            {/* 펫 프로필 선택 모달 */}
+            <Modal visible={selectProfileModalVisible} animationType="slide" transparent>
+                <View style={styles.modalWrapper}>
+                    <View style={styles.modalContent}>
+                        <Text style={styles.modalTitle}>🐶 함께 산책할 펫을 선택하세요</Text>
+                        {profiles.map((profile) => (
+                            <TouchableOpacity
+                                key={profile.id}
+                                style={[
+                                    styles.card,
+                                    selectedPetProfileId === profile.id && { borderColor: "#7EC8C2", borderWidth: 2 },
+                                ]}
+                                onPress={() => {
+                                    setSelectedPetProfileId(profile.id)
+                                    setProfileId(profile.id)
+                                }}
+                            >
+                                <Text style={{ fontSize: 16 }}>{profile.name}</Text>
+                            </TouchableOpacity>
+                        ))}
+
+                        <TouchableOpacity
+                            style={styles.applyBtn}
+                            disabled={!selectedPetProfileId}
+                            onPress={handleSelectProfile}
+                        >
+                            <Text style={styles.applyText}>선택하기</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </Modal>
+
 
             {/* 글 상세 모달 */}
             <Modal visible={modalVisible} animationType="slide" transparent>

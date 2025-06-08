@@ -6,7 +6,7 @@ import { modifyProfile } from "../api/profileApi";
 import { removeProfile } from "../api/profileApi";
 import { viewOneProfile } from "../api/profileApi";
 import { fetchProfileToken } from "../api/profileApi";
-import { useProfileSession } from "../context/SelectProfile";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 //프로필 추가
 //setQueryData ui 업데이트
@@ -70,24 +70,6 @@ const useViewOneProfile = (profileId) => {
     queryKey: ["profiles", profileId],
     queryFn: () => viewOneProfile(profileId),
     enabled: !!profileId,
-  });
-}
-
-//펫 프로필 토큰 새로 발급
-export const useFetchAccessToken = () => {
-  return useMutation({
-    mutationFn: fetchProfileToken,
-    onSuccess: (data) => {
-      const { accessToken, profileId } = data;
-
-      // 예시: axios에 토큰 설정
-      apiClient.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
-
-      console.log("✅ 프로필 토큰 발급 완료:", data);
-    },
-    onError: (error) => {
-      console.error("❌ 프로필 토큰 발급 실패:", error.message);
-    },
   });
 }
 
