@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import { useFocusEffect } from "@react-navigation/native";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 import {
     useViewWalkingTogether,
     useViewWalkingTogetherPostDetail,
@@ -23,9 +23,9 @@ import {
 } from "../../hooks/useWalkingTogether";
 import { useViewProfile } from "../../hooks/useProfile";
 import { useProfileSession } from "../../context/SelectProfile";
-import { useFetchAccessToken } from "../../hooks/useProfile";
 
 export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
+    const navigation = useNavigation();
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState(null);
     const [writeModalVisible, setWriteModalVisible] = useState(false);
@@ -287,7 +287,6 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                                 ]}
                                 onPress={() => {
                                     setSelectedPetProfileId(profile.id)
-                                    setProfileId(profile.id)
                                 }}
                             >
                                 <Text style={{ fontSize: 16 }}>{profile.name}</Text>
