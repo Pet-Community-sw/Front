@@ -35,7 +35,7 @@ export default function RecommendTab() {
   const [region, setRegion] = useState({
     latitude: 37.648931,
     longitude: 127.064411,
-    latitudeDelta: 0.05,
+    latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
 
@@ -50,7 +50,7 @@ export default function RecommendTab() {
   const [selectingLocation, setSelectingLocation] = useState({
     latitude: 37.648931,
     longitude: 127.064411,
-    latitudeDelta: 0.05,
+    latitudeDelta: 0.01,
     longitudeDelta: 0.01,
   });
 
@@ -232,6 +232,10 @@ export default function RecommendTab() {
               <Text style={{ color: "#4A90E2", marginBottom: 8 }}>
                 📍 지도에서 위치 설정하기
               </Text>
+              <Text style={{ color: "#444", marginBottom: 6 }}>
+                📍 선택한 위치: {locationName || "불러오는 중..."}
+              </Text>
+
             </TouchableOpacity>
 
             <TextInput
@@ -268,13 +272,13 @@ export default function RecommendTab() {
             style={{ flex: 1 }}
             region={{
               ...region,
-              latitudeDelta: 0.05,
+              latitudeDelta: 0.01,
               longitudeDelta: 0.01,
             }}
-            zoomEnabled={false}       
-            scrollEnabled={false}    
-            rotateEnabled={false}     
-            pitchEnabled={false}      
+            zoomEnabled={false}
+            scrollEnabled={false}
+            rotateEnabled={false}
+            pitchEnabled={false}
           >
             <Marker coordinate={region} />
           </MapView>

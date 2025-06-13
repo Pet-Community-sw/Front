@@ -84,11 +84,19 @@ const modifyPost = async (postId, formData) => {
     const response = await apiClient.put(`/posts/${postId}`, formData);
     return response.data;
   } catch (error) {
-    console.log("❌ 서버 오류 응답:", {
-      message: error.message,
-    });
-    throw new Error(error.response?.data?.message || "게시물 수정 실패");
-  }
+  console.log("❌ 서버 오류 응답:", {
+    code: error?.response?.status,
+    serverMessage: error?.response?.data,
+    defaultMessage: error.message,
+  });
+
+  const serverMsg =
+    error?.response?.data?.message ||
+    error?.response?.data?.error ||
+    "요청 처리 중 오류가 발생했습니다.";
+
+  throw new Error(serverMsg);
+}
 }
 
 //게시물 삭제
@@ -98,17 +106,11 @@ const removePost = async (postId) => {
     const response = await apiClient.delete(`/posts/${postId}`);
     return response.data;
   } catch (error) {
-    const msg = error.response?.data?.message;
-
-    console.log("❌ 서버 오류 응답:", msg);
-
-    const finalMessage = Array.isArray(msg)
-      ? msg.join("\n")
-      : msg || "게시물 삭제 실패";
-
-    throw new Error(finalMessage);
+    console.log("❌ 서버 오류 응답:", {
+      message: error.message,
+    });
+    throw new Error(error.response?.data?.message || "게시물 수정 실패");
   }
-
 }
 
 export { addPost, viewPosts, viewOnePost, modifyPost, removePost };

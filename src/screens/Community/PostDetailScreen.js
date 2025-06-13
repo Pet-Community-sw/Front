@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import {
   View,
   Text,
@@ -11,76 +11,60 @@ import {
   TouchableOpacity,
   Button,
 } from "react-native";
-import { UserContext } from "../../context/User"
-import { useLikePost, useLikeList } from "../../hooks/useLikePost";
-import { useModifyPost, useRemovePost, useViewOnePost, useViewPosts } from "../../hooks/usePost";
-import { usePostComment, useModifyComment, useRemoveComment } from "../../hooks/usePostComment";
-
+import { UserContext } from "../../context/User";
+import {
+  useLikePost,
+  useLikeList,
+} from "../../hooks/useLikePost";
+import {
+  useModifyPost,
+  useRemovePost,
+  useViewOnePost,
+  useViewPosts,
+} from "../../hooks/usePost";
+import {
+  usePostComment,
+  useModifyComment,
+  useRemoveComment,
+} from "../../hooks/usePostComment";
 import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
-
 import { useQueryClient } from "@tanstack/react-query";
 import { BASE_URL } from "../../api/apiClient";
 
 const PostDetailScreen = ({ route }) => {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
-
-  //현재 로그인한 멤버 아이디 가져오기
   const { loggedId } = useContext(UserContext);
-
   const { postId } = route.params;
-
   const { data: post } = useViewOnePost(postId);
 
-  //게시글, 좋아요 목록 조회 훅
   const { refetch: refetchPosts } = useViewPosts();
   const { data: likeList, refetch: refetchLikes } = useLikeList(postId, "COMMUNITY");
 
-  //게시글 수정, 삭제 훅
   const { mutate: modifyMutate } = useModifyPost();
   const { mutate: removeMutate } = useRemovePost();
-
-  //좋아요 추가 훅
   const { mutate: likePostMutate } = useLikePost();
-
-  //댓글 조회, 추가, 수정, 삭제 훅
   const { mutate: postCommentMutate } = usePostComment();
   const { mutate: modifyCommentMutate } = useModifyComment();
   const { mutate: removeCommentMutate } = useRemoveComment();
 
   const [editModalVisible, setEditModalVisible] = useState(false);
-
-  //컴포넌트 렌더링 시, 해당 게시물 좋아요 했는지 확인
-  useEffect(() => {
-    if (post?.like !== undefined) {
-      setLiked(post.like);  // 서버에서 받은 like 상태로 초기화
-    }
-  }, [post]);
-
-  //컴포넌트 들어올 때마다 포스트 목록 조회
-  /*useEffect(() => {
-    refetchPosts();
-  }, [])*/
-
-  //게시글 수정 데이터
-  const [editData, setEditData] = useState({
-    title: "",
-    content: "",
-  })
-
-  //좋아요 상태
+  const [editData, setEditData] = useState({ postImageFile: "", title: "", content: "" });
   const [liked, setLiked] = useState(false);
   const [likeModalVisible, setLikeModalVisible] = useState(false);
-
-  //댓글 데이터
   const [contentData, setContentData] = useState();
   const [contentEditData, setContentEditData] = useState();
 
-  //게시글 수정
+  useEffect(() => {
+    if (post?.like !== undefined) {
+      setLiked(post.like);
+    }
+  }, [post]);
+
   const handlemodify = () => {
     modifyMutate(editData, {
-      onSuccess: (data) => {
+      onSuccess: () => {
         Alert.alert("게시글 수정 성공!");
         refetchPosts();
         navigation.replace("PostDetail", { postId });
@@ -91,14 +75,12 @@ const PostDetailScreen = ({ route }) => {
     });
   };
 
-  //게시물 삭제
   const handledelete = () => {
     Alert.alert("정말 삭제하시겠습니까?", [
       { text: "취소", style: "cancel" },
       {
         text: "삭제",
         onPress: () => {
-          console.log("🧪 삭제 시도 postId:", postId); // 추가
           removeMutate(postId, {
             onSuccess: () => {
               Alert.alert("게시글이 삭제되었습니다.");
@@ -106,9 +88,8 @@ const PostDetailScreen = ({ route }) => {
               refetchPosts();
             },
             onError: (err) => {
-              console.log("❗삭제 실패 err:", err);
               Alert.alert("오류", String(err.message));
-            }
+            },
           });
         },
       },
@@ -117,29 +98,24 @@ const PostDetailScreen = ({ route }) => {
 
   const handleEditData = (field, value) => {
     setEditData({ ...editData, [field]: value });
-  }
+  };
 
-  //수정 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetEditData = () => {
     if (post) {
       setEditData({
+        postImageFile: post. postImageFile || "", 
         title: post.title || "",
         content: post.content || "",
-      })
+      });
     }
-  }
+  };
 
-  //좋아요 버튼 클릭 시
   const handleLike = () => {
     likePostMutate(
       { postId, postType: "COMMUNITY" },
       {
         onSuccess: (data) => {
-          if (data?.includes("생성")) {
-            setLiked(true);
-          } else if (data?.includes("삭제")) {
-            setLiked(false);
-          }
+          setLiked(data?.includes("생성"));
           refetchPosts();
           refetchLikes();
         },
@@ -150,13 +126,11 @@ const PostDetailScreen = ({ route }) => {
     );
   };
 
-  //좋아요 목록 조회
   const handleLikeList = () => {
     refetchLikes();
     setLikeModalVisible(true);
-  }
+  };
 
-  //댓글 추가
   const handleAddComment = () => {
     if (!contentData?.trim()) return;
     postCommentMutate(
@@ -168,41 +142,43 @@ const PostDetailScreen = ({ route }) => {
         },
         onError: (err) => {
           Alert.alert("댓글 등록 실패", err.message);
-        }
+        },
       }
     );
   };
 
-  //댓글 수정
   const handleModifyComment = ({ commentId }) => {
     if (!contentEditData?.trim()) return;
-    modifyCommentMutate({
-      commentId, postId, content: contentEditData
-    }, {
-      onSuccess: () => {
-        setContentEditData("");
-        queryClient.invalidateQueries(["posts", postId]);
-      },
-      onError: (err) => {
-        Alert.alert("댓글 수정 실패", err.message);
+    modifyCommentMutate(
+      { commentId, postId, content: contentEditData },
+      {
+        onSuccess: () => {
+          setContentEditData("");
+          queryClient.invalidateQueries(["posts", postId]);
+        },
+        onError: (err) => {
+          Alert.alert("댓글 수정 실패", err.message);
+        },
       }
-    })
-  }
+    );
+  };
 
-  //댓글 삭제
   const handleRemoveComment = ({ commentId }) => {
-    removeCommentMutate({
-      commentId,
-    }, {
-      onSuccess: () => {
-        queryClient.invalidateQueries(["posts", postId]);
-      },
-      onError: (err) => {
-        Alert.alert("댓글 삭제 실패", err.message);
+    removeCommentMutate(
+      { commentId },
+      {
+        onSuccess: () => {
+          queryClient.invalidateQueries(["posts", postId]);
+        },
+        onError: (err) => {
+          Alert.alert("댓글 삭제 실패", err.message);
+        },
       }
-    })
-  }
+    );
+  };
 
+  const getFullImageUri = (path) =>
+    path ? `${BASE_URL.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}` : undefined;
 
   return (
     <ScrollView style={styles.container}>
@@ -210,71 +186,120 @@ const PostDetailScreen = ({ route }) => {
         <Image source={{ uri: post.postImageUrl }} style={styles.postImage} />
       )}
 
-      {/* 게시글 삭제, 수정 */}
       {post?.owner && (
-        <>
-          <TouchableOpacity
-            style={styles.modify}
-            onPress={() => setEditModalVisible(true)}
-          >
+        <View style={styles.actionsRow}>
+          <TouchableOpacity onPress={() => setEditModalVisible(true)}>
             <Entypo name="pencil" size={24} color="black" />
           </TouchableOpacity>
-
-          <TouchableOpacity style={styles.delete} onPress={handledelete}>
+          <TouchableOpacity onPress={handledelete}>
             <AntDesign name="delete" size={24} color="red" />
           </TouchableOpacity>
-        </>
+        </View>
       )}
-
-      <Text style={styles.title}>{post?.title}</Text>
-      <Text style={styles.content}>{post?.content}</Text>
-
       <View style={styles.metaSection}>
-        {post?.profileImageUrl && (
-          <Image
-            source={{ uri: `${BASE_URL}${comment.memberImageUrl}` }}
-            style={{ width: 30, height: 30, borderRadius: 15 }}
-          />
-        )}
-
-        <Text style={styles.meta}>작성자: {post?.memberName}</Text>
-        <Text style={styles.meta}>작성 시간: {post?.createdAt}</Text>
-        <Text style={styles.meta}>
-          조회수: {post?.viewCount}
-        </Text>
-        <Text styles={styles.meta} onPress={handleLikeList}>좋아요 목록{post?.likeCount}</Text>
+        <Image
+          source={{ uri: getFullImageUri(post?.postResponseDto?.memberImageUrl) }}
+          style={styles.avatar}
+        />
       </View>
 
-      {/* 좋아요 버튼 */}
-      <View style={{ marginVertical: 12 }}>
-        <TouchableOpacity onPress={handleLike}>
-          <AntDesign
-            name={liked ? "like1" : "like2"}
-            size={24}
-            color={liked ? "#f66" : "#aaa"}
-          />
+      <View>
+        <Text style={styles.meta}>작성자: {post?.postResponseDto?.memberName}</Text>
+        <Text style={styles.meta}>작성 시간: {post?.postResponseDto?.createdAt}</Text>
+        <Text style={styles.meta}>조회수: {post?.postResponseDto?.viewCount}</Text>
+        <Text style={styles.meta} onPress={handleLikeList}>좋아요 수: {post?.postResponseDto?.likeCount}</Text>
+      </View>
+
+      <Text style={styles.title}>{post?.postResponseDto?.title || "제목 없음"}</Text>
+      <Text style={styles.content}>{post?.content || "내용 없음"}</Text>
+
+
+      <TouchableOpacity onPress={handleLike} style={{ alignSelf: "flex-start" }}>
+        <AntDesign
+          name={liked ? "like1" : "like2"}
+          size={24}
+          color={liked ? "#f66" : "#aaa"}
+        />
+      </TouchableOpacity>
+
+      <Modal
+  visible={editModalVisible}
+  animationType="slide"
+  transparent={true}
+  onShow={resetEditData}
+>
+  <View style={{
+    flex: 1,
+    justifyContent: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    padding: 20,
+  }}>
+    <View style={{
+      backgroundColor: "white",
+      borderRadius: 12,
+      padding: 20,
+    }}>
+      <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>게시글 수정</Text>
+
+      <TextInput
+        placeholder="제목"
+        value={editData.title}
+        onChangeText={(text) => handleEditData("title", text)}
+        style={{
+          borderWidth: 1,
+          borderColor: "#ccc",
+          borderRadius: 8,
+          padding: 10,
+          marginBottom: 12,
+        }}
+      />
+      <TextInput
+        placeholder="내용"
+        value={editData.content}
+        onChangeText={(text) => handleEditData("content", text)}
+        multiline
+        style={{
+          borderWidth: 1,
+          borderColor: "#ccc",
+          borderRadius: 8,
+          padding: 10,
+          height: 120,
+          textAlignVertical: "top",
+          marginBottom: 16,
+        }}
+      />
+      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+        <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+          <Text style={{ color: "#aaa" }}>취소</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handlemodify}>
+          <Text style={{ color: "#007aff" }}>저장</Text>
         </TouchableOpacity>
       </View>
+    </View>
+  </View>
+</Modal>
 
-      {/* 좋아요 목록 모달*/}
+
       <Modal visible={likeModalVisible} animationType="slide" transparent={true}>
-        <Text style={{ fontSize: 18, fontWeight: "bold" }}>좋아요 목록</Text>
-        <ScrollView>
-          {likeList?.map((likeList) => (
-            <Text key={likeList.memberImageUrl}>{likeList.memberName}</Text>
+        <ScrollView style={{ backgroundColor: "white", padding: 16 }}>
+          <Text style={{ fontSize: 18, fontWeight: "bold" }}>좋아요 목록</Text>
+          {likeList?.map((user) => (
+            <Text key={user.memberImageUrl}>{user.memberName}</Text>
           ))}
+          <Text onPress={() => setLikeModalVisible(false)}>닫기</Text>
         </ScrollView>
-        <Text onPress={() => setLikeModalVisible(false)}>닫기</Text>
       </Modal>
 
       <Text style={styles.commentTitle}>💬 댓글</Text>
+
       <View style={styles.commentArea}>
         <TextInput
           style={styles.input}
           placeholder="댓글을 입력하세요!"
           onChangeText={setContentData}
-          value={contentData}>
-        </TextInput>
+          value={contentData}
+        />
         <TouchableOpacity onPress={handleAddComment} style={styles.commentButton}>
           <Text>추가</Text>
         </TouchableOpacity>
@@ -285,66 +310,30 @@ const PostDetailScreen = ({ route }) => {
       ) : (
         post?.comments?.map((comment) => (
           <View key={comment.commentId} style={styles.commentBox}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-            >
+            <View style={styles.commentRow}>
               <Image
-                source={{ uri: comment.memberImageUrl }}
-                style={{ width: 30, height: 30, borderRadius: 15 }}
+                source={{ uri: getFullImageUri(comment.memberImageUrl) }}
+                style={styles.commentAvatar}
               />
-              <Text style={styles.commentWriter}>{comment.profileName}</Text>
+              <View style={styles.commentContent}>
+                <Text style={styles.commentWriter}>{comment.memberName}</Text>
+                <Text>{comment.content}</Text>
+                <Text style={styles.commentMeta}>{comment.createdAt}</Text>
+              </View>
+              {comment.owner && (
+                <View style={styles.commentActions}>
+                  <TouchableOpacity onPress={() => handleModifyComment({ commentId: comment.commentId })}>
+                    <Text>수정</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity onPress={() => handleRemoveComment({ commentId: comment.commentId })}>
+                    <Text>삭제</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
-            {comment.owner && (
-              <>
-                <TouchableOpacity
-                  onPress={handleModifyComment}>
-                  <Text>수정</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={handleRemoveComment}>
-                  <Text>삭제</Text>
-                </TouchableOpacity>
-              </>
-            )}
-            <Text style={styles.commentText}>{comment.memberImageUrl}{comment.content}</Text>
-            <Text style={styles.commentMeta}>{comment.createdAt}</Text>
           </View>
         ))
       )}
-
-      {/*게시글 수정 모달*/}
-      <Modal
-        animationType="slide"
-        transparent={true}
-        visible={editModalVisible}
-        onRequestClose={() => setEditModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text>게시글 수정</Text>
-            <ScrollView style={{ maxHeight: "80%" }}>
-              <TextInput
-                value={editData.title}
-                placeholder="글 제목"
-                onChangeText={(text) => handleEditData("title", text)}
-              />
-              <TextInput
-                value={editData.content}
-                placeholder="글 내용"
-                onChangeText={(text) => handleEditData("content", text)}
-              />
-              <Button title={"저장"} onPress={handlemodify} />
-              <Button
-                title={"취소"}
-                onPress={() => {
-                  resetEditData();
-                  setEditModalVisible(false);
-                }}
-              />
-            </ScrollView>
-          </View>
-        </View>
-      </Modal>
     </ScrollView>
   );
 };
@@ -353,100 +342,134 @@ export default PostDetailScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 16,
-    backgroundColor: "#FDFAF6",
+    padding: 20,
+    backgroundColor: "#fffefc",
   },
   postImage: {
     width: "100%",
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 16,
+    height: 220,
+    borderRadius: 16,
+    marginBottom: 20,
   },
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
-    marginBottom: 8,
+    fontSize: 30,
+    marginBottom: 10,
+    color: "#333",
+    marginTop: 10, 
+    fontFamily: "fontExtra"
   },
   content: {
     fontSize: 16,
-    marginBottom: 12,
+    lineHeight: 24,
+    color: "#444",
+    marginBottom: 20,
+    fontFamily: "font"
   },
   metaSection: {
-    marginBottom: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    marginTop: -30, 
+  },
+  avatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: "#f4d8c6",
+    marginBottom: -10, 
   },
   meta: {
-    fontSize: 12,
-    color: "#666",
-    marginBottom: 2,
+    fontSize: 15,
+    color: "#777",
+    fontFamily: "cute", 
+  },
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "flex-end",
+    gap: 16,
+    marginBottom: 12,
   },
   commentTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
-    marginVertical: 8,
+    marginVertical: 12,
+    color: "#222",
   },
   noComment: {
     fontSize: 14,
-    color: "#999",
+    color: "#aaa",
+    textAlign: "center",
+    marginVertical: 20,
   },
   commentBox: {
-    marginTop: 8,
-    padding: 10,
-    backgroundColor: "#fff",
-    borderRadius: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    backgroundColor: "#fdf9f4",
+    borderRadius: 12,
+    marginBottom: 10,
+  },
+  commentRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+  commentAvatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "#f0d6c5",
+  },
+  commentContent: {
+    flex: 1,
+    marginLeft: 12,
   },
   commentWriter: {
-    fontWeight: "bold",
-  },
-  commentText: {
-    fontSize: 14,
-    marginTop: 4,
+    fontWeight: "600",
+    color: "#333",
+    marginBottom: 2,
   },
   commentMeta: {
     fontSize: 12,
-    color: "#999",
-    marginTop: 2,
+    color: "#bbb",
+    marginTop: 4,
   },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: '#fff',
-    width: '90%',
-    borderRadius: 16,
-    padding: 20,
-    maxHeight: '80%',
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 5 },
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    elevation: 10,
+  commentActions: {
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    marginLeft: 10,
   },
   commentArea: {
     flexDirection: "row",
     alignItems: "center",
-    marginVertical: 12,
-    padding: 8,
-    backgroundColor: "white",
-    borderRadius: 8,
+    marginVertical: 16,
+    padding: 10,
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#f0e0d0",
+    borderRadius: 12,
+    backgroundColor: "#fdf7f0",
   },
   input: {
     flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 6,
-    marginRight: 8,
+    borderColor: "#ddd0c0",
+    borderRadius: 8,
+    backgroundColor: "#fffaf7",
+    marginRight: 10,
   },
   commentButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
     backgroundColor: "#f8d57e",
-    borderRadius: 6,
+    borderRadius: 8,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
 });
+
+
