@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext, useQueryClient } from "react";
+import React, { useEffect, useState, useContext, } from "react";
 import {
   View,
   Text,
@@ -8,15 +8,18 @@ import {
   Modal,
   Alert,
   TextInput,
-  TouchableOpacity, 
+  TouchableOpacity,
+  Button, 
 } from "react-native";
-import {UserContext} from "../../context/User"
+import { UserContext } from "../../context/User"
 import { useLikePost, useLikeList } from "../../hooks/useLikePost";
 import { useModifyPost, useRemovePost, useViewOnePost, useViewPosts } from "../../hooks/usePost";
 import { usePostComment, useModifyComment, useRemoveComment } from "../../hooks/usePostComment";
 
-import { AntDesign } from "@expo/vector-icons";
+import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
+
+import { useQueryClient } from "@tanstack/react-query";
 
 const PostDetailScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -28,7 +31,7 @@ const PostDetailScreen = ({ route }) => {
   const { postId } = route.params;
 
   const { data: post } = useViewOnePost(postId);
-  
+
   //게시글, 좋아요 목록 조회 훅
   const { refetch: refetchPosts } = useViewPosts();
   const { data: likeList, refetch: refetchLikes } = useLikeList(postId, "COMMUNITY");
@@ -39,7 +42,7 @@ const PostDetailScreen = ({ route }) => {
 
   //좋아요 추가 훅
   const { mutate: likePostMutate } = useLikePost();
-  
+
   //댓글 조회, 추가, 수정, 삭제 훅
   const { mutate: postCommentMutate } = usePostComment();
   const { mutate: modifyCommentMutate } = useModifyComment();
@@ -54,10 +57,15 @@ const PostDetailScreen = ({ route }) => {
     }
   }, [post]);
 
+  //컴포넌트 들어올 때마다 포스트 목록 조회
+  /*useEffect(() => {
+    refetchPosts();
+  }, [])*/
+
   //게시글 수정 데이터
   const [editData, setEditData] = useState({
-    title: "", 
-    content: "", 
+    title: "",
+    content: "",
   })
 
   //좋아요 상태
@@ -75,23 +83,23 @@ const PostDetailScreen = ({ route }) => {
         Alert.alert("게시글 수정 성공!");
         refetchPosts();
         navigation.replace("PostDetail", { postId });
-      }, 
+      },
       onError: (err) => {
         Alert.alert("게시글 수정 실패: ", err.message);
-      }, 
+      },
     });
   };
 
   const handleEditData = (field, value) => {
-    setEditData({...editData, [field]: value});
+    setEditData({ ...editData, [field]: value });
   }
 
   //수정 중 닫기 버튼 눌렀을 때, 입력값 초기화
   const resetEditData = () => {
-    if(post) {
+    if (post) {
       setEditData({
-        title: post.title || "", 
-        content: post.content || "", 
+        title: post.title || "",
+        content: post.content || "",
       })
     }
   }
@@ -121,20 +129,20 @@ const PostDetailScreen = ({ route }) => {
   //좋아요 버튼 클릭 시
   const handleLike = () => {
     likePostMutate(
-      {postId, postType: "COMMUNITY"}, 
+      { postId, postType: "COMMUNITY" },
       {
         onSuccess: (data) => {
-        if (data?.includes("생성")) {
-          setLiked(true);
-        } else if (data?.includes("삭제")) {
-          setLiked(false);
-        }
-        refetchPosts();
-        refetchLikes();
-      },
+          if (data?.includes("생성")) {
+            setLiked(true);
+          } else if (data?.includes("삭제")) {
+            setLiked(false);
+          }
+          refetchPosts();
+          refetchLikes();
+        },
         onError: (err) => {
           Alert.alert("좋아요 요청 실패", err.message);
-        }, 
+        },
       }
     );
   };
@@ -152,8 +160,8 @@ const PostDetailScreen = ({ route }) => {
       { postId, content: contentData, postType: "COMMUNITY" },
       {
         onSuccess: () => {
-          setContentData("");     
-          queryClient.invalidateQueries(["posts", postId]);         
+          setContentData("");
+          queryClient.invalidateQueries(["posts", postId]);
         },
         onError: (err) => {
           Alert.alert("댓글 등록 실패", err.message);
@@ -161,9 +169,9 @@ const PostDetailScreen = ({ route }) => {
       }
     );
   };
-  
+
   //댓글 수정
-  const handleModifyComment = ({commentId}) => {
+  const handleModifyComment = ({ commentId }) => {
     if (!contentEditData?.trim()) return;
     modifyCommentMutate({
       commentId, postId, content: contentEditData
@@ -171,59 +179,59 @@ const PostDetailScreen = ({ route }) => {
       onSuccess: () => {
         setContentEditData("");
         queryClient.invalidateQueries(["posts", postId]);
-      }, 
+      },
       onError: (err) => {
-          Alert.alert("댓글 수정 실패", err.message);
+        Alert.alert("댓글 수정 실패", err.message);
       }
     })
   }
 
   //댓글 삭제
-  const handleRemoveComment = ({commentId}) => {
+  const handleRemoveComment = ({ commentId }) => {
     removeCommentMutate({
-      commentId, 
+      commentId,
     }, {
       onSuccess: () => {
         queryClient.invalidateQueries(["posts", postId]);
-      }, 
+      },
       onError: (err) => {
-          Alert.alert("댓글 삭제 실패", err.message);
+        Alert.alert("댓글 삭제 실패", err.message);
       }
     })
   }
-  
+
 
   return (
     <ScrollView style={styles.container}>
-      {post.postImageUrl && (
+      {post?.postImageUrl && (
         <Image source={{ uri: post.postImageUrl }} style={styles.postImage} />
       )}
 
-      {post.owner && (
+      {post?.owner && (
         <>
-        <TouchableOpacity
-        style={styles.modify}
-        onPress={() => setEditModalVisible(true)}
-      >
-        <Entypo name="pencil" size={24} color="black" />
-      </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.modify}
+            onPress={() => setEditModalVisible(true)}
+          >
+            <Entypo name="pencil" size={24} color="black" />
+          </TouchableOpacity>
 
-      <TouchableOpacity style={styles.delete} onPress={handledelete}>
-        <AntDesign name="delete" size={24} color="red" />
-      </TouchableOpacity>
-      </>
+          <TouchableOpacity style={styles.delete} onPress={handledelete}>
+            <AntDesign name="delete" size={24} color="red" />
+          </TouchableOpacity>
+        </>
       )}
 
-      <Text style={styles.title}>{post.title}</Text>
-      <Text style={styles.content}>{post.content}</Text>
+      <Text style={styles.title}>{post?.title}</Text>
+      <Text style={styles.content}>{post?.content}</Text>
 
       <View style={styles.metaSection}>
-        <Text style={styles.meta}>작성자: {post.profileName}</Text>
-        <Text style={styles.meta}>작성 시간: {post.createdAt}</Text>
+        <Text style={styles.meta}>작성자: {post?.profileName}</Text>
+        <Text style={styles.meta}>작성 시간: {post?.createdAt}</Text>
         <Text style={styles.meta}>
-          조회수: {post.viewCount}
+          조회수: {post?.viewCount}
         </Text>
-        <Text styles={styles.meta} onPress={handleLikeList}>좋아요: {post.likeCount}</Text>
+        <Text styles={styles.meta} onPress={handleLikeList}>좋아요: {post?.likeCount}</Text>
       </View>
 
       {/* 좋아요 버튼 */}
@@ -241,30 +249,30 @@ const PostDetailScreen = ({ route }) => {
       <Modal visible={likeModalVisible} animationType="slide" transparent={true}>
         <Text style={{ fontSize: 18, fontWeight: "bold" }}>좋아요 목록</Text>
         <ScrollView>
-            {likeList?.map((likeList) => (
-              <Text key={likeList.memberImageUrl}>{likeList.memberName}</Text>
-            ))}
+          {likeList?.map((likeList) => (
+            <Text key={likeList.memberImageUrl}>{likeList.memberName}</Text>
+          ))}
         </ScrollView>
         <Text onPress={() => setLikeModalVisible(false)}>닫기</Text>
       </Modal>
 
       <Text style={styles.commentTitle}>💬 댓글</Text>
       <View style={styles.commentArea}>
-      <TextInput
-        style={input}
-        placeholder="댓글을 입력하세요!"
-        onChangeText={setContentData}
-        value={contentData}>
-      </TextInput>
-      <TouchableOpacity onPress={handleAddComment} style={commentButton}>
-        <Text>추가</Text>
-      </TouchableOpacity>
+        <TextInput
+          style={styles.input}
+          placeholder="댓글을 입력하세요!"
+          onChangeText={setContentData}
+          value={contentData}>
+        </TextInput>
+        <TouchableOpacity onPress={handleAddComment} style={styles.commentButton}>
+          <Text>추가</Text>
+        </TouchableOpacity>
       </View>
 
-      {post.comments.length === 0 ? (
+      {post?.comments?.length === 0 ? (
         <Text style={styles.noComment}>아직 댓글이 없어요!</Text>
       ) : (
-        post.comments.map((comment) => (
+        post?.comments?.map((comment) => (
           <View key={comment.commentId} style={styles.commentBox}>
             <View
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
@@ -277,16 +285,16 @@ const PostDetailScreen = ({ route }) => {
             </View>
             {comment.owner && (
               <>
-              <TouchableOpacity
-                onPress={handleModifyComment}>
-              <Text>수정</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                onPress={handleRemoveComment}>
-              <Text>삭제</Text>
-            </TouchableOpacity>
-            </>
-           )}
+                <TouchableOpacity
+                  onPress={handleModifyComment}>
+                  <Text>수정</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={handleRemoveComment}>
+                  <Text>삭제</Text>
+                </TouchableOpacity>
+              </>
+            )}
             <Text style={styles.commentText}>{comment.memberImageUrl}{comment.content}</Text>
             <Text style={styles.commentMeta}>{comment.createdAt}</Text>
           </View>
@@ -406,30 +414,28 @@ const styles = StyleSheet.create({
     elevation: 10,
   },
   commentArea: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginVertical: 12,
-  padding: 8,
-  backgroundColor: "white",
-  borderRadius: 8,
-  borderWidth: 1,
-  borderColor: "#ddd",
-},
-input: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginVertical: 12,
+    padding: 8,
+    backgroundColor: "white",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
   input: {
-  flex: 1,
-  paddingVertical: 8,
-  paddingHorizontal: 12,
-  borderWidth: 1,
-  borderColor: "#ccc",
-  borderRadius: 6,
-  marginRight: 8,
-},
-},
-commentButton: {
-  paddingVertical: 8,
-  paddingHorizontal: 12,
-  backgroundColor: "#f8d57e",
-  borderRadius: 6,
-}, 
+      flex: 1,
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      borderWidth: 1,
+      borderColor: "#ccc",
+      borderRadius: 6,
+      marginRight: 8,
+  },
+  commentButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "#f8d57e",
+    borderRadius: 6,
+  },
 });

@@ -105,7 +105,7 @@ const UserProvider = ({ children }) => {
     // 연결 해제
     await disconnectNotification();
     await disconnectStomp();
-    clearProfile();
+    await clearProfile();
   };
 
 

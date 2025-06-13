@@ -45,7 +45,7 @@ const login = async (userData) => {
 };
 
 //로그아웃
-const logout = async () => {
+const logout = async (navigation) => {
   try {
     const token = await AsyncStorage.getItem("accessToken");
     console.log("🪪 로그아웃 시도 중 토큰:", token);

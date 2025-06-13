@@ -11,25 +11,27 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": "application/json", 
   }, 
+   withCredentials: false,
 });
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem("accessToken");
+  console.log("🧪 토큰 확인:", token);
 
   // 로그인과 회원가입 요청은 토큰 없이 보냄
   if (
     config.url?.includes("/members/login") ||
     config.url?.includes("/members/signup")
   ) {
-    console.log("🚫 로그인/회원가입 요청, 토큰 생략");
     return config;
   }
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  config.headers = {
+    ...config.headers,
+    Authorization: `Bearer ${token}`,
+  };
 
-  console.log("👉 서버 요청:", config.method.toUpperCase(), config.url);
+  console.log("👉 최종 요청 헤더:", config.headers);
   return config;
 });
 

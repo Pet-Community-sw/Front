@@ -102,6 +102,7 @@ export const useCheckProfile = () => {
   });
 };
 
+//대리 산책자 지원
 export const useApplicateDelegate = () => {
   return useMutation({
     mutationFn: applicationDelegate,

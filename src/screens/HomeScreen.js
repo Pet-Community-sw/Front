@@ -50,7 +50,7 @@ const HomeScreen = () => {
     } catch (e) {
       console.log("서버 로그아웃 실패:", e);  
     }
-    await logout();           
+    await logout(navigation);           
   };
 
   return (

@@ -12,7 +12,7 @@ const useAddPost = () => {
       queryClient.setQueryData(["posts"], (oldPostList = []) => {
         return [...oldPostList, newPost];
       });
-    }
+    },
   });
 };
 

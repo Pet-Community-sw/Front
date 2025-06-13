@@ -29,7 +29,7 @@ const Stack = createNativeStackNavigator();
 const queryClient = new QueryClient();
 
 // 알림 권한 요청 및 채널 설정
-const useNotificationSetup = () => {
+export const useNotificationSetup = () => {
   useEffect(() => {
     const setup = async () => {
       const { status } = await Notifications.requestPermissionsAsync();
@@ -124,17 +124,17 @@ const App = () => {
         barStyle="light-content"
       />
       <QueryClientProvider client={queryClient}>
-        <UserProvider>
-          <NotificationProvider>
-            <SelectProfileProvider>
+        <SelectProfileProvider>
+          <UserProvider>
+            <NotificationProvider>
               <PetProvider>
                 <ChatProvider>
                   <AppInner />
                 </ChatProvider>
               </PetProvider>
-            </SelectProfileProvider>
-          </NotificationProvider>
-        </UserProvider>
+            </NotificationProvider>
+          </UserProvider>
+        </SelectProfileProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );

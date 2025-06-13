@@ -9,7 +9,7 @@ import { useNavigation } from "@react-navigation/native";
 import { TextInput } from "react-native-gesture-handler";
 import { useFocusEffect } from "@react-navigation/native";
 import axios from "axios";
-
+import { BASE_URL } from "../api/apiClient";
 const maxProfiles = 4;
 
 const PetProfile = () => {
@@ -21,13 +21,23 @@ const PetProfile = () => {
   const [detailModalVisible, setDetailModalVisible] = useState(false);
   const [editModalVisible, setEditModalVisible] = useState(false);
 
+  const [picking, setPicking] = useState(false);
+
   const { data: profileDetail, isLoading } = useViewOneProfile(selectProfile?.profileId);
 
   useFocusEffect(
     useCallback(() => {
-      refetch();
+      console.log("✅ useFocusEffect 진입 - refetch 실행");
+      refetch()
+        .then((res) => {
+          console.log("✅ refetch 성공:", res?.data);
+        })
+        .catch((err) => {
+          console.log("❌ refetch 실패:", err.message);
+        });
     }, [])
   );
+
 
   const { mutate: modifyMutate } = useModifyProfile();
   const { mutate: removeMutate } = useRemoveProfile();
@@ -42,6 +52,7 @@ const PetProfile = () => {
     extraInfo: ""
   });
 
+  //입력창 초기화
   const resetData = () => {
     setFormData({
       petImageUrl: "",
@@ -53,6 +64,7 @@ const PetProfile = () => {
     });
   };
 
+  //수정 데이터
   const [editData, setEditData] = useState({
     petImageUrl: "",
     petName: "",
@@ -62,6 +74,7 @@ const PetProfile = () => {
     extraInfo: ""
   });
 
+  //수정 데이터 초기화
   const resetEditData = () => {
     if (profileDetail) {
       setEditData({
@@ -126,15 +139,19 @@ const PetProfile = () => {
     }
   }, [editModalVisible]);
 
+  //프로필 추가
   const handleAddProfile = () => {
     if ((profiles || []).length >= maxProfiles) {
       Alert.alert("프로필은 최대 4개까지 등록 가능합니다!");
+      return;
     }
     addMutate(formData, {
       onSuccess: (data) => {
         Alert.alert(`프로필 추가 성공! Id: ${data.profileId}`);
-        refetch();
-        navigation.navigate("Home");
+        setTimeout(() => {
+          refetch();  
+          setAddModalVisible(false);
+        }, 100);
       },
       onError: (err) => {
         Alert.alert("프로필 등록 실패: " + err.message);
@@ -149,27 +166,31 @@ const PetProfile = () => {
   }, [addModalVisible]);
 
   const handleImagePick = async (callback) => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    console.log("권한 상태:", permissionResult.status);
+    if (picking) return; // 이미 실행 중이면 무시
+    setPicking(true);
 
-    if (permissionResult.status !== 'granted') {
-      Alert.alert("권한 없음", "이미지 접근 권한이 필요합니다.");
-      return;
-    }
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permissionResult.status !== 'granted') {
+        Alert.alert("권한 없음", "이미지 접근 권한이 필요합니다.");
+        setPicking(false);
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 1,
+      });
 
-    console.log("ImagePicker result:", result);
-
-    if (!result.canceled && result.assets.length > 0) {
-      callback(result.assets[0]);
-    } else {
-      console.log("취소되었거나 assets 없음");
+      if (!result.canceled && result.assets.length > 0) {
+        callback(result.assets[0]);
+      }
+    } catch (err) {
+      console.error("이미지 선택 중 오류:", err);
+    } finally {
+      setPicking(false); 
     }
   };
 
@@ -228,17 +249,35 @@ const PetProfile = () => {
 
       {/*프로필 목록, 감성 카드 UI로 스타일 적용*/}
       <View style={styles.profileContainer}>
-        {profiles.map((profile) => (
-          <TouchableOpacity
-            key={profile.profileId}
-            onPress={() => openProfile(profile)}
-            style={styles.profileCard}
-          >
-            <Image source={{ uri: profile.petImageUrl }} style={styles.profileImage} />
-            <Text style={styles.profileName}>{profile.petName}</Text>
-          </TouchableOpacity>
-        ))}
+        {profiles.map((profile) => {
+          const finalUri = profile.petImageUrl
+            ? `${BASE_URL}${profile.petImageUrl.replace(/^\/+/, "/").replace(/\/profiles\/+profiles\//, "/profiles/")}`
+            : undefined;
+            
+
+          console.log("📸 최종 이미지 URI:", finalUri);
+
+          return (
+            <TouchableOpacity
+              key={profile.profileId}
+              onPress={() => openProfile(profile)}
+              style={styles.profileCard}
+            >
+              <Image
+                source={
+                  finalUri
+                    ? { uri: finalUri }
+                    : require("../../assets/icon.png") // 로컬 기본 이미지
+                }
+                style={styles.profileImage}
+                onError={(e) => console.log("❌ 이미지 로딩 실패:", e.nativeEvent)}
+              />
+              <Text style={styles.profileName}>{profile.petName}</Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
+
 
       {/* 프로필 상세 모달 */}
       <Modal
@@ -255,9 +294,9 @@ const PetProfile = () => {
               <ScrollView>
                 <Image source={{ uri: profileDetail?.petImageUrl }} style={styles.modalImage} />
                 <Text style={styles.detailText}>이름: {profileDetail?.petName}</Text>
-                <Text style={styles.detailText}>견종: {profileDetail?.petBreed}</Text>
+                <Text style={styles.detailText}>견종: {profileDetail?.petBreed?.name}</Text>
                 <Text style={styles.detailText}>생일: {profileDetail?.petBirthDate}</Text>
-                <Text style={styles.detailText}>피해야 할 종: {profileDetail?.avoidBreeds}</Text>
+                <Text style={styles.detailText}>피해야 할 종: {profileDetail?.avoidBreeds?.name}</Text>
                 <Text style={styles.detailText}>기타 정보: {profileDetail?.extraInfo}</Text>
                 <Button title="수정" onPress={() => { setEditModalVisible(true); setDetailModalVisible(false); }} />
                 <Button title="삭제" color="red" onPress={handledelete} />
@@ -357,35 +396,30 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     justifyContent: "center",
     padding: 10,
+    marginTop: 20,
   },
   profileCard: {
-    width: 140,
-    height: 180,
-    backgroundColor: "#FFF5E4",
+    width: 60,
+    height: 70,
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "center",
     margin: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 5,
-    padding: 12,
   },
   profileImage: {
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
     borderRadius: 40,
     borderWidth: 2,
     borderColor: "#FFD8B1",
     marginBottom: 10,
   },
   profileName: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: "600",
     color: "#333",
     textAlign: "center",
+    fontFamily: "cute",
   },
   title: {
     fontSize: 22,

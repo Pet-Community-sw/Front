@@ -48,7 +48,7 @@ const useRemoveProfile = () => {
       });
 
       //개별 프로필 데이터 Id 삭제
-      queryClient.removeQueries(["profiles", profileId]);
+      queryClient.removeQueries(["profiles"], profileId);
     }
   })
 };
