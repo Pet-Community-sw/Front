@@ -52,7 +52,12 @@ const logout = async (navigation) => {
 
     // 토큰이 없으면 서버에 요청 안 보냄
     if (token) {
-      await apiClient.delete("/members/logout");
+      await apiClient.delete("/members/logout", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
     }
 
   } catch (error) {
@@ -60,9 +65,11 @@ const logout = async (navigation) => {
   } finally {
     // 무조건 토큰 제거 + 홈으로 이동
     await AsyncStorage.removeItem("accessToken");
-    navigation.replace("Welcome");
+    setTimeout(() => {
+      navigation.replace("Welcome");
+    }, 100);
   }
-};
+  }
 
 
 // 아이디 찾기

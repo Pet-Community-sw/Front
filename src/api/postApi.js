@@ -58,8 +58,10 @@ const viewPosts = async (page = 0) => {
     });
     return response.data;
   } catch (error) {
-    console.log("❌ 게시물 목록 조회 실패:", error.message);
-    throw new Error("게시물 목록 조회 실패");
+    console.log("❌ 서버 오류 응답:", {
+      message: error.message,
+    });
+    throw new Error(error.response?.data?.message || "게시물 조회 실패");
   }
 }
 
@@ -69,8 +71,10 @@ const viewOnePost = async (postId) => {
     const response = await apiClient.get(`/posts/${postId}`);
     return response.data;
   } catch (error) {
-    console.log("❌ 게시물 조회 실패:", error.message);
-    throw new Error("게시물 조회 실패");
+    console.log("❌ 서버 오류 응답:", {
+      message: error.message,
+    });
+    throw new Error(error.response?.data?.message || "특정 게시물 조회 실패");
   }
 }
 
@@ -80,20 +84,31 @@ const modifyPost = async (postId, formData) => {
     const response = await apiClient.put(`/posts/${postId}`, formData);
     return response.data;
   } catch (error) {
-    console.log("❌ 게시물 수정 실패:", error.message);
-    throw new Error("게시물 수정 실패");
+    console.log("❌ 서버 오류 응답:", {
+      message: error.message,
+    });
+    throw new Error(error.response?.data?.message || "게시물 수정 실패");
   }
 }
 
 //게시물 삭제
 const removePost = async (postId) => {
+  console.log("📡 DELETE 요청 보냄:", `/posts/${postId}`);
   try {
     const response = await apiClient.delete(`/posts/${postId}`);
     return response.data;
   } catch (error) {
-    console.log("❌ 게시물 삭제 실패:", error.message);
-    throw new Error("게시물 삭제 실패");
+    const msg = error.response?.data?.message;
+
+    console.log("❌ 서버 오류 응답:", msg);
+
+    const finalMessage = Array.isArray(msg)
+      ? msg.join("\n")
+      : msg || "게시물 삭제 실패";
+
+    throw new Error(finalMessage);
   }
+
 }
 
 export { addPost, viewPosts, viewOnePost, modifyPost, removePost };

@@ -9,7 +9,7 @@ import {
   Alert,
   TextInput,
   TouchableOpacity,
-  Button, 
+  Button,
 } from "react-native";
 import { UserContext } from "../../context/User"
 import { useLikePost, useLikeList } from "../../hooks/useLikePost";
@@ -20,6 +20,7 @@ import { AntDesign, Entypo } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
 import { useQueryClient } from "@tanstack/react-query";
+import { BASE_URL } from "../../api/apiClient";
 
 const PostDetailScreen = ({ route }) => {
   const navigation = useNavigation();
@@ -76,7 +77,7 @@ const PostDetailScreen = ({ route }) => {
   const [contentData, setContentData] = useState();
   const [contentEditData, setContentEditData] = useState();
 
-
+  //게시글 수정
   const handlemodify = () => {
     modifyMutate(editData, {
       onSuccess: (data) => {
@@ -88,6 +89,30 @@ const PostDetailScreen = ({ route }) => {
         Alert.alert("게시글 수정 실패: ", err.message);
       },
     });
+  };
+
+  //게시물 삭제
+  const handledelete = () => {
+    Alert.alert("정말 삭제하시겠습니까?", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "삭제",
+        onPress: () => {
+          console.log("🧪 삭제 시도 postId:", postId); // 추가
+          removeMutate(postId, {
+            onSuccess: () => {
+              Alert.alert("게시글이 삭제되었습니다.");
+              navigation.navigate("PostList");
+              refetchPosts();
+            },
+            onError: (err) => {
+              console.log("❗삭제 실패 err:", err);
+              Alert.alert("오류", String(err.message));
+            }
+          });
+        },
+      },
+    ]);
   };
 
   const handleEditData = (field, value) => {
@@ -103,28 +128,6 @@ const PostDetailScreen = ({ route }) => {
       })
     }
   }
-
-  //게시물 삭제
-  const handledelete = () => {
-    Alert.alert("정말 삭제하시겠습니까?", [
-      { text: "취소", style: "cancel" },
-      {
-        text: "삭제",
-        onSuccess: () => {
-          removeMutate(postId, {
-            onSuccess: () => {
-              Alert.alert("게시글이 삭제되었습니다.");
-              navigation.navigate("PostList");
-              refetchPosts();
-            },
-            onError: (err) => {
-              Alert.alert("오류: ", err.message);
-            },
-          });
-        },
-      },
-    ]);
-  };
 
   //좋아요 버튼 클릭 시
   const handleLike = () => {
@@ -207,6 +210,7 @@ const PostDetailScreen = ({ route }) => {
         <Image source={{ uri: post.postImageUrl }} style={styles.postImage} />
       )}
 
+      {/* 게시글 삭제, 수정 */}
       {post?.owner && (
         <>
           <TouchableOpacity
@@ -226,12 +230,19 @@ const PostDetailScreen = ({ route }) => {
       <Text style={styles.content}>{post?.content}</Text>
 
       <View style={styles.metaSection}>
-        <Text style={styles.meta}>작성자: {post?.profileName}</Text>
+        {post?.profileImageUrl && (
+          <Image
+            source={{ uri: `${BASE_URL}${comment.memberImageUrl}` }}
+            style={{ width: 30, height: 30, borderRadius: 15 }}
+          />
+        )}
+
+        <Text style={styles.meta}>작성자: {post?.memberName}</Text>
         <Text style={styles.meta}>작성 시간: {post?.createdAt}</Text>
         <Text style={styles.meta}>
           조회수: {post?.viewCount}
         </Text>
-        <Text styles={styles.meta} onPress={handleLikeList}>좋아요: {post?.likeCount}</Text>
+        <Text styles={styles.meta} onPress={handleLikeList}>좋아요 목록{post?.likeCount}</Text>
       </View>
 
       {/* 좋아요 버튼 */}
@@ -278,7 +289,7 @@ const PostDetailScreen = ({ route }) => {
               style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
             >
               <Image
-                source={{ uri: comment.profileImageUrl }}
+                source={{ uri: comment.memberImageUrl }}
                 style={{ width: 30, height: 30, borderRadius: 15 }}
               />
               <Text style={styles.commentWriter}>{comment.profileName}</Text>
@@ -424,13 +435,13 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
   },
   input: {
-      flex: 1,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-      borderWidth: 1,
-      borderColor: "#ccc",
-      borderRadius: 6,
-      marginRight: 8,
+    flex: 1,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 6,
+    marginRight: 8,
   },
   commentButton: {
     paddingVertical: 8,

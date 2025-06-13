@@ -72,12 +72,9 @@ const UserProvider = ({ children }) => {
 
   // 로그인 시 토큰 저장
   const login = async (accessToken, name) => {
-    console.log("로그인 함수 실행됨"); // 호출 확인
     await AsyncStorage.setItem("accessToken", accessToken);
     await AsyncStorage.setItem("name", name);
-    console.log("✅ AsyncStorage 저장 완료");
     setToken(accessToken);
-    console.log("🧩 setToken 실행됨:", accessToken); // 호출 확인
     setName(name);
   };
 

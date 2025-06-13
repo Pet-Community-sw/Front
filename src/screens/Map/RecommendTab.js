@@ -47,6 +47,12 @@ export default function RecommendTab() {
   const [newComment, setNewComment] = useState('');
   const [like, setLike] = useState(false);
   const [writeModalVisible, setWriteModalVisible] = useState(false);
+  const [selectingLocation, setSelectingLocation] = useState({
+    latitude: 37.648931,
+    longitude: 127.064411,
+    latitudeDelta: 0.05,
+    longitudeDelta: 0.01,
+  });
 
   //산책길 추천 글
   const [title, setTitle] = useState("");
@@ -55,72 +61,48 @@ export default function RecommendTab() {
 
   const { mutate: addRecommendPost } = useAddRecommend();
 
-  const {
-    data: locationData = [],
-    refetch: refetchLocation,
-  } = useViewLocation({
+  const { data: locationData = [], refetch: refetchLocation } = useViewLocation({
     minLatitude: region.latitude - region.latitudeDelta / 2,
     maxLatitude: region.latitude + region.latitudeDelta / 2,
     minLongitude: region.longitude - region.longitudeDelta / 2,
     maxLongitude: region.longitude + region.longitudeDelta / 2,
   });
 
-  const {
-    data: placeData = [],
-    refetch: refetchPlace,
-  } = useViewPlace({
+  const { data: placeData = [], refetch: refetchPlace } = useViewPlace({
     latitude: region.latitude,
     longitude: region.longitude,
   });
 
-  const {
-    data: postDetail,
-    refetch: refetchPostDetail,
-  } = useViewRecommendPostDetail(selectedPostId, {
-    enabled: !!selectedPostId,
-  });
+  const { data: postDetail, refetch: refetchPostDetail } = useViewRecommendPostDetail(
+    selectedPostId,
+    { enabled: !!selectedPostId }
+  );
 
   const { mutate: addComment } = usePostComment();
   const { mutate: toggleLike } = useLikePost();
 
   useEffect(() => {
-    if (postDetail) {
-      setLike(postDetail.like);
-    }
+    if (postDetail) setLike(postDetail.like);
   }, [postDetail]);
 
   useFocusEffect(
     useCallback(() => {
-      if (!usePlaceMode) {
-        refetchLocation();
-      }
+      if (!usePlaceMode) refetchLocation();
     }, [region, usePlaceMode])
   );
 
   const handleSearch = async () => {
-    if (!searchInput.trim()) {
-      alert('장소를 입력해주세요.');
-      return;
-    }
-
+    if (!searchInput.trim()) return alert("장소를 입력해주세요.");
     try {
       const geo = await Geocoder.from(searchInput);
       const { lat, lng } = geo.results[0].geometry.location;
-
-      setRegion({
-        latitude: lat,
-        longitude: lng,
-        latitudeDelta: 0.02,
-        longitudeDelta: 0.02,
-      });
-
+      setRegion({ latitude: lat, longitude: lng, latitudeDelta: 0.02, longitudeDelta: 0.02 });
       await refetchPlace({ latitude: lat, longitude: lng });
       setUsePlaceMode(true);
       setSearchInput('');
       Keyboard.dismiss();
     } catch (err) {
-      console.error('Geocode error:', err);
-      alert('장소를 찾을 수 없습니다. 정확한 명칭으로 다시 시도해주세요.');
+      alert("장소를 찾을 수 없습니다.");
     }
   };
 
@@ -139,50 +121,11 @@ export default function RecommendTab() {
     [region]
   );
 
-  const handleAddComment = () => {
-    if (!newComment.trim()) return;
-    addComment(
-      {
-        postId: selectedPostId,
-        content: newComment,
-        postType: 'RECOMMEND',
-      },
-      {
-        onSuccess: () => {
-          refetchPostDetail();
-          setNewComment('');
-        },
-        onError: () => {
-          Alert.alert('댓글 등록 실패', '잠시 후 다시 시도해주세요.');
-        },
-      }
-    );
-  };
-
-  const handleToggleLike = () => {
-    toggleLike(
-      {
-        postId: selectedPostId,
-        postType: "RECOMMEND",
-      },
-      {
-        onSuccess: () => {
-          setLike((prev) => !prev);
-          refetchPostDetail();
-        },
-        onError: () => {
-          Alert.alert("오류", "좋아요 요청에 실패했습니다.");
-        },
-      }
-    );
-  }
-
   const handleSubmit = () => {
     if (!title || !content) {
       Alert.alert("제목과 내용을 입력해주세요.");
       return;
     }
-
     const postData = {
       locationLongitude: region.longitude,
       locationLatitude: region.latitude,
@@ -190,7 +133,6 @@ export default function RecommendTab() {
       content,
       title,
     };
-
     addRecommendPost(postData, {
       onSuccess: () => {
         Alert.alert("등록 완료", "산책길 추천이 등록되었습니다.");
@@ -206,11 +148,11 @@ export default function RecommendTab() {
 
   useEffect(() => {
     Geocoder.from(region.latitude, region.longitude)
-      .then(json => {
+      .then((json) => {
         const address = json.results[0].formatted_address;
         setLocationName(address);
       })
-      .catch(error => console.warn(error));
+      .catch((error) => console.warn(error));
   }, [region]);
 
   return (
@@ -273,20 +215,25 @@ export default function RecommendTab() {
           paddingVertical: 12,
           paddingHorizontal: 20,
           borderRadius: 24,
-          shadowColor: "#000",
-          shadowOpacity: 0.2,
-          shadowOffset: { width: 0, height: 2 },
-          shadowRadius: 4,
           elevation: 5,
         }}
       >
         <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>산책길 추천 추가</Text>
       </TouchableOpacity>
 
+      {/* 등록 모달 */}
       <Modal visible={writeModalVisible} animationType="fade" transparent>
         <View style={styles.modalWrapper}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>산책길 추천 코스 추가</Text>
+
+            {/* 위치 설정 버튼 */}
+            <TouchableOpacity onPress={() => setSelectingLocation(true)}>
+              <Text style={{ color: "#4A90E2", marginBottom: 8 }}>
+                📍 지도에서 위치 설정하기
+              </Text>
+            </TouchableOpacity>
+
             <TextInput
               placeholder="제목을 입력하세요"
               value={title}
@@ -313,9 +260,44 @@ export default function RecommendTab() {
           </View>
         </View>
       </Modal>
+
+      {/* 지도에서 위치 선택 모달 */}
+      <Modal visible={selectingLocation} animationType="slide">
+        <View style={{ flex: 1 }}>
+          <MapView
+            style={{ flex: 1 }}
+            region={{
+              ...region,
+              latitudeDelta: 0.05,
+              longitudeDelta: 0.01,
+            }}
+            zoomEnabled={false}       
+            scrollEnabled={false}    
+            rotateEnabled={false}     
+            pitchEnabled={false}      
+          >
+            <Marker coordinate={region} />
+          </MapView>
+
+
+          <TouchableOpacity
+            onPress={() => setSelectingLocation(false)}
+            style={{
+              backgroundColor: "#6A9C89",
+              padding: 14,
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ color: "white", fontWeight: "bold" }}>
+              이 위치로 선택
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   searchBox: {
@@ -410,7 +392,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: "#f9f9f9",
     height: 100,
-    textAlignVertical: "top", // ✅ 여러 줄 텍스트는 꼭 필요함!
+    textAlignVertical: "top",
     marginBottom: 12,
   },
 });
