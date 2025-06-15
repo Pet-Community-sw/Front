@@ -24,7 +24,7 @@ React Native를 기반으로 개발되었으며, 사용자 간 실시간 매칭,
 -지도 화면
 
 -채팅 화면
-<img src="https://github.com/user-attachments/assets/0359ca62-5ecf-4266-a91c-ee2429af1da5" width="300"/>
+<img src="https://github.com/user-attachments/assets/0359ca62-5ecf-4266-a91c-ee2429af1da5" width="150"/>
 
 
 
