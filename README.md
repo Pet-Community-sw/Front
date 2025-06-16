@@ -3,10 +3,12 @@
 반려동물 간의 산책 매칭과 보호자 간의 소통을 지원하여, 즐거운 산책 경험과 커뮤니티 중심의 서비스를 제공하고자 기획되었습니다.
 React Native를 기반으로 개발되었으며, 사용자 간 실시간 매칭, 커뮤니티 게시판, 채팅 기능을 포함합니다.
 
+
 ## 📱 기술 스택
 - **Frontend**: React Native, React Navigation, React Query, Expo
 - **Backend**: Spring Boot (외부 저장소)
 - **기타**: WebSocket (STOMP), Google Map API
+
 
 ## 🏗️ 주요 기능
 - 🐕 산책 매칭 시스템
@@ -16,20 +18,25 @@ React Native를 기반으로 개발되었으며, 사용자 간 실시간 매칭,
 - 📍 위치 기반 지도 기능 (함께 산책해요, 산책길 코스 추천, 대리 산책자 구해요)
 - 🔔 알림 (SSE 기반), 알림 뱃지  
 
+
 ## 🎬 실행 화면
 -🏠 홈화면
+
 <img src="https://github.com/user-attachments/assets/d5c73b96-862f-45ce-8a41-40e1880278c8" width="250"/>
 
 
 -💬 커뮤니티 화면
+
 <img src="https://github.com/user-attachments/assets/7ba18cc1-82b5-4519-9708-1ec927abdc3a" width="250"/>
 
 
 -🗺️ 지도 화면
+
 <img src="https://github.com/user-attachments/assets/6f4a6cda-afc4-48ad-bbe7-862e1b8b7f98" width="250"/>
 
 
 -🐾 채팅 화면
+
 <img src="https://github.com/user-attachments/assets/0359ca62-5ecf-4266-a91c-ee2429af1da5" width="250"/>
 
 
