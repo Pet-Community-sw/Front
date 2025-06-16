@@ -23,6 +23,7 @@ const addRecommendRoute = async (
 
 //산책길 추천 글 목록 조회(2개의 위도, 경도)
 const viewLocationRoutePosts = async (params) => {
+    console.log("📡 [API 호출] viewLocationRoutePosts 실행됨 ✅", params);
     const response = await apiClient.get("/recommend-route-posts/by-location", {
         params, 
     });

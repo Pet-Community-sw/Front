@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+/*import React, { useCallback } from "react";
 import {
   View,
   TouchableOpacity,
@@ -43,7 +43,7 @@ const GroupChattingListScreen = ({ navigation }) => {
         {item.chatName} ({item.currentCount}/{item.chatLimitCount})
       </Text>
 
-      {/* 썸네일 이미지 */}
+      
       <View style={styles.thumbnailRow}>
         {item.profiles?.map((profile) => (
           <Image
@@ -62,7 +62,7 @@ const GroupChattingListScreen = ({ navigation }) => {
         {item.unReadCount > 0 && `  ·  안읽음 ${item.unReadCount}개`}
       </Text>
 
-      {/* 수정/삭제 버튼 */}
+     
       {item.owner && (
         <View style={styles.ownerButtons}>
           <TouchableOpacity
@@ -195,11 +195,11 @@ const styles = StyleSheet.create({
   },
 });
 
-
+*/
 
 //임의 데이터 추가
 
-/*
+
 import React, { useState } from "react";
 import {
   View,
@@ -350,5 +350,3 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 });
-
-*/

@@ -2,7 +2,7 @@
 import {
     addWalkingTogether,
     viewWalkingTogether,
-    viewWalkingTogetherDatail,
+    viewWalkingTogetherDetail,
     modifyWalkingTogetherPost,
     deleteWalkingTogetherPost,
     startWalkingTogether
@@ -11,16 +11,31 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 //함께 산책해요 게시글 추가, 응답: recommendRoutePostId
 export const useAddWalkingTogether = () => {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: addWalkingTogether,
-        onSuccess: (newWalkingPost) => {
-            queryClient.setQueryData(["walkingPosts", newWalkingPost.recommendRoutePostId], (oldWalkingPost = []) => {
-                return [...oldWalkingPost, newWalkingPost];
-            });
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: addWalkingTogether,
+    onSuccess: (newWalkingPost) => {
+      queryClient.setQueryData(
+        ["walkingPosts", newWalkingPost.recommendRoutePostId],
+        (oldWalkingPost = []) => {
+          return [...oldWalkingPost, newWalkingPost];
         }
-    });
+      );
+    },
+    onError: (error) => {
+  console.log("❌ Axios error message:", error.message);
+  console.log("📦 Axios error response:", error.response);
+
+  const serverMessage =
+    error?.response?.data?.message || "매칭 글 등록에 실패했습니다.";
+  Alert.alert("오류", serverMessage);
+}
+
+
+  });
 };
+
 
 //함께 산책해요 게시글 목록 조회
 export const useViewWalkingTogether = ({ recommendRoutePostId }) => {
@@ -35,8 +50,8 @@ export const useViewWalkingTogether = ({ recommendRoutePostId }) => {
 export const useViewWalkingTogetherPostDetail = ({ walkingTogetherPostId }) => {
     return useQuery({
         queryKey: ["walkingPosts", walkingTogetherPostId],
-        queryFn: () => viewWalkingTogetherDatail({ walkingTogetherPostId }),
-        enabled: false,
+        queryFn: () => viewWalkingTogetherDetail({ walkingTogetherPostId }),
+        enabled: !!walkingTogetherPostId, 
     });
 }
 
@@ -97,6 +112,20 @@ export const useStartWalking = () => {
         mutationFn: startWalkingTogether,
         onSuccess: (data) => {
             console.log("매칭 성공, 채팅방 생성")
-        }
-    })
+        }, 
+       onError: (error) => {
+      console.log("❌ Axios error message:", error.message);
+      console.log("📦 Axios error response:", error.response);
+
+      const raw = error?.response?.data;
+      const message =
+        typeof raw === "string"
+          ? raw
+          : typeof raw?.message === "string"
+          ? raw.message
+          : JSON.stringify(raw);
+
+      Alert.alert("오류", message);
+    },
+  })
 }

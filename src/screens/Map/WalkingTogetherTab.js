@@ -9,6 +9,7 @@ import {
     Modal,
     Alert,
     TextInput,
+    Image
 } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
@@ -23,8 +24,12 @@ import {
 } from "../../hooks/useWalkingTogether";
 import { useViewProfile } from "../../hooks/useProfile";
 import { useProfileSession } from "../../context/SelectProfile";
+import { ScrollView } from "react-native-gesture-handler";
+import { BASE_URL } from "../../api/apiClient";
+import dayjs from "dayjs";
 
 export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
+    console.log("🐾 recommendRoutePostId:", recommendRoutePostId);
     const navigation = useNavigation();
     const [modalVisible, setModalVisible] = useState(false);
     const [selectedPostId, setSelectedPostId] = useState(null);
@@ -47,7 +52,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     const { mutate: updatePost } = useModifyWalkingTogether();
     const { mutate: startMatching } = useStartWalking();
 
-    const { selectProfile } = useProfileSession();
+    const { selectProfile, profileId } = useProfileSession();
 
     const handleSelectProfile = async () => {
         if (!selectedPetProfileId) return;
@@ -55,6 +60,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
         try {
             // 1. 통합 함수 호출
             await selectProfile(selectedPetProfileId);
+            await new Promise(resolve => setTimeout(resolve, 100)); // 토큰 반영 기다림
 
             // 2. 모달 전환
             setSelectProfileModalVisible(false);
@@ -65,6 +71,22 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
             console.error("❌ selectProfile 에러:", error);
         }
     };
+
+    if (!recommendRoutePostId) {
+        return <Text>경로 정보가 없습니다.</Text>;
+    }
+
+    //postId가 바뀐 후에 상세 불러옴
+    useEffect(() => {
+        if (selectedPostId) {
+            refetchDetail();
+        }
+    }, [selectedPostId]);
+
+    // ✅ 추가: 상세 데이터 받아온 후 콘솔 확인
+    useEffect(() => {
+        console.log("📦 글 상세 조회 결과:", selectedPost);
+    }, [selectedPost]);
 
 
     //글 목록 조회
@@ -86,7 +108,18 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     //펫 프로필 목록 불러오기
     const {
         data: profiles = [],
+        refetch: refetchProfiles,
     } = useViewProfile();
+
+    useFocusEffect(
+        useCallback(() => {
+            refetchProfiles(); // 탭 진입 시 새로 불러오기
+        }, [])
+    );
+
+    console.log("🐾 프로필 목록:", profiles);
+
+
 
 
     //탭이 활성화 될 때마다 글 목록 불러옴
@@ -105,20 +138,27 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
 
     //선택된 게시글의 ID 가 전달됨
     const openModal = (postId) => {
+        console.log("👆 openModal 클릭됨, postId:", postId);
         setSelectedPostId(postId);
         setModalVisible(true);
+        setSelectedPostId(null);
+        setTimeout(() => {
+            setSelectedPostId(postId);
+        }, 0);
     };
 
 
     //날짜, 시간 선택
     const handleConfirmDate = (date) => {
-        setScheduledTime(date);
+        const formatted = dayjs(date).format("YYYY-MM-DDTHH:mm:ss");
+        setScheduledTime(formatted);
         setDatePickerVisibility(false);
     };
 
     //글 수정 날짜, 시간 선택
     const handleConfirmEditDate = (date) => {
-        setEditScheduledTime(date.toISOString());
+        const formatted = dayjs(date).format("YYYY-MM-DDTHH:mm:ss");
+        setEditScheduledTime(formatted);
         setEditDatePickerVisibility(false);
     };
 
@@ -131,8 +171,9 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
         createMatch(
             {
                 recommendRoutePostId,
-                scheduledTime: scheduledTime.toISOString(),
+                scheduledTime: scheduledTime,
                 limitCount: Number(limitCount),
+                profileId: profileId,
             },
             {
                 onSuccess: () => {
@@ -142,9 +183,12 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                     setLimitCount("");
                     refetch();
                 },
-                onError: () => {
-                    Alert.alert("오류", "매칭 글 등록에 실패했습니다.");
-                },
+                onError: (error) => {
+                    const serverMessage =
+                        error?.response?.data?.message || "매칭 글 등록에 실패했습니다.";
+                    Alert.alert("오류", serverMessage);
+                }
+
             }
         );
     };
@@ -207,7 +251,13 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
 
     //매칭 시작
     const handleStartMatching = (walkingTogetherPostId) => {
-        startMatching(walkingTogetherPostId, {
+        console.log("🚀 매칭 시작 postId:", walkingTogetherPostId);
+         if (!selectedPost?.walkingTogetherPostId) {
+    Alert.alert("오류", "매칭할 게시글 ID가 없습니다.");
+    return;
+  }
+
+        startMatching({ walkingTogetherPostId }, {
             onSuccess: (response) => {
                 if (response?.chatRoomId) {
                     // 새 채팅방 or 기존 채팅방 모두 chatRoomId와 chatName 포함됨
@@ -222,13 +272,20 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                 }
             },
             onError: (error) => {
-                const message = error?.response?.data || "매칭에 실패했습니다.";
+                const raw = error?.response?.data;
+
+                const message =
+                    typeof raw === "string"
+                        ? raw
+                        : typeof raw?.message === "string"
+                            ? raw.message
+                            : JSON.stringify(raw); // 마지막 fallback
+
                 Alert.alert("오류", message);
-            },
+            }
+
         });
     };
-
-
 
     return (
         <View style={styles.container}>
@@ -246,15 +303,25 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
             {/* 매칭 글 목록 */}
             <FlatList
                 data={walks}
-                keyExtractor={(item) => item.walkingTogetherPostId?.toString()}
+                keyExtractor={(item, index) =>
+                    item.walkingTogetherPostId
+                        ? item.walkingTogetherPostId.toString()
+                        : `fallback-${index}`
+                }
+
                 renderItem={({ item }) => (
+
                     <TouchableOpacity
                         style={styles.card}
                         onPress={() => openModal(item.walkingTogetherPostId)}
                     >
-                        <Text style={styles.walkTitle}>{item.title || "제목 없음"}</Text>
+                        <Image
+                            source={{ uri: `${BASE_URL}${item.petImageUrl}` }}
+                            style={{ width: 50, height: 50, borderRadius: 25, marginBottom: 8 }}
+                        />
+
                         <Text style={styles.walkMeta}>
-                            {item.scheduledTime || "시간 미정"} · {item.writerName || "작성자"}
+                            {item.scheduledTime || "시간 미정"} · {item.petName || "작성자"}
                         </Text>
                         {item.isOwner && (
                             <View style={styles.ownerButtonRow}>
@@ -277,32 +344,48 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
             <Modal visible={selectProfileModalVisible} animationType="slide" transparent>
                 <View style={styles.modalWrapper}>
                     <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>🐶 함께 산책할 펫을 선택하세요</Text>
-                        {profiles.map((profile) => (
-                            <TouchableOpacity
-                                key={profile.id}
-                                style={[
-                                    styles.card,
-                                    selectedPetProfileId === profile.id && { borderColor: "#7EC8C2", borderWidth: 2 },
-                                ]}
-                                onPress={() => {
-                                    setSelectedPetProfileId(profile.id)
-                                }}
-                            >
-                                <Text style={{ fontSize: 16 }}>{profile.name}</Text>
-                            </TouchableOpacity>
-                        ))}
+                        <ScrollView style={{ maxHeight: 300 }}>
+                            <Text style={styles.modalTitle}>🐶 함께 산책할 펫을 선택하세요</Text>
+                            {profiles.map((profile) => (
+                                <TouchableOpacity
+                                    key={profile.profileId}
+                                    style={[
+                                        styles.card,
+                                        selectedPetProfileId === profile.profileId && {
+                                            borderColor: "#7EC8C2",
+                                            borderWidth: 2,
+                                        },
+                                    ]}
+                                    onPress={() => setSelectedPetProfileId(profile.profileId)}
+                                >
+                                    <Image
+                                        source={{ uri: `${BASE_URL}${profile.petImageUrl}` }}
+                                        style={{ width: 50, height: 50, borderRadius: 25, marginBottom: 8 }}
+                                    />
+                                    <Text style={{ fontFamily: "cute", fontSize: 20, marginLeft: 5 }}>{profile.petName}</Text>
 
-                        <TouchableOpacity
-                            style={styles.applyBtn}
-                            disabled={!selectedPetProfileId}
-                            onPress={handleSelectProfile}
-                        >
-                            <Text style={styles.applyText}>선택하기</Text>
-                        </TouchableOpacity>
+                                </TouchableOpacity>
+                            ))}
+
+
+                            <TouchableOpacity
+                                style={styles.applyBtn}
+                                disabled={!selectedPetProfileId}
+                                onPress={handleSelectProfile}
+                            >
+                                <Text style={styles.applyText}>선택하기</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.applyBtn}
+                                onPress={() => setSelectProfileModalVisible(false)}
+                            >
+                                <Text style={styles.applyText}>닫기</Text>
+                            </TouchableOpacity>
+                        </ScrollView>
                     </View>
                 </View>
             </Modal>
+
 
 
             {/* 글 상세 모달 */}
@@ -327,7 +410,8 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
                                         ⚠️ 함께 산책이 제한된 대상입니다
                                     </Text>
                                 ) : (
-                                    <TouchableOpacity style={styles.applyBtn} onPress={handleStartMatching}>
+                                    <TouchableOpacity style={styles.applyBtn} onPress={() => {console.log("🧩 터치된 글 ID:", selectedPost?.walkingTogetherPostId); 
+                                    handleStartMatching(selectedPost?.walkingTogetherPostId)}}>
                                         <Text style={styles.applyText}>매칭 시작</Text>
                                     </TouchableOpacity>
                                 )}

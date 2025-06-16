@@ -24,10 +24,14 @@ export const viewWalkingTogether = async ({ recommendRoutePostId }) => {
 }
 
 //함께 산책해요 게시글 상세 조회
-export const viewWalkingTogetherDatail = async ({ walkingTogetherPostId }) => {
-    const response = await apiClient.get(`/walking-together-posts/$${walkingTogetherPostId}`)
-    return response.data;
-}
+export const viewWalkingTogetherDetail = async ({ walkingTogetherPostId }) => {
+  const res = await apiClient.get(`/walking-together-posts/${walkingTogetherPostId}`);
+  console.log("📡 응답 받음:", res.data);
+
+  // 배열 응답인 경우 첫 번째 항목만 리턴
+  return Array.isArray(res.data) ? res.data[0] : res.data;
+};
+
 
 //함께 산책해요 글 수정
 export const modifyWalkingTogetherPost = async ({ walkingTogetherPostId, scheduledTime, limitCount }) => {

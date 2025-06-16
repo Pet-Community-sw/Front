@@ -2,6 +2,8 @@
 import React, { createContext, useState, useContext } from "react";
 import apiClient from "../api/apiClient";
 import { fetchProfileToken } from "../api/profileApi";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { jwtDecode } from "jwt-decode";
 
 const SelectProfileContext = createContext();
 
@@ -13,12 +15,18 @@ export const SelectProfileProvider = ({ children }) => {
         const data = await fetchProfileToken(profileId);
         const { accessToken } = data;
 
-        // axios 기본 헤더 설정
-        apiClient.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+        const decoded = jwtDecode(accessToken);
+
+        console.log("🔐 JWT Payload:", decoded);
+
 
         // AsyncStorage 저장
         await AsyncStorage.setItem("accessToken", accessToken);
         await AsyncStorage.setItem("profileId", profileId.toString());
+
+        // ✅ 토큰 저장 직후 강제로 로딩
+        const checkToken = await AsyncStorage.getItem("accessToken");
+        console.log("✅ 토큰 저장 후 확인:", checkToken);
 
         // 전역 상태 저장
         setProfileToken(accessToken);

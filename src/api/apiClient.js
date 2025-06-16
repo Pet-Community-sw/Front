@@ -2,7 +2,6 @@
 // 자동인증 시스템
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
-import { refreshAccessToken } from "./tokenApi";
 
 export const BASE_URL = "http://210.123.255.117:8080";
 
@@ -17,6 +16,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem("accessToken");
   console.log("🧪 토큰 확인:", token);
+  console.log("👉 axios 최종 요청 config 확인:", config.headers);
 
   // 로그인과 회원가입 요청은 토큰 없이 보냄
   if (

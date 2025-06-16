@@ -149,7 +149,7 @@ const PetProfile = () => {
       onSuccess: (data) => {
         Alert.alert(`프로필 추가 성공! Id: ${data.profileId}`);
         setTimeout(() => {
-          refetch();  
+          refetch();
           setAddModalVisible(false);
         }, 100);
       },
@@ -190,7 +190,7 @@ const PetProfile = () => {
     } catch (err) {
       console.error("이미지 선택 중 오류:", err);
     } finally {
-      setPicking(false); 
+      setPicking(false);
     }
   };
 
@@ -240,20 +240,25 @@ const PetProfile = () => {
 
   return (
     <View style={styles.container}>
-      <View style={{ width: "100%", alignItems: "flex-start" }}>
-        <Text style={styles.title}>Your Pets 💕</Text>
-      </View>
-      <TouchableOpacity style={styles.add} onPress={() => setAddModalVisible(true)}>
-        <Entypo name="plus" size={24} color="#EC5228" />
-      </TouchableOpacity>
 
-      {/*프로필 목록, 감성 카드 UI로 스타일 적용*/}
+      {/*프로필 목록*/}
       <View style={styles.profileContainer}>
+
+        <TouchableOpacity
+    onPress={() => setAddModalVisible(true)}
+    style={styles.profileCard}
+  >
+    <View style={styles.plusCircle}>
+      <Text style={styles.plusText}>＋</Text>
+    </View>
+    
+  </TouchableOpacity>
+
         {profiles.map((profile) => {
           const finalUri = profile.petImageUrl
             ? `${BASE_URL}${profile.petImageUrl.replace(/^\/+/, "/").replace(/\/profiles\/+profiles\//, "/profiles/")}`
             : undefined;
-            
+
 
           console.log("📸 최종 이미지 URI:", finalUri);
 
@@ -316,32 +321,41 @@ const PetProfile = () => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <ScrollView>
-              <Button title="이미지 선택" onPress={pickImage} />
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {/* 이미지 선택 버튼 */}
+              <TouchableOpacity style={styles.imageSelectBtn} onPress={pickImage}>
+                <Text style={styles.imageSelectText}>+ 프로필 사진 선택</Text>
+              </TouchableOpacity>
+
+              {/* 이미지 미리보기 */}
               {formData.petImageUrl?.uri && (
                 <Image
                   source={{ uri: formData.petImageUrl.uri }}
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 12,
-                    alignSelf: "center",
-                    marginBottom: 16,
-                  }}
+                  style={styles.imagePreview}
                 />
               )}
 
+              {/* 입력 필드들 */}
               <TextInput style={styles.input} placeholder="이름" value={formData.petName} onChangeText={(text) => handleChange("petName", text)} />
               <TextInput style={styles.input} placeholder="견종" value={formData.petBreed} onChangeText={(text) => handleChange("petBreed", text)} />
               <TextInput style={styles.input} placeholder="생일 (YYYY-MM-DD)" value={formData.petBirthDate} onChangeText={(text) => handleChange("petBirthDate", text)} />
               <TextInput style={styles.input} placeholder="피해야 할 종" value={formData.avoidBreeds} onChangeText={(text) => handleChange("avoidBreeds", text)} />
               <TextInput style={styles.input} placeholder="기타 정보" value={formData.extraInfo} onChangeText={(text) => handleChange("extraInfo", text)} />
-              <Button title="추가" onPress={handleAddProfile} />
-              <Button title="취소" onPress={() => setAddModalVisible(false)} />
+
+              {/* 하단 버튼 */}
+              <View style={styles.buttonRow}>
+                <TouchableOpacity style={styles.modalBtn} onPress={handleAddProfile}>
+                  <Text style={styles.modalBtnText}>추가</Text>
+                </TouchableOpacity>
+                <TouchableOpacity style={[styles.modalBtn, styles.cancelBtn]} onPress={() => setAddModalVisible(false)}>
+                  <Text style={[styles.modalBtnText, { color: '#666' }]}>취소</Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </View>
         </View>
       </Modal>
+
 
       {/* 프로필 수정 모달 */}
       <Modal
@@ -394,56 +408,55 @@ const styles = StyleSheet.create({
     width: "100%",
     flexDirection: "row",
     flexWrap: "wrap",
-    justifyContent: "center",
+    justifyContent: "flex-start",
     padding: 10,
+    paddingHorizontal: 6, 
     marginTop: 20,
   },
   profileCard: {
-    width: 60,
-    height: 70,
+    width: 30,
+    height: 30,
     borderRadius: 16,
     alignItems: "center",
-    justifyContent: "center",
-    margin: 10,
+    justifyContent: "flex-start",
+    margin: 5,
+    marginTop: -20
   },
   profileImage: {
-    width: 60,
-    height: 60,
+    width: 50,
+    height: 50,
     borderRadius: 40,
     borderWidth: 2,
     borderColor: "#FFD8B1",
     marginBottom: 10,
   },
   profileName: {
-    fontSize: 20,
+    fontSize: 14,
     fontWeight: "600",
     color: "#333",
     textAlign: "center",
     fontFamily: "cute",
   },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#333",
-    textAlign: "left",
-    alignSelf: "flex-start",
-    width: "100%",
-    paddingLeft: 0,
-    marginLeft: 0,
-    marginTop: 15,
-    marginBottom: -8,
+  
+
+  imageSelectBtn: {
+    backgroundColor: '#E4EFE7',
+    paddingVertical: 10,
+    borderRadius: 12,
+    marginBottom: 16,
+    alignItems: 'center',
   },
-  add: {
-    padding: 5,
-    backgroundColor: "transparent",
-    borderRadius: 50,
-    width: 45,
-    height: 45,
-    alignItems: "center",
-    justifyContent: "center",
-    position: "absolute",
-    right: 20,
-    top: -10,
+  imageSelectText: {
+    color: 'black',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  imagePreview: {
+    width: 120,
+    height: 120,
+    borderRadius: 16,
+    alignSelf: "center",
+    marginBottom: 16,
   },
   modalOverlay: {
     flex: 1,
@@ -453,14 +466,15 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: '#fff',
-    width: '85%',
-    borderRadius: 16,
-    padding: 20,
+    width: '90%',
+    borderRadius: 20,
+    padding: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
     elevation: 5,
+    maxHeight: '80%',
   },
   modalImage: {
     width: '100%',
@@ -475,13 +489,52 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 48,
-    borderColor: '#ccc',
+    borderColor: '#E5E7EB',
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    marginBottom: 12,
-    backgroundColor: '#fefefe',
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    marginBottom: 14,
+    backgroundColor: '#F9FAFB',
   },
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+  },
+  modalBtn: {
+    flex: 1,
+    backgroundColor: '#80CBC4',
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    marginHorizontal: 5,
+  },
+  cancelBtn: {
+    backgroundColor: '#F3F4F6',
+  },
+  modalBtnText: {
+    color: '#111827',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  plusCircle: {
+  width: 45,
+  height: 45,
+  borderRadius: 30,
+  borderWidth: 2,
+  borderColor: "#CCD3CA",
+  backgroundColor: "#FDFAF6",
+  justifyContent: "center",
+  alignItems: "center",
+  marginBottom: 6,
+},
+
+plusText: {
+  fontSize: 25,
+  color: "#504B38",
+  fontWeight: "bold",
+},
+
 });
 
 export default PetProfile;

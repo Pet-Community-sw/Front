@@ -16,6 +16,7 @@ const UserProvider = ({ children }) => {
   const [memberId, setMemberId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { clearProfile } = useProfileSession();
+  
 
   useEffect(() => {
     console.log("🧪 [UserContext] token 변경됨:", token);
@@ -82,17 +83,25 @@ const UserProvider = ({ children }) => {
 
   // 로그아웃 시 토큰 삭제, 웹소켓 연결 해제, 펫 프로필 토큰 삭제
   const logout = async () => {
+    console.log("🚨 logout() 실행됨"); // 추가!
     try {
       const accessToken = await AsyncStorage.getItem("accessToken");
+      console.log("🪪 accessToken 바로 출력:", accessToken); 
       if (accessToken) {
+         console.log("👉 로그아웃 요청 config 확인:", {
+        Authorization: `Bearer ${accessToken}`,
+      });
         await apiClient.delete(`${BASE_URL}/members/logout`, {
-          Authorization: `Bearer ${accessToken}`,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          }
         });
       } else {
         console.log("⛔ 로그아웃 요청 시 accessToken이 존재하지 않음");
       }
     } catch (err) {
       console.log("서버 로그아웃 실패 (무시 가능):", err);
+      console.log("❌ 로그아웃 실패:", err);
     }
 
     setToken(null);

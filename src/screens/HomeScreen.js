@@ -11,7 +11,6 @@ import { useNavigation } from "@react-navigation/native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
 import { UserContext } from "../context/User";
-import { useLogout } from "../hooks/useMember";
 import { NotificationBell } from "../components/notification";
 import PetProfile from "../components/PetProfile";
 import { useViewProfile } from "../hooks/useProfile";
@@ -27,8 +26,8 @@ const posts = [
 
 const HomeScreen = () => {
   const { logout, loading } = useContext(UserContext);
-  const { mutateAsync: LogoutMutate } = useLogout();
   const { data: profiles = [] } = useViewProfile();
+
   const navigation = useNavigation();
 
   const weatherText = Weather();
@@ -46,11 +45,10 @@ const HomeScreen = () => {
 
   const handleLogout = async () => {
     try {
-      await LogoutMutate();   
+      await logout();
     } catch (e) {
-      console.log("서버 로그아웃 실패:", e);  
+      console.log("서버 로그아웃 실패:", e);
     }
-    await logout(navigation);           
   };
 
   return (
@@ -72,6 +70,9 @@ const HomeScreen = () => {
         <Text style={styles.petGreetingText}>{greetingText}</Text>
       </View>
 
+      <View style={{ width: "100%", alignItems: "flex-start" }}>
+        <Text style={styles.title}>🐶🐱 댕냥이 친구들</Text>
+      </View>
       <PetProfile />
 
       <View style={styles.section}>
@@ -242,6 +243,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#6B7B8C",
     marginLeft: 4,
+  },
+  title: {
+    fontSize: 23,
+    color: "#333",
+    textAlign: "left",
+    alignSelf: "flex-start",
+    width: "100%",
+    paddingLeft: 20,
+    marginLeft: 0,
+    marginTop: 15,
+    marginBottom: -8,
+    fontFamily: "cute"
   },
 });
 

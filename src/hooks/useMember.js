@@ -2,7 +2,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { 
     login, 
-    logout, 
     signup,
     findid,
     sendemail, 
@@ -48,11 +47,6 @@ export const useVerify = () => {
 //비밀번호 재설정
 export const useResetpassword = () => {
   return useMutation(resetpassword);
-}
-
-//로그아웃
-export const useLogout = () => {
-    return useMutation(logout);
 }
 
 //회원 탈퇴

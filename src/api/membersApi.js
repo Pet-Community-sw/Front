@@ -45,7 +45,7 @@ const login = async (userData) => {
 };
 
 //로그아웃
-const logout = async (navigation) => {
+/*const logout = async (navigation) => {
   try {
     const token = await AsyncStorage.getItem("accessToken");
     console.log("🪪 로그아웃 시도 중 토큰:", token);
@@ -65,11 +65,10 @@ const logout = async (navigation) => {
   } finally {
     // 무조건 토큰 제거 + 홈으로 이동
     await AsyncStorage.removeItem("accessToken");
-    setTimeout(() => {
+    /*setTimeout(() => {
       navigation.replace("Welcome");
-    }, 100);
-  }
-  }
+    }, 100);*/
+  
 
 
 // 아이디 찾기
@@ -135,4 +134,4 @@ const deleteMember = async () => {
   return response.data;
 }
 
-export { signup, login, logout, findid, sendemail, verify, resetpassword, deleteMember };
+export { signup, login, findid, sendemail, verify, resetpassword, deleteMember };

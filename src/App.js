@@ -78,31 +78,36 @@ const AppInner = () => {
   if (loading) return <LoadingScreen />;
 
   return (
-    <NavigationContainer key={token ? "user" : "guest"}>
+    <>
       {token && <Notification />}
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {token ? (
-          <>
-            <Stack.Screen name="TabRoot" component={TabBar} />
-            <Stack.Screen
-              name="NotificationList"
-              component={NotificationScreen}
-              options={{ title: "알림 목록" }}
-            />
-          </>
-        ) : (
-          <>
-            <Stack.Screen name="Welcome" component={WelcomeScreen} />
-            <Stack.Screen name="Signup" component={SignupScreen} />
-            <Stack.Screen name="Login" component={LoginScreen} />
-            <Stack.Screen name="Findid" component={FindidScreen} />
-            <Stack.Screen name="Findpassword" component={FindpasswordScreen} />
-          </>
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+      <NavigationContainer key={token ? "user" : "guest"}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          {token ? (
+            <>
+              <Stack.Screen name="TabRoot" component={TabBar} />
+
+
+              <Stack.Screen
+                name="NotificationList"
+                component={NotificationScreen}
+                options={{ title: "알림 목록" }}
+              />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="Welcome" component={WelcomeScreen} />
+              <Stack.Screen name="Signup" component={SignupScreen} />
+              <Stack.Screen name="Login" component={LoginScreen} />
+              <Stack.Screen name="Findid" component={FindidScreen} />
+              <Stack.Screen name="Findpassword" component={FindpasswordScreen} />
+            </>
+          )}
+        </Stack.Navigator>
+      </NavigationContainer>
+    </>
   );
-};
+}
+
 
 // 최상위 앱
 const App = () => {

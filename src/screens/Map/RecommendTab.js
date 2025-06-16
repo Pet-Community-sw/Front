@@ -47,6 +47,7 @@ export default function RecommendTab() {
   const [newComment, setNewComment] = useState('');
   const [like, setLike] = useState(false);
   const [writeModalVisible, setWriteModalVisible] = useState(false);
+  const [selectingLocationVisible, setSelectingLocationVisible] = useState(false); // 모달 ON/OFF
   const [selectingLocation, setSelectingLocation] = useState({
     latitude: 37.648931,
     longitude: 127.064411,
@@ -88,7 +89,7 @@ export default function RecommendTab() {
   useFocusEffect(
     useCallback(() => {
       if (!usePlaceMode) refetchLocation();
-    }, [region, usePlaceMode])
+    }, [usePlaceMode])
   );
 
   const handleSearch = async () => {
@@ -113,13 +114,22 @@ export default function RecommendTab() {
       if (
         Math.abs(newRegion.latitude - region.latitude) > 0.0001 ||
         Math.abs(newRegion.longitude - region.longitude) > 0.0001
-      ) {
+      ) 
+      console.log("🧪 region 변화 감지:", region);
+      {
         setRegion(newRegion);
         setUsePlaceMode(false);
+        refetchLocation().then((res) => {
+    console.log("🧪 refetch 응답 결과:", res?.data ?? "없음");
+  });
       }
     },
     [region]
   );
+
+  console.log("📍 postList.length:", postList.length);
+console.log("📍 postList 샘플:", postList[0]);
+
 
   const handleSubmit = () => {
     if (!title || !content) {
@@ -139,6 +149,7 @@ export default function RecommendTab() {
         setWriteModalVisible(false);
         setTitle("");
         setContent("");
+        refetchLocation();
       },
       onError: () => {
         Alert.alert("등록 실패", "다시 시도해주세요.");
@@ -175,8 +186,15 @@ export default function RecommendTab() {
         provider="google"
         style={{ flex: 1 }}
         region={region}
+        /*initialRegion={{
+          latitude: 37.648931,
+          longitude: 127.064411,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        }}*/
         onRegionChangeComplete={handleRegionChange}
       >
+        {/* 마커 리스트 불러오기 */}
         {postList.map((post) => (
           <Marker
             key={post.recommendRoutePostId}
@@ -204,6 +222,33 @@ export default function RecommendTab() {
         )}
       </MapView>
 
+      {/* 상세 정보 모달 */}
+      <Modal visible={modalVisible} animationType="slide">
+        <View style={{ flex: 1 }}>
+          {/* 탭 선택 버튼 */}
+          <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12 }}>
+            <TouchableOpacity onPress={() => setActiveTab("feedback")}>
+              <Text style={{ fontWeight: activeTab === "feedback" ? "bold" : "normal" }}>피드백</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setActiveTab("walking")}>
+              <Text style={{ fontWeight: activeTab === "walking" ? "bold" : "normal" }}>함께 산책해요</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 탭에 따라 컴포넌트 보여주기 */}
+          {activeTab === "feedback" && <FeedbackTab postId={selectedPostId} />}
+          {activeTab === "walking" && <WalkingTogetherTab recommendRoutePostId={selectedPostId} />}
+
+          {/* 닫기 버튼 */}
+          <TouchableOpacity
+            onPress={() => setModalVisible(false)}
+            style={{ alignItems: "center", paddingVertical: 12, backgroundColor: "#eee" }}
+          >
+            <Text style={{ fontWeight: "bold" }}>닫기</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
       {/* 산책길 추천 추가 버튼 */}
       <TouchableOpacity
         onPress={() => setWriteModalVisible(true)}
@@ -228,14 +273,13 @@ export default function RecommendTab() {
             <Text style={styles.modalTitle}>산책길 추천 코스 추가</Text>
 
             {/* 위치 설정 버튼 */}
-            <TouchableOpacity onPress={() => setSelectingLocation(true)}>
+            <TouchableOpacity onPress={() => setSelectingLocationVisible(true)}>
               <Text style={{ color: "#4A90E2", marginBottom: 8 }}>
                 📍 지도에서 위치 설정하기
               </Text>
               <Text style={{ color: "#444", marginBottom: 6 }}>
                 📍 선택한 위치: {locationName || "불러오는 중..."}
               </Text>
-
             </TouchableOpacity>
 
             <TextInput
@@ -266,26 +310,44 @@ export default function RecommendTab() {
       </Modal>
 
       {/* 지도에서 위치 선택 모달 */}
-      <Modal visible={selectingLocation} animationType="slide">
+      <Modal visible={selectingLocationVisible} animationType="slide">
         <View style={{ flex: 1 }}>
           <MapView
             style={{ flex: 1 }}
-            region={{
-              ...region,
+            region={selectingLocation}
+            /*
+            initialRegion={{
+              latitude: 37.648931,
+              longitude: 127.064411,
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
-            }}
-            zoomEnabled={false}
-            scrollEnabled={false}
-            rotateEnabled={false}
-            pitchEnabled={false}
-          >
-            <Marker coordinate={region} />
-          </MapView>
+            }}*/
+          />
 
+          {/* 지도 움직이면서 마커 고정 */}
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              marginLeft: -24,
+              marginTop: -48,
+              zIndex: 10,
+            }}
+          >
+            <Image
+              source={require('../../../assets/pin.png')}
+              style={{ width: 48, height: 48 }}
+              resizeMode="contain"
+            />
+          </View>
 
           <TouchableOpacity
-            onPress={() => setSelectingLocation(false)}
+            onPress={() => {
+              setRegion(selectingLocation); // ✅ 메인 region으로 반영
+              setSelectingLocationVisible(false);
+            }}
             style={{
               backgroundColor: "#6A9C89",
               padding: 14,
@@ -301,7 +363,6 @@ export default function RecommendTab() {
     </View>
   );
 }
-
 
 const styles = StyleSheet.create({
   searchBox: {
