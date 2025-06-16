@@ -17,13 +17,19 @@ React Native를 기반으로 개발되었으며, 사용자 간 실시간 매칭,
 - 🔔 알림 (SSE 기반), 알림 뱃지  
 
 ## 🎬 실행 화면
--홈화면
+-🏠 홈화면
+<img src="https://github.com/user-attachments/assets/d5c73b96-862f-45ce-8a41-40e1880278c8" width="250"/>
 
--커뮤니티 화면
 
--지도 화면
+-💬 커뮤니티 화면
+<img src="https://github.com/user-attachments/assets/7ba18cc1-82b5-4519-9708-1ec927abdc3a" width="250"/>
 
--채팅 화면
+
+-🗺️ 지도 화면
+<img src="https://github.com/user-attachments/assets/6f4a6cda-afc4-48ad-bbe7-862e1b8b7f98" width="250"/>
+
+
+-🐾 채팅 화면
 <img src="https://github.com/user-attachments/assets/0359ca62-5ecf-4266-a91c-ee2429af1da5" width="250"/>
 
 
