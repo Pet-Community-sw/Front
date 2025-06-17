@@ -1,4 +1,4 @@
-/*import React, { useCallback } from "react";
+import React, { useCallback } from "react";
 import {
   View,
   TouchableOpacity,
@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { useGroupChattingList } from "../../hooks/useChatting";
 import { useFocusEffect } from "@react-navigation/native";
+import { BASE_URL } from "../../api/apiClient";
 
 const GroupChattingListScreen = ({ navigation }) => {
   const { data: chatRooms = [], refetch } = useGroupChattingList();
@@ -31,7 +32,7 @@ const GroupChattingListScreen = ({ navigation }) => {
   const renderItem = ({ item }) => (
     <TouchableOpacity
       onPress={() =>
-        navigation.navigate("Chatting", {
+        navigation.navigate("ChattingDetail", {
           chatRoomId: item.chatRoomId,
           chatRoomType: "MANY",
           chatName: item.chatName,
@@ -43,15 +44,21 @@ const GroupChattingListScreen = ({ navigation }) => {
         {item.chatName} ({item.currentCount}/{item.chatLimitCount})
       </Text>
 
-      
+
       <View style={styles.thumbnailRow}>
-        {item.profiles?.map((profile) => (
-          <Image
-            key={profile.profileId}
-            source={{ uri: profile.profileImageUrl }}
-            style={styles.thumbnail}
-          />
-        ))}
+        {item.profiles?.map((profile) => {
+          const finalUri = profile.profileImageUrl
+            ? `${BASE_URL}${profile.profileImageUrl.replace(/^\/+/, "/")}`
+            : undefined;
+
+          return (
+            <Image
+              key={profile.profileId}
+              source={{ uri: finalUri }}
+              style={styles.thumbnail}
+            />
+          );
+        })}
       </View>
 
       <Text numberOfLines={1} style={styles.lastMessage}>
@@ -62,7 +69,7 @@ const GroupChattingListScreen = ({ navigation }) => {
         {item.unReadCount > 0 && `  ·  안읽음 ${item.unReadCount}개`}
       </Text>
 
-     
+
       {item.owner && (
         <View style={styles.ownerButtons}>
           <TouchableOpacity
@@ -195,11 +202,11 @@ const styles = StyleSheet.create({
   },
 });
 
-*/
+
 
 //임의 데이터 추가
 
-
+/*
 import React, { useState } from "react";
 import {
   View,
@@ -210,30 +217,6 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-
-// 임의의 단체 채팅방 데이터
-const sampleGroupChats = [
-  {
-    id: 1,
-    name: "강아지 산책 메이트 🐾",
-    lastMessage: "내일 산책 어때요?",
-    timeAgo: "2시간 전",
-    unreadCount: 3,
-    avatar: "https://placekitten.com/60/60",
-    current: 5,
-    limit: 10,
-  },
-  {
-    id: 2,
-    name: "댕댕이 정보방",
-    lastMessage: "이 사료 어떤가요?",
-    timeAgo: "어제",
-    unreadCount: 0,
-    avatar: "https://placekitten.com/61/61",
-    current: 10,
-    limit: 10,
-  },
-];
 
 const GroupChattingListScreen = ({ navigation }) => {
   const [chatRooms] = useState(sampleGroupChats);
@@ -350,3 +333,4 @@ const styles = StyleSheet.create({
     color: "#999",
   },
 });
+*/

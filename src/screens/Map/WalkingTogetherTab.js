@@ -64,7 +64,6 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
 
             // 2. 모달 전환
             setSelectProfileModalVisible(false);
-            setWriteModalVisible(true);
         }
         catch (error) {
             Alert.alert("토큰 발급 실패", "프로필 선택 중 오류가 발생했습니다.");
@@ -126,6 +125,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     useFocusEffect(
         useCallback(() => {
             refetch();
+            setSelectProfileModalVisible(true);
         }, [])
     );
 
@@ -294,7 +294,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
             {/* 매칭 글 쓰기 버튼 */}
             <TouchableOpacity
                 style={styles.matchButton}
-                onPress={() => setSelectProfileModalVisible(true)}
+                onPress={() => setWriteModalVisible(true)}
             >
                 <MaterialIcons name="check-circle" size={18} color="#7EC8C2" />
                 <Text style={styles.matchText}>매칭 글 쓰기</Text>

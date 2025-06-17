@@ -419,7 +419,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     alignItems: "center",
     justifyContent: "flex-start",
-    margin: 5,
+    margin: 17,
     marginTop: -20
   },
   profileImage: {
@@ -429,6 +429,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#FFD8B1",
     marginBottom: 10,
+    marginTop: -5, 
   },
   profileName: {
     fontSize: 14,

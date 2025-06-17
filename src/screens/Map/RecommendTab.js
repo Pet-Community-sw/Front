@@ -28,6 +28,9 @@ import { WalkingTogetherTab } from './WalkingTogetherTab';
 import { FeedbackTab } from './FeedbackTab';
 import { usePostComment } from '../../hooks/usePostComment';
 import { useLikePost } from '../../hooks/useLikePost';
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { debounce } from 'lodash';
+
 
 Geocoder.init('AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8');
 
@@ -82,6 +85,19 @@ export default function RecommendTab() {
   const { mutate: addComment } = usePostComment();
   const { mutate: toggleLike } = useLikePost();
 
+  useFocusEffect(
+  useCallback(() => {
+    // 탭이 포커스될 때 region을 기본값으로 리셋
+    setRegion({
+      latitude: 37.648931,
+      longitude: 127.064411,
+      latitudeDelta: 0.01,
+      longitudeDelta: 0.01,
+    });
+    setUsePlaceMode(false); // 검색 모드도 해제
+  }, [])
+);
+
   useEffect(() => {
     if (postDetail) setLike(postDetail.like);
   }, [postDetail]);
@@ -109,26 +125,28 @@ export default function RecommendTab() {
 
   const postList = usePlaceMode ? placeData : locationData;
 
-  const handleRegionChange = useCallback(
-    (newRegion) => {
-      if (
-        Math.abs(newRegion.latitude - region.latitude) > 0.0001 ||
-        Math.abs(newRegion.longitude - region.longitude) > 0.0001
-      ) 
-      console.log("🧪 region 변화 감지:", region);
-      {
-        setRegion(newRegion);
-        setUsePlaceMode(false);
-        refetchLocation().then((res) => {
-    console.log("🧪 refetch 응답 결과:", res?.data ?? "없음");
-  });
-      }
-    },
-    [region]
-  );
+  const debouncedRefetch = useCallback(
+  debounce(() => {
+    refetchLocation().then((res) => {
+      console.log("🧪 [debounced] refetch 응답 결과:", res?.data ?? "없음");
+    });
+  }, 800),
+  []
+);
 
-  console.log("📍 postList.length:", postList.length);
-console.log("📍 postList 샘플:", postList[0]);
+
+  const handleRegionChange = (newRegion) => {
+  const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
+  const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
+
+  if (latMoved || lngMoved) {
+    console.log("🧪 region 변화 감지:", newRegion);
+    setRegion(newRegion);
+    setUsePlaceMode(false);
+    debouncedRefetch(); // ✅ 디바운스된 리패치 호출
+  }
+};
+
 
 
   const handleSubmit = () => {
@@ -165,6 +183,7 @@ console.log("📍 postList 샘플:", postList[0]);
       })
       .catch((error) => console.warn(error));
   }, [region]);
+  
 
   return (
     <View style={{ flex: 1 }}>
@@ -314,15 +333,18 @@ console.log("📍 postList 샘플:", postList[0]);
         <View style={{ flex: 1 }}>
           <MapView
             style={{ flex: 1 }}
-            region={selectingLocation}
-            /*
             initialRegion={{
               latitude: 37.648931,
               longitude: 127.064411,
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
-            }}*/
+            }}
+            region={selectingLocation}
+            onRegionChangeComplete={(newRegion) => {
+              setSelectingLocation(newRegion); // ✅ 사용자 조작에 따라 selectingLocation 업데이트
+            }}
           />
+
 
           {/* 지도 움직이면서 마커 고정 */}
           <View
@@ -336,10 +358,10 @@ console.log("📍 postList 샘플:", postList[0]);
               zIndex: 10,
             }}
           >
-            <Image
-              source={require('../../../assets/pin.png')}
-              style={{ width: 48, height: 48 }}
-              resizeMode="contain"
+            <MaterialCommunityIcons
+              name="map-marker"
+              size={48}
+              color="red" // 원하는 색
             />
           </View>
 
@@ -357,6 +379,12 @@ console.log("📍 postList 샘플:", postList[0]);
             <Text style={{ color: "white", fontWeight: "bold" }}>
               이 위치로 선택
             </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.closeBtn}
+            onPress={() => setSelectingLocationVisible(false)}
+          >
+            <Text style={styles.closeText}>닫기</Text>
           </TouchableOpacity>
         </View>
       </Modal>

@@ -103,7 +103,7 @@ const PostDetailScreen = ({ route }) => {
   const resetEditData = () => {
     if (post) {
       setEditData({
-        postImageFile: post. postImageFile || "", 
+        postImageFile: post.postImageFile || "",
         title: post.title || "",
         content: post.content || "",
       });
@@ -180,11 +180,18 @@ const PostDetailScreen = ({ route }) => {
   const getFullImageUri = (path) =>
     path ? `${BASE_URL.replace(/\/$/, "")}/${path.replace(/^\/+/, "")}` : undefined;
 
+
+
   return (
     <ScrollView style={styles.container}>
-      {post?.postImageUrl && (
-        <Image source={{ uri: post.postImageUrl }} style={styles.postImage} />
+      {post?.postResponseDto?.memberImageUrl && (
+        <Image
+          source={{ uri: getFullImageUri(post.postResponseDto.memberImageUrl) }}
+          style={styles.avatar}
+        />
       )}
+
+
 
       {post?.owner && (
         <View style={styles.actionsRow}>
@@ -197,10 +204,7 @@ const PostDetailScreen = ({ route }) => {
         </View>
       )}
       <View style={styles.metaSection}>
-        <Image
-          source={{ uri: getFullImageUri(post?.postResponseDto?.memberImageUrl) }}
-          style={styles.avatar}
-        />
+
       </View>
 
       <View>
@@ -213,72 +217,78 @@ const PostDetailScreen = ({ route }) => {
       <Text style={styles.title}>{post?.postResponseDto?.title || "제목 없음"}</Text>
       <Text style={styles.content}>{post?.content || "내용 없음"}</Text>
 
+      {post?.postResponseDto?.postImageUrl && (
+        <Image
+          source={{ uri: getFullImageUri(post.postResponseDto.postImageUrl) }}
+          style={styles.postImage}
+        />
+      )}
 
       <TouchableOpacity onPress={handleLike} style={{ alignSelf: "flex-start" }}>
         <AntDesign
           name={liked ? "like1" : "like2"}
-          size={24}
+          size={30}
           color={liked ? "#f66" : "#aaa"}
         />
       </TouchableOpacity>
 
       <Modal
-  visible={editModalVisible}
-  animationType="slide"
-  transparent={true}
-  onShow={resetEditData}
->
-  <View style={{
-    flex: 1,
-    justifyContent: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    padding: 20,
-  }}>
-    <View style={{
-      backgroundColor: "white",
-      borderRadius: 12,
-      padding: 20,
-    }}>
-      <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>게시글 수정</Text>
+        visible={editModalVisible}
+        animationType="slide"
+        transparent={true}
+        onShow={resetEditData}
+      >
+        <View style={{
+          flex: 1,
+          justifyContent: "center",
+          backgroundColor: "rgba(0,0,0,0.5)",
+          padding: 20,
+        }}>
+          <View style={{
+            backgroundColor: "white",
+            borderRadius: 12,
+            padding: 20,
+          }}>
+            <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 10 }}>게시글 수정</Text>
 
-      <TextInput
-        placeholder="제목"
-        value={editData.title}
-        onChangeText={(text) => handleEditData("title", text)}
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 8,
-          padding: 10,
-          marginBottom: 12,
-        }}
-      />
-      <TextInput
-        placeholder="내용"
-        value={editData.content}
-        onChangeText={(text) => handleEditData("content", text)}
-        multiline
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 8,
-          padding: 10,
-          height: 120,
-          textAlignVertical: "top",
-          marginBottom: 16,
-        }}
-      />
-      <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-        <TouchableOpacity onPress={() => setEditModalVisible(false)}>
-          <Text style={{ color: "#aaa" }}>취소</Text>
-        </TouchableOpacity>
-        <TouchableOpacity onPress={handlemodify}>
-          <Text style={{ color: "#007aff" }}>저장</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-</Modal>
+            <TextInput
+              placeholder="제목"
+              value={editData.title}
+              onChangeText={(text) => handleEditData("title", text)}
+              style={{
+                borderWidth: 1,
+                borderColor: "#ccc",
+                borderRadius: 8,
+                padding: 10,
+                marginBottom: 12,
+              }}
+            />
+            <TextInput
+              placeholder="내용"
+              value={editData.content}
+              onChangeText={(text) => handleEditData("content", text)}
+              multiline
+              style={{
+                borderWidth: 1,
+                borderColor: "#ccc",
+                borderRadius: 8,
+                padding: 10,
+                height: 120,
+                textAlignVertical: "top",
+                marginBottom: 16,
+              }}
+            />
+            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)}>
+                <Text style={{ color: "#aaa" }}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handlemodify}>
+                <Text style={{ color: "#007aff" }}>저장</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
 
       <Modal visible={likeModalVisible} animationType="slide" transparent={true}>
@@ -355,7 +365,7 @@ const styles = StyleSheet.create({
     fontSize: 30,
     marginBottom: 10,
     color: "#333",
-    marginTop: 10, 
+    marginTop: 10,
     fontFamily: "fontExtra"
   },
   content: {
@@ -369,7 +379,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    marginTop: -30, 
+    marginTop: -30,
   },
   avatar: {
     width: 50,
@@ -377,12 +387,12 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 1,
     borderColor: "#f4d8c6",
-    marginBottom: -10, 
+    marginBottom: 20,
   },
   meta: {
     fontSize: 15,
     color: "#777",
-    fontFamily: "cute", 
+    fontFamily: "cute",
   },
   actionsRow: {
     flexDirection: "row",

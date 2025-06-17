@@ -34,9 +34,9 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
   const [editCommentId, setEditCommentId] = useState(null);
   const [editCommentInput, setEditCommentInput] = useState("");
 
-  useEffect(() => {
+  /*useEffect(() => {
     refetch();
-  }, []);
+  }, []);*/
 
   const handleLike = () => {
     if (!isLiking) {
