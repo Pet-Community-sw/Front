@@ -25,35 +25,41 @@ const addRecommendRoute = async (
 const viewLocationRoutePosts = async (params) => {
     console.log("📡 [API 호출] viewLocationRoutePosts 실행됨 ✅", params);
     const response = await apiClient.get("/recommend-route-posts/by-location", {
-        params, 
+        params,
     });
     return response.data;
-} 
+}
 
 //산책길 추천 글 목록 조회(특정 장소의 반경 1km)
 const viewPlaceRoutePosts = async (params) => {
     const response = await apiClient.get("/recommend-route-posts/by-place", {
-        params, 
+        params,
     });
     return response.data;
-} 
+}
 
 //산책길 추천글 상세 조회
-const viewRecommendPostDetail = async ({ recommendRoutePostId }) => {
-    const response = await apiClient.get(`/recommend-route-posts/${recommendRoutePostId}`)
-    return response.data;
-}
+const viewRecommendPostDetail = async ( recommendRoutePostId ) => {
+    try {
+        const response = await apiClient.get(`/recommend-route-posts/${recommendRoutePostId}`)
+        return response.data;
+    }
+    catch (error) {
+        console.error("❌ 상세 조회 실패:", error.response?.data || error.message);
+        throw error;
+    }
+};
 
-//매칭 글 수정
-const modifyRecommendPost = async ({ recommendRoutePostId }) => {
-    const response = await apiClient.put(`/recommend-route-posts/${recommendRoutePostId}`)
-    return response.data;
-}
+    //매칭 글 수정
+    const modifyRecommendPost = async ( recommendRoutePostId ) => {
+        const response = await apiClient.put(`/recommend-route-posts/${recommendRoutePostId}`)
+        return response.data;
+    }
 
-//매칭 글 삭제
-const deleteRecommendPost = async ({ recommendRoutePostId }) => {
-    const response = await apiClient.delete(`/recommend-route-posts/${recommendRoutePostId}`)
-    return response.data;
-}
+    //매칭 글 삭제
+    const deleteRecommendPost = async ( recommendRoutePostId ) => {
+        const response = await apiClient.delete(`/recommend-route-posts/${recommendRoutePostId}`)
+        return response.data;
+    }
 
-export {addRecommendRoute, viewLocationRoutePosts, viewPlaceRoutePosts, viewRecommendPostDetail, modifyRecommendPost, deleteRecommendPost};
+    export { addRecommendRoute, viewLocationRoutePosts, viewPlaceRoutePosts, viewRecommendPostDetail, modifyRecommendPost, deleteRecommendPost };

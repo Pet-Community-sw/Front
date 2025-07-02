@@ -7,6 +7,7 @@ import { BASE_URL } from "../api/apiClient";
 import apiClient from "../api/apiClient";
 import { useMemo } from "react";
 import { useProfileSession } from "./SelectProfile";
+import { connectStomp } from "../api/stompClient";
 
 const UserContext = createContext();
 
@@ -38,7 +39,6 @@ const UserProvider = ({ children }) => {
         }
       } catch (e) {
         console.log("유저 데이터 로딩 실패:", e);
-        setToken(null);
       } finally {
         console.log("✅ setLoading(false) 호출");
         {/* 화면 깜빡임 방지용 */ }
@@ -77,6 +77,10 @@ const UserProvider = ({ children }) => {
     await AsyncStorage.setItem("name", name);
     setToken(accessToken);
     setName(name);
+
+    /*connectStomp(() => {
+    console.log("웹소켓 연결 완료 후 처리할 일");
+  });*/
   };
 
 

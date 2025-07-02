@@ -65,6 +65,7 @@ export default function RecommendTab() {
 
   const { mutate: addRecommendPost } = useAddRecommend();
 
+  //지도 사각형 범위 계산 (지도 기반, 장소 검색 기반 동일)
   const { data: locationData = [], refetch: refetchLocation } = useViewLocation({
     minLatitude: region.latitude - region.latitudeDelta / 2,
     maxLatitude: region.latitude + region.latitudeDelta / 2,
@@ -85,18 +86,20 @@ export default function RecommendTab() {
   const { mutate: addComment } = usePostComment();
   const { mutate: toggleLike } = useLikePost();
 
+
+
   useFocusEffect(
-  useCallback(() => {
-    // 탭이 포커스될 때 region을 기본값으로 리셋
-    setRegion({
-      latitude: 37.648931,
-      longitude: 127.064411,
-      latitudeDelta: 0.01,
-      longitudeDelta: 0.01,
-    });
-    setUsePlaceMode(false); // 검색 모드도 해제
-  }, [])
-);
+    useCallback(() => {
+      // 탭이 포커스될 때 region을 기본값으로 리셋
+      setRegion({
+        latitude: 37.648931,
+        longitude: 127.064411,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      });
+      setUsePlaceMode(false); // 검색 모드도 해제
+    }, [])
+  );
 
   useEffect(() => {
     if (postDetail) setLike(postDetail.like);
@@ -126,26 +129,26 @@ export default function RecommendTab() {
   const postList = usePlaceMode ? placeData : locationData;
 
   const debouncedRefetch = useCallback(
-  debounce(() => {
-    refetchLocation().then((res) => {
-      console.log("🧪 [debounced] refetch 응답 결과:", res?.data ?? "없음");
-    });
-  }, 800),
-  []
-);
+    debounce(() => {
+      refetchLocation().then((res) => {
+        console.log("🧪 [debounced] refetch 응답 결과:", res?.data ?? "없음");
+      });
+    }, 800),
+    []
+  );
 
 
   const handleRegionChange = (newRegion) => {
-  const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
-  const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
+    const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
+    const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
 
-  if (latMoved || lngMoved) {
-    console.log("🧪 region 변화 감지:", newRegion);
-    setRegion(newRegion);
-    setUsePlaceMode(false);
-    debouncedRefetch(); // ✅ 디바운스된 리패치 호출
-  }
-};
+    if (latMoved || lngMoved) {
+      console.log("🧪 region 변화 감지:", newRegion);
+      setRegion(newRegion);
+      setUsePlaceMode(false);
+      debouncedRefetch(); // ✅ 디바운스된 리패치 호출
+    }
+  };
 
 
 
@@ -183,7 +186,7 @@ export default function RecommendTab() {
       })
       .catch((error) => console.warn(error));
   }, [region]);
-  
+
 
   return (
     <View style={{ flex: 1 }}>
@@ -242,31 +245,52 @@ export default function RecommendTab() {
       </MapView>
 
       {/* 상세 정보 모달 */}
-      <Modal visible={modalVisible} animationType="slide">
-        <View style={{ flex: 1 }}>
-          {/* 탭 선택 버튼 */}
-          <View style={{ flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12 }}>
-            <TouchableOpacity onPress={() => setActiveTab("feedback")}>
-              <Text style={{ fontWeight: activeTab === "feedback" ? "bold" : "normal" }}>피드백</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setActiveTab("walking")}>
-              <Text style={{ fontWeight: activeTab === "walking" ? "bold" : "normal" }}>함께 산책해요</Text>
+      <Modal visible={modalVisible} animationType="slide" transparent>
+        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: 'rgba(0,0,0,0.2)' }}>
+          <View style={{
+            backgroundColor: '#fff',
+            padding: 20,
+            borderTopLeftRadius: 16,
+            borderTopRightRadius: 16,
+            maxHeight: '90%', // 원하는 높이 조절
+          }}>
+            {/* 탭 버튼 */}
+            <View style={styles.tabBar}>
+              <TouchableOpacity
+                style={[styles.tabBtn, activeTab === "feedback" && styles.activeTab]}
+                onPress={() => setActiveTab("feedback")}
+              >
+                <Text style={[styles.tabText, activeTab === "feedback" && styles.activeTabText]}>피드백</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.tabBtn, activeTab === "walking" && styles.activeTab]}
+                onPress={() => setActiveTab("walking")}
+              >
+                <Text style={[styles.tabText, activeTab === "walking" && styles.activeTabText]}>함께 산책해요</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ minHeight: 500 }}>
+              {activeTab === "feedback" && selectedPostId && (
+                <FeedbackTab recommendRoutePostId={selectedPostId} />
+              )}
+              {activeTab === "walking" && selectedPostId && (
+                <WalkingTogetherTab recommendRoutePostId={selectedPostId} />
+              )}
+            </View>
+
+            <TouchableOpacity
+              onPress={() => setModalVisible(false)}
+              style={styles.closeArea}
+            >
+              <Text style={styles.closeText}>닫기</Text>
             </TouchableOpacity>
           </View>
-
-          {/* 탭에 따라 컴포넌트 보여주기 */}
-          {activeTab === "feedback" && <FeedbackTab postId={selectedPostId} />}
-          {activeTab === "walking" && <WalkingTogetherTab recommendRoutePostId={selectedPostId} />}
-
-          {/* 닫기 버튼 */}
-          <TouchableOpacity
-            onPress={() => setModalVisible(false)}
-            style={{ alignItems: "center", paddingVertical: 12, backgroundColor: "#eee" }}
-          >
-            <Text style={{ fontWeight: "bold" }}>닫기</Text>
-          </TouchableOpacity>
         </View>
+
       </Modal>
+
+
 
       {/* 산책길 추천 추가 버튼 */}
       <TouchableOpacity
@@ -332,14 +356,18 @@ export default function RecommendTab() {
       <Modal visible={selectingLocationVisible} animationType="slide">
         <View style={{ flex: 1 }}>
           <MapView
+            provider="google"
             style={{ flex: 1 }}
-            initialRegion={{
+            region={selectingLocation}
+            zoomControlEnabled={true} // ✅ 줌 버튼 보이기 (Android만)
+            zoomEnabled={true}        // ✅ 터치 줌 허용
+            scrollEnabled={true}
+            /*initialRegion={{
               latitude: 37.648931,
               longitude: 127.064411,
               latitudeDelta: 0.01,
               longitudeDelta: 0.01,
-            }}
-            region={selectingLocation}
+            }}*/
             onRegionChangeComplete={(newRegion) => {
               setSelectingLocation(newRegion); // ✅ 사용자 조작에 따라 selectingLocation 업데이트
             }}
@@ -488,4 +516,40 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     marginBottom: 12,
   },
+  tabBar: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#f9f9f9",
+  },
+  tabBtn: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderColor: "#6A9C89",
+  },
+  tabText: {
+    fontFamily: "font",
+    alignItems: "center",
+    fontSize: 17,
+    color: "#555",
+  },
+  activeTabText: {
+    fontFamily: "fontExtra",
+    alignItems: "center",
+    color: "#6A9C89",
+  },
+  closeArea: {
+    paddingVertical: 14,
+    alignItems: "center",
+    backgroundColor: "#eee",
+  },
+  closeText: {
+    fontWeight: "bold",
+    color: "#444",
+  },
+
 });

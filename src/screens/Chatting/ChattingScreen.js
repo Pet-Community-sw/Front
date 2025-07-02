@@ -12,6 +12,7 @@ import {
   sendChat,
   subscribeChat,
   unsubscribeChat,
+  connectStomp, 
 } from "../../api/stompClient";
 import { useFetchMessages } from "../../hooks/useChatting";
 
@@ -23,6 +24,7 @@ const ChattingScreen = ({ route }) => {
   const [input, setInput] = useState("");
   const [enter, setEnter] = useState(false);
 
+  
   //채팅 내역 불러오기
   const {
     data: messagesData = [],

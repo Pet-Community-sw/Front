@@ -14,8 +14,10 @@ import { useLikePost } from "../../hooks/useLikePost";
 import {
   usePostComment,
   useRemoveComment,
-  useModifyComment, }
+  useModifyComment,
+}
   from "../../hooks/usePostComment"
+import { BASE_URL } from "../../api/apiClient";
 
 export const FeedbackTab = ({ recommendRoutePostId }) => {
   const {
@@ -23,7 +25,9 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
     refetch,
     isLoading,
     isError,
-  } = useViewRecommendPostDetail(recommendRoutePostId);
+  } = useViewRecommendPostDetail(recommendRoutePostId, {
+    enabled: !!recommendRoutePostId,
+  });
 
   const { mutate: like, isLoading: isLiking } = useLikePost();
   const { mutate: postComment } = usePostComment();
@@ -34,9 +38,24 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
   const [editCommentId, setEditCommentId] = useState(null);
   const [editCommentInput, setEditCommentInput] = useState("");
 
-  /*useEffect(() => {
-    refetch();
-  }, []);*/
+
+  useEffect(() => {
+    if (!recommendRoutePostId) return;
+
+    refetch()
+      .then((res) => {
+        if (res.status === "error") {
+          console.error("❌ refetch 에러 상태:", res.failureReason?.response?.data || res.failureReason?.message);
+        } else {
+          console.log("✅ refetch 성공 데이터:", res.data);
+        }
+      })
+      .catch((error) => {
+        console.error("❌ refetch 함수 자체 실패:", error.response?.data || error.message);
+      });
+  }, []);
+
+
 
   const handleLike = () => {
     if (!isLiking) {
@@ -96,7 +115,11 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
 
       <View style={styles.card}>
         <View style={styles.profileRow}>
-          <Image source={{ uri: feedback.memberImageUrl }} style={styles.avatar} />
+          <Image
+            source={{ uri: feedback.memberImageUrl ? `${BASE_URL}${feedback.memberImageUrl}` : undefined }}
+            style={styles.avatar}
+          />
+
           <View>
             <Text style={styles.user}>{feedback.memberName}</Text>
             <Text style={styles.time}>{feedback.createdAt}</Text>
@@ -114,6 +137,22 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
         </TouchableOpacity>
       </View>
 
+      {/* 댓글 입력 */}
+      <View style={{ marginTop: 20 }}>
+        <Text style={{ fontWeight: "600", marginBottom: 6 }}>✍️ 댓글 달기</Text>
+        <View style={styles.commentRow}>
+          <TextInput
+            value={commentInput}
+            onChangeText={setCommentInput}
+            placeholder="댓글을 입력하세요"
+            style={styles.commentInput}
+          />
+          <TouchableOpacity onPress={handleSubmitComment} style={styles.commentButton}>
+            <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>등록</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* 댓글 목록 */}
       <View style={{ marginTop: 24 }}>
         <Text style={{ fontWeight: "600", marginBottom: 6 }}>🖍️ 댓글 목록</Text>
@@ -124,7 +163,11 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
             renderItem={({ item }) => (
               <View style={{ marginBottom: 16 }}>
                 <View style={styles.profileRow}>
-                  <Image source={{ uri: item.memberImageUrl }} style={styles.avatar} />
+                  <Image
+                    source={{ uri: item.memberImageUrl ? `${BASE_URL}${item.memberImageUrl}` : undefined }}
+                    style={styles.avatar}
+                  />
+
                   <View>
                     <Text style={styles.user}>{item.memberName}</Text>
                     <Text style={styles.time}>{item.createdAt}</Text>
@@ -162,20 +205,6 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
         ) : (
           <Text style={{ color: "#888" }}>댓글이 아직 없습니다.</Text>
         )}
-      </View>
-
-      {/* 댓글 입력 */}
-      <View style={{ marginTop: 20 }}>
-        <Text style={{ fontWeight: "600", marginBottom: 6 }}>✍️ 댓글 달기</Text>
-        <TextInput
-          value={commentInput}
-          onChangeText={setCommentInput}
-          placeholder="댓글을 입력하세요"
-          style={styles.input}
-        />
-        <TouchableOpacity onPress={handleSubmitComment} style={styles.submitBtn}>
-          <Text style={{ color: "#fff", fontWeight: "600" }}>댓글 등록</Text>
-        </TouchableOpacity>
       </View>
     </View>
   );
@@ -261,4 +290,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
+  commentRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+
+  commentInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    fontSize: 14,
+    backgroundColor: "#fff",
+    height: 40,
+  },
+
+  commentButton: {
+    backgroundColor: "#8DB596",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 8,
+  },
+
 });

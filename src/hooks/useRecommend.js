@@ -46,7 +46,7 @@ const useViewRecommendPostDetail = (recommendRoutePostId) => {
     return useQuery({
         queryKey: ["recommendPosts", recommendRoutePostId],
         queryFn: () => viewRecommendPostDetail(recommendRoutePostId),
-        enabled: false,
+        enabled: !!recommendRoutePostId,
     });
 }
 
