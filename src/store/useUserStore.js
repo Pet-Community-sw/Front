@@ -14,12 +14,10 @@ export const useUserStore = create(
             //상태값들
             token: null,
             name: null,
-            memberId: null,
 
             //상태 변경 함수
             setToken: (token) => set({ token }),
             setName: (name) => set({ name }),
-            setMemberId: (memberId) => set({ memberId }),
 
             //로그인 함수
             login: async (accessToken, name) => {

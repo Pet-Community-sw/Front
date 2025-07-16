@@ -2,15 +2,15 @@ import React, { useState, useContext } from "react";
 import { View, TextInput, Alert, Text } from "react-native";
 import { useNavigation } from "@react-navigation/native";
 import { useLogin } from "../../hooks/useMember";
-import { UserContext } from "../../context/User";
 import CustomButton from "../../components/button";
 import { StyleSheet } from "react-native";
+import { useUserStore } from "../../store/useUserStore";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login } = useContext(UserContext);
   const navigation = useNavigation();
+  const login = useUserStore((state) => state.login); //zustand 훅
 
   const { mutate: loginMutate, isLoading } = useLogin();
 
@@ -21,8 +21,8 @@ const LoginScreen = () => {
       {
         onSuccess: async (data) => {
           console.log("✅ 서버 응답:", data);
-          await login(data.accessToken, data.name, data.memberId); // ✅ 저장
-          console.log("✅ context 저장 완료 후 token 확인:", data.accessToken);
+          await login(data.accessToken, data.name); 
+          console.log("✅ zustand 저장 완료 후 token 확인:", data.accessToken);
         },
         onError: (error) => {
           Alert.alert("로그인 실패", error.message);
@@ -31,8 +31,6 @@ const LoginScreen = () => {
       }
     );
   };
-
-
 
   return (
     <View style={styles.container}>
