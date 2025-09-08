@@ -78,9 +78,9 @@ const UserProvider = ({ children }) => {
     setToken(accessToken);
     setName(name);
 
-    /*connectStomp(() => {
+    connectStomp(() => {
     console.log("웹소켓 연결 완료 후 처리할 일");
-  });*/
+  });
   };
 
 

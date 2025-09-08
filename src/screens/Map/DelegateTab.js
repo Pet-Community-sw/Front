@@ -1,5 +1,5 @@
-//지도 화면 대리 산책자 탭
-import React, { useState, useCallback, useEffect } from "react";
+// screens/DelegateTab.js
+import React, { useState, useCallback } from "react";
 import {
   View,
   Text,
@@ -7,54 +7,64 @@ import {
   FlatList,
   TouchableOpacity,
   Modal,
-  TextInput,
   Alert,
 } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
-import { 
-  useAddDelegate, 
-  useViewLocationDelegate, 
-  useViewPlaceDelegate, 
-  useViewDelegatePostDetail, 
-  useModifyDelegatePost, 
-  useRemoveDelegatePost, 
-  useCheckProfile, 
-  useApplicateDelegate, 
-  useViewDelegateApplicants, 
-  useSelectDelegateApplicant, 
-  useAuthDelegateRecord, 
- } from '../../hooks/useDelegate';
- 
- import { useViewProfile } from "../../hooks/useProfile";
- import { useProfileSession } from "../../context/SelectProfile";
+import {
+  useAddDelegate,
+  useViewLocationDelegate,
+} from "../../hooks/useDelegate";
+import { useViewProfile } from "../../hooks/useProfile";
+import { useProfileSession } from "../../context/SelectProfile";
+
+import DelegateWriteModal from "../../components/Modal/delegateWriteModal";
+import SelectLocationModal from "../../components/Modal/selectLocationModal";
 
 export default function DelegateTab() {
+  // 📌 기본 상태
   const [modalVisible, setModalVisible] = useState(false);
   const [writeModalVisible, setWriteModalVisible] = useState(false);
-  const [selectProfileModalVisible, setSelectProfileModalVisible] = useState(false);
+  const [selectProfileModalVisible, setSelectProfileModalVisible] =
+    useState(false);
   const [selectedPostId, setSelectedPostId] = useState(null);
-  const [scheduledTime, setScheduledTime] = useState(null);
-  const [limitCount, setLimitCount] = useState("");
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
   const [selectedPetProfileId, setSelectedPetProfileId] = useState(null);
 
+  // 📌 글쓰기 상태
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+  const [price, setPrice] = useState("");
+  const [scheduledTime, setScheduledTime] = useState(null);
+  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+  const [requireProfile, setRequireProfile] = useState(false);
+
+  // 📌 위치 선택 상태
+  const [locationLatitude, setLocationLatitude] = useState(null);
+  const [locationLongitude, setLocationLongitude] = useState(null);
+  const [allowedRadiusMeters, setAllowedRadiusMeters] = useState("");
+  const [selectLocationVisible, setSelectLocationVisible] = useState(false);
+
+  // 📌 API Hooks
   const { mutate: createDelegatePost } = useAddDelegate();
   const { data: profiles = [] } = useViewProfile();
   const { data: posts = [], refetch } = useViewLocationDelegate({});
   const { selectProfile } = useProfileSession();
 
+  // 📌 탭 진입 시 글 목록 새로고침
   useFocusEffect(
     useCallback(() => {
       refetch();
     }, [])
   );
 
+  // 📌 날짜 선택
   const handleConfirmDate = (date) => {
     setScheduledTime(date);
     setDatePickerVisibility(false);
   };
 
+  // 📌 프로필 선택
   const handleSelectProfile = async () => {
     if (!selectedPetProfileId) return;
     try {
@@ -66,23 +76,37 @@ export default function DelegateTab() {
     }
   };
 
+  // 📌 글 등록
   const handleSubmit = () => {
-    if (!scheduledTime || !limitCount) {
-      Alert.alert("입력 오류", "날짜와 인원을 모두 입력하세요");
+    if (
+      !title ||
+      !content ||
+      !price ||
+      !scheduledTime ||
+      !locationLatitude ||
+      !locationLongitude
+    ) {
+      Alert.alert("입력 오류", "모든 항목을 입력해주세요.");
       return;
     }
 
     createDelegatePost(
       {
+        profileId: selectedPetProfileId,
+        title,
+        content,
+        price: Number(price),
+        locationLongitude: Number(locationLongitude),
+        locationLatitude: Number(locationLatitude),
+        allowedRadiusMeters: Number(allowedRadiusMeters) || 500,
         scheduledTime: scheduledTime.toISOString(),
-        limitCount: Number(limitCount),
+        requireProfile,
       },
       {
         onSuccess: () => {
           Alert.alert("등록 완료", "게시글이 등록되었습니다");
           setWriteModalVisible(false);
-          setScheduledTime(null);
-          setLimitCount("");
+          resetForm();
           refetch();
         },
         onError: () => {
@@ -90,6 +114,18 @@ export default function DelegateTab() {
         },
       }
     );
+  };
+
+  // 📌 폼 초기화
+  const resetForm = () => {
+    setTitle("");
+    setContent("");
+    setPrice("");
+    setScheduledTime(null);
+    setLocationLatitude(null);
+    setLocationLongitude(null);
+    setAllowedRadiusMeters("");
+    setRequireProfile(false);
   };
 
   return (
@@ -103,6 +139,7 @@ export default function DelegateTab() {
         <Text style={styles.buttonText}>대리 산책 글 쓰기</Text>
       </TouchableOpacity>
 
+      {/* 글 목록 */}
       <FlatList
         data={posts}
         keyExtractor={(item) => item.delegateWalkPostId?.toString()}
@@ -121,7 +158,11 @@ export default function DelegateTab() {
       />
 
       {/* 프로필 선택 모달 */}
-      <Modal visible={selectProfileModalVisible} animationType="slide" transparent>
+      <Modal
+        visible={selectProfileModalVisible}
+        animationType="slide"
+        transparent
+      >
         <View style={styles.modalWrapper}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>펫 선택</Text>
@@ -134,38 +175,56 @@ export default function DelegateTab() {
                 <Text>{profile.name}</Text>
               </TouchableOpacity>
             ))}
-            <TouchableOpacity style={styles.button} onPress={handleSelectProfile}>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleSelectProfile}
+            >
               <Text style={styles.buttonText}>선택</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={() => setSelectProfileModalVisible(false)}
+            >
+              <Text style={styles.buttonText}>닫기</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
       {/* 글쓰기 모달 */}
-      <Modal visible={writeModalVisible} animationType="slide" transparent>
-        <View style={styles.modalWrapper}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>대리 산책 글쓰기</Text>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setDatePickerVisibility(true)}
-            >
-              <Text>{scheduledTime ? scheduledTime.toLocaleString() : "날짜/시간 선택"}</Text>
-            </TouchableOpacity>
-            <TextInput
-              style={styles.input}
-              placeholder="인원 수"
-              keyboardType="number-pad"
-              value={limitCount}
-              onChangeText={setLimitCount}
-            />
-            <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-              <Text style={styles.buttonText}>등록</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+      <DelegateWriteModal
+        visible={writeModalVisible}
+        title={title}
+        setTitle={setTitle}
+        content={content}
+        setContent={setContent}
+        price={price}
+        setPrice={setPrice}
+        scheduledTime={scheduledTime}
+        setDatePickerVisibility={setDatePickerVisibility}
+        isDatePickerVisible={isDatePickerVisible}
+        handleConfirmDate={handleConfirmDate}
+        requireProfile={requireProfile}
+        setRequireProfile={setRequireProfile}
+        onSubmit={handleSubmit}
+        onClose={() => setWriteModalVisible(false)}
+        locationLatitude={locationLatitude}
+        locationLongitude={locationLongitude}
+        onOpenLocation={() => setSelectLocationVisible(true)}
+      />
 
+      {/* 위치 선택 모달 */}
+      <SelectLocationModal
+        visible={selectLocationVisible}
+        initialLocation={{ latitude: 37.49794, longitude: 127.02758 }}
+        onSelectLocation={(lat, lng) => {
+          setLocationLatitude(lat);
+          setLocationLongitude(lng);
+        }}
+        onClose={() => setSelectLocationVisible(false)}
+      />
+
+      {/* 날짜 선택 모달 */}
       <DateTimePickerModal
         isVisible={isDatePickerVisible}
         mode="datetime"
@@ -174,7 +233,7 @@ export default function DelegateTab() {
       />
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: { flex: 1, padding: 16 },
@@ -206,19 +265,4 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 6,
-    marginBottom: 10,
-  },
-  dateButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 10,
-  },
 });

@@ -7,7 +7,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { StyleSheet, StatusBar, Platform } from "react-native";
 import * as Notifications from "expo-notifications";
 import { UserProvider, UserContext } from "./context/User";
-import { PetProvider } from "./context/PetProfiles";
 import { useNotification } from "./hooks/useNotification";
 import { ChatProvider } from "./context/Chatting";
 import { NotificationProvider } from "./context/Notification";
@@ -139,11 +138,9 @@ const App = () => {
         <SelectProfileProvider>
           <UserProvider>
             <NotificationProvider>
-              <PetProvider>
                 <ChatProvider>
                   <AppInner />
                 </ChatProvider>
-              </PetProvider>
             </NotificationProvider>
           </UserProvider>
         </SelectProfileProvider>

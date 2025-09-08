@@ -15,6 +15,7 @@ import {
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
 
+
 //대리 산책자 게시글 추가
 export const useAddDelegate = () => {
     const queryClient = useQueryClient();

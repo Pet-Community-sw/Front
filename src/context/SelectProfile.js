@@ -1,6 +1,5 @@
 //활동 시작 전 선택한 펫 프로필 저장한 액세스 토큰
 import React, { createContext, useState, useContext } from "react";
-import apiClient from "../api/apiClient";
 import { fetchProfileToken } from "../api/profileApi";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { jwtDecode } from "jwt-decode";
@@ -24,7 +23,7 @@ export const SelectProfileProvider = ({ children }) => {
         await AsyncStorage.setItem("accessToken", accessToken);
         await AsyncStorage.setItem("profileId", profileId.toString());
 
-        // ✅ 토큰 저장 직후 강제로 로딩
+        // 토큰 저장 직후 강제로 로딩
         const checkToken = await AsyncStorage.getItem("accessToken");
         console.log("✅ 토큰 저장 후 확인:", checkToken);
 

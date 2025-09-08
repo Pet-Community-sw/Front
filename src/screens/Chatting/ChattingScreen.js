@@ -12,7 +12,7 @@ import {
   sendChat,
   subscribeChat,
   unsubscribeChat,
-  connectStomp, 
+  connectStomp,
 } from "../../api/stompClient";
 import { useFetchMessages } from "../../hooks/useChatting";
 
@@ -23,17 +23,17 @@ const ChattingScreen = ({ route }) => {
 
   const [input, setInput] = useState("");
   const [enter, setEnter] = useState(false);
+  const [messages, setMessages] = useState([]);
 
-  
   //채팅 내역 불러오기
-  const {
-    data: messagesData = [],
-    refetch: refetchMessages,
-  } = useFetchMessages({ chatRoomId, chatRoomType });
+  const { data: messagesData = [], refetch: refetchMessages } =
+    useFetchMessages({ chatRoomId, chatRoomType });
 
-  // 채팅방 입장 시 메시지 불러오기
+  // ✅ 방 들어갈 때 서버에서 기존 내역 한번 불러오기
   useEffect(() => {
-    refetchMessages();
+    refetchMessages().then((res) => {
+      setMessages(res.data); // 서버에서 받은 기존 내역 세팅
+    });
   }, [chatRoomId]);
 
   // 입장 처리 및 실시간 메시지 구독
@@ -52,7 +52,7 @@ const ChattingScreen = ({ route }) => {
     }
 
     subscribeChat(chatRoomId, (message) => {
-      refetchMessages();    //수신된 메시지가 생기면 다시 메시지 조회
+      setMessages((prev) => [...prev, message]); // ✅ messages state에 추가
     });
 
     //컴포넌트 언마운트 시 구독 해제
@@ -73,7 +73,7 @@ const ChattingScreen = ({ route }) => {
   // 메시지 도착 시 자동 스크롤
   useEffect(() => {
     flatListRef.current?.scrollToEnd({ animated: true });
-  }, [messagesData]);
+  }, [messages]);
 
   // 메시지 전송
   const handleSend = () => {
@@ -123,7 +123,10 @@ const ChattingScreen = ({ route }) => {
 
     return (
       <View style={styles.messageItem}>
-        <Image source={{ uri: item.senderImageUrl }} style={styles.profileImage} />
+        <Image
+          source={{ uri: item.senderImageUrl }}
+          style={styles.profileImage}
+        />
         <Text style={styles.sender}>{item.senderName}</Text>
         <Text>{item.message}</Text>
         <Text style={styles.time}>
@@ -133,7 +136,6 @@ const ChattingScreen = ({ route }) => {
     );
   };
 
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
@@ -142,7 +144,7 @@ const ChattingScreen = ({ route }) => {
 
       <FlatList
         ref={flatListRef}
-        data={messagesData}
+        data={messages}
         keyExtractor={(_, idx) => String(idx)}
         renderItem={renderMessage}
         style={styles.list}

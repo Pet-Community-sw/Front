@@ -5,7 +5,6 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import apiClient, { BASE_URL } from "../api/apiClient";
 import { disconnectNotification } from "../hooks/useNotification";
 import { disconnectStomp } from "../api/stompClient";
-import { useProfileSession } from "../context/SelectProfile";
 
 export const useUserStore = create(
     //어싱크 스토리지 자동 저장, 복원 가능 미들웨어

@@ -1,5 +1,5 @@
 //홈 화면 펫 프로필
-import React, { useContext, useEffect, useState, } from "react";
+import React, { useEffect, useState, } from "react";
 import { useCallback } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal, ScrollView, Image, ActivityIndicator, Alert, Button } from "react-native";
 import { Entypo, AntDesign } from '@expo/vector-icons';
