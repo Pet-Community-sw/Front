@@ -14,7 +14,7 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 
 import { UserContext } from "../context/User";
 import { NotificationBell } from "../components/notification";
-import PetProfile from "../components/PetProfile";
+import PetProfile from "../components/petProfile";
 import { useViewProfile } from "../hooks/useProfile";
 import { Weather } from "../components/weather";
 import { useViewPosts } from "../hooks/usePost";

@@ -38,7 +38,7 @@ export const connectStomp = async (onConnect) => {
     },
 
     onWebSocketError: (error) => {
-      console.error("❌ 웹소켓 레벨 에러 발생:", error);
+      //console.error("❌ 웹소켓 레벨 에러 발생:", error);
     },
   });
 

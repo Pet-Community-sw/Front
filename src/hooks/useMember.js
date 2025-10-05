@@ -12,22 +12,45 @@ import {
 
 //회원가입
 export const useSignup = () => {
-  return useMutation(signup);
+  return useMutation({
+    mutationFn: signup, // 회원가입 함수 호출
+    onSuccess: (data) => {
+      console.log("✅ 회원가입 성공:", data);
+    },
+    onError: (error) => {
+      // 서버에서 내려준 메시지 우선 출력
+      const message =
+        error?.response?.data?.message ||
+        error?.message ||
+        "회원가입 중 알 수 없는 오류 발생";
+
+      console.error("❌ 회원가입 실패:", message);
+    },
+  });
 };
+
+
 
 
 //로그인
 export const useLogin = () => {
   return useMutation({
-    mutationFn: login,  //로그인 함수 호출
+    mutationFn: login, // 로그인 함수 호출
     onSuccess: (data) => {
-      console.log("로그인 성공:", data);
+      console.log("✅ 로그인 성공:", data);
     },
     onError: (error) => {
-      console.error("로그인 실패:", error);
+      // 서버에서 내려준 메시지 우선 출력
+      const message =
+        error.response?.data?.message ||
+        error.message ||
+        "로그인 중 알 수 없는 오류 발생";
+
+      console.error("❌ 로그인 실패:", message);
     },
   });
 };
+
 
 //아이디 찾기
 export const useFindId = () => {
