@@ -19,7 +19,7 @@ const LoginScreen = () => {
       {
         onSuccess: async (data) => {
           console.log("✅ 서버 응답:", data);
-          await login(data.accessToken, data.name);
+          await login(data.accessToken);
           console.log("✅ Context 저장 완료 후 token 확인:", data.accessToken);
         },
         onError: (error) => {

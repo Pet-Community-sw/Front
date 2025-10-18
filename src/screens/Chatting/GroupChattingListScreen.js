@@ -41,35 +41,38 @@ const GroupChattingListScreen = ({ navigation }) => {
       style={styles.chatItem}
     >
       <Text style={styles.chatName}>
-        {item.chatName} ({item.currentCount}/{item.chatLimitCount})
+        {item.chatName} ({item.userSize || 1}명)
       </Text>
-
-
+  
       <View style={styles.thumbnailRow}>
-        {item.profiles?.map((profile) => {
-          const finalUri = profile.profileImageUrl
-            ? `${BASE_URL}${profile.profileImageUrl.replace(/^\/+/, "/")}`
-            : undefined;
-
+        {item.users?.map((user) => {
+          const finalUri =
+          user.userImageUrl?.startsWith("http")
+            ? user.userImageUrl
+            : `${BASE_URL}${user.userImageUrl.replace(/^\/+/, "/")}`;
+        
+  
           return (
             <Image
-              key={profile.profileId}
+              key={user.userId}
               source={{ uri: finalUri }}
               style={styles.thumbnail}
             />
           );
         })}
       </View>
-
+  
       <Text numberOfLines={1} style={styles.lastMessage}>
         {item.lastMessage || "메시지 없음"}
       </Text>
+  
       <Text style={styles.meta}>
-        {item.lastMessageTime}
+        {item.lastMessageTime
+          ? new Date(item.lastMessageTime).toLocaleString("ko-KR")
+          : ""}
         {item.unReadCount > 0 && `  ·  안읽음 ${item.unReadCount}개`}
       </Text>
-
-
+  
       {item.owner && (
         <View style={styles.ownerButtons}>
           <TouchableOpacity
@@ -88,6 +91,7 @@ const GroupChattingListScreen = ({ navigation }) => {
       )}
     </TouchableOpacity>
   );
+  
 
   return (
     <View style={styles.container}>

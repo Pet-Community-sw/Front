@@ -1,8 +1,8 @@
-//지도 기반 산책 추천글, 산책 매칭 모달 이동
-//마커 클릭 시 피드백, 함께 산책해요 탭으로 이동
-//어떤 탭으로 보여줄지만 결정하는 역할.
-//실제로 데이터 불러오는 탭은 FeedbackTab, WalkingTogetherTab
-import React, { useState, useCallback, useEffect } from 'react';
+// 지도 기반 산책 추천글 & 산책 매칭 탭 이동
+// 마커 클릭 시 피드백 / 함께 산책해요 탭으로 이동
+// 실제 데이터 로드는 FeedbackTab, WalkingTogetherTab이 담당
+
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,30 +11,28 @@ import {
   StyleSheet,
   Keyboard,
   TouchableOpacity,
-  FlatList,
-  Image,
   Alert,
-} from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import Geocoder from 'react-native-geocoding';
-import { useFocusEffect } from '@react-navigation/native';
+} from "react-native";
+import MapView, { Marker } from "react-native-maps";
+import Geocoder from "react-native-geocoding";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   useViewLocation,
   useViewPlace,
   useViewRecommendPostDetail,
   useAddRecommend,
-} from '../../hooks/useRecommend';
-import { WalkingTogetherTab } from './WalkingTogetherTab';
-import { FeedbackTab } from './FeedbackTab';
-import { usePostComment } from '../../hooks/usePostComment';
-import { useLikePost } from '../../hooks/useLikePost';
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { debounce } from 'lodash';
+} from "../../hooks/useRecommend";
+import { WalkingTogetherTab } from "./WalkingTogetherTab";
+import { FeedbackTab } from "./FeedbackTab";
+import { usePostComment } from "../../hooks/usePostComment";
+import { useLikePost } from "../../hooks/useLikePost";
+import { MaterialIcons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { debounce } from "lodash";
 
-
-Geocoder.init('AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8');
+Geocoder.init("AIzaSyDEkqUwJoRAryq55TTOLdG4IfCqYn7ooC8");
 
 export default function RecommendTab() {
+  // 🔹 지도 기본 좌표 상태
   const [region, setRegion] = useState({
     latitude: 37.648931,
     longitude: 127.064411,
@@ -42,124 +40,156 @@ export default function RecommendTab() {
     longitudeDelta: 0.01,
   });
 
-  const [searchInput, setSearchInput] = useState('');
+  // 🔹 UI 상태
+  const [searchInput, setSearchInput] = useState("");
   const [selectedPostId, setSelectedPostId] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [usePlaceMode, setUsePlaceMode] = useState(false);
-  const [activeTab, setActiveTab] = useState('feedback');
-  const [newComment, setNewComment] = useState('');
-  const [like, setLike] = useState(false);
-  const [writeModalVisible, setWriteModalVisible] = useState(false);
-  const [selectingLocationVisible, setSelectingLocationVisible] = useState(false); // 모달 ON/OFF
-  const [selectingLocation, setSelectingLocation] = useState({
-    latitude: 37.648931,
-    longitude: 127.064411,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
+  const [modalVisible, setModalVisible] = useState(false); // 게시글 상세 모달
+  const [usePlaceMode, setUsePlaceMode] = useState(false); // 장소 검색 모드 여부
+  const [activeTab, setActiveTab] = useState("feedback"); // 탭 (피드백 / 함께 산책)
+  const [like, setLike] = useState(false); // 좋아요 상태
 
-  //산책길 추천 글
+  // 🔹 위치 선택 및 작성 모드
+  const [selectingLocationVisible, setSelectingLocationVisible] =
+    useState(false); // 지도에서 위치 선택 모드
+  const [selectedLocation, setSelectedLocation] = useState(region);
+  const [writeModalVisible, setWriteModalVisible] = useState(false); // 추천글 작성 모달
+
+  // 🔹 추천글 작성 상태
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [locationName, setLocationName] = useState("");
 
+  const mapRef = useRef < MapView > null;
+
+  // 🔹 API Hooks
   const { mutate: addRecommendPost } = useAddRecommend();
+  const { mutate: addComment } = usePostComment();
+  const { mutate: toggleLike } = useLikePost();
 
-  //지도 사각형 범위 계산 (지도 기반, 장소 검색 기반 동일)
-  const { data: locationData = [], refetch: refetchLocation } = useViewLocation({
-    minLatitude: region.latitude - region.latitudeDelta / 2,
-    maxLatitude: region.latitude + region.latitudeDelta / 2,
-    minLongitude: region.longitude - region.longitudeDelta / 2,
-    maxLongitude: region.longitude + region.longitudeDelta / 2,
-  });
+  // 🔹 지도 내 마커 조회 API
+  const { data: locationData = [], refetch: refetchLocation } = useViewLocation(
+    {
+      minLatitude: region.latitude - region.latitudeDelta / 2,
+      maxLatitude: region.latitude + region.latitudeDelta / 2,
+      minLongitude: region.longitude - region.longitudeDelta / 2,
+      maxLongitude: region.longitude + region.longitudeDelta / 2,
+    }
+  );
 
+  // 🔹 장소 검색 결과 API
   const { data: placeData = [], refetch: refetchPlace } = useViewPlace({
     latitude: region.latitude,
     longitude: region.longitude,
   });
 
-  const { data: postDetail, refetch: refetchPostDetail } = useViewRecommendPostDetail(
-    selectedPostId,
-    { enabled: !!selectedPostId }
-  );
+  // 🔹 게시글 상세 조회 API
+  const { data: postDetail } = useViewRecommendPostDetail(selectedPostId, {
+    enabled: !!selectedPostId,
+  });
 
-  const { mutate: addComment } = usePostComment();
-  const { mutate: toggleLike } = useLikePost();
-
-
-
+  // ✅ 탭 포커스 시 지도 초기화
   useFocusEffect(
     useCallback(() => {
-      // 탭이 포커스될 때 region을 기본값으로 리셋
       setRegion({
         latitude: 37.648931,
         longitude: 127.064411,
         latitudeDelta: 0.01,
         longitudeDelta: 0.01,
       });
-      setUsePlaceMode(false); // 검색 모드도 해제
+      setUsePlaceMode(false);
     }, [])
   );
 
+  // ✅ 게시글 상세 데이터 변경 시 좋아요 반영
   useEffect(() => {
     if (postDetail) setLike(postDetail.like);
   }, [postDetail]);
 
+  // ✅ 탭 포커스 시 지도 데이터 갱신
   useFocusEffect(
     useCallback(() => {
       if (!usePlaceMode) refetchLocation();
     }, [usePlaceMode])
   );
 
+  // 🔹 장소 검색 (지오코딩 → 좌표 이동)
   const handleSearch = async () => {
     if (!searchInput.trim()) return alert("장소를 입력해주세요.");
     try {
       const geo = await Geocoder.from(searchInput);
       const { lat, lng } = geo.results[0].geometry.location;
-      setRegion({ latitude: lat, longitude: lng, latitudeDelta: 0.02, longitudeDelta: 0.02 });
+      setRegion({
+        latitude: lat,
+        longitude: lng,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      });
       await refetchPlace({ latitude: lat, longitude: lng });
       setUsePlaceMode(true);
-      setSearchInput('');
+      setSearchInput("");
       Keyboard.dismiss();
-    } catch (err) {
+    } catch {
       alert("장소를 찾을 수 없습니다.");
     }
   };
 
   const postList = usePlaceMode ? placeData : locationData;
 
+  // 🔹 지도 이동 시 디바운스로 데이터 리패치
   const debouncedRefetch = useCallback(
     debounce(() => {
-      refetchLocation().then((res) => {
-        console.log("🧪 [debounced] refetch 응답 결과:", res?.data ?? "없음");
-      });
+      refetchLocation();
     }, 800),
     []
   );
 
-
   const handleRegionChange = (newRegion) => {
     const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
     const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
-
     if (latMoved || lngMoved) {
-      console.log("🧪 region 변화 감지:", newRegion);
       setRegion(newRegion);
       setUsePlaceMode(false);
-      debouncedRefetch(); // ✅ 디바운스된 리패치 호출
+      debouncedRefetch();
     }
   };
 
+  // 🔹 선택 중인 지도 좌표 업데이트
+  const handleSelectingRegion = (newRegion) => {
+    if (selectingLocationVisible) setSelectedLocation(newRegion);
+  };
 
+  // 🔹 선택된 좌표 → 주소 변환
+  useEffect(() => {
+    if (selectingLocationVisible) {
+      Geocoder.from(selectedLocation.latitude, selectedLocation.longitude)
+        .then((json) => {
+          const address = json.results[0].formatted_address;
+          setLocationName(address);
+        })
+        .catch((error) => console.warn(error));
+    }
+  }, [selectedLocation, selectingLocationVisible]);
 
+  // 🔹 산책길 추가 → 지도에서 위치 선택
+  const handleAddCourse = () => {
+    setSelectingLocationVisible(true);
+  };
+
+  // 🔹 “이 위치로 선택” → 작성 모달 열기
+  const handleConfirmLocation = () => {
+    setSelectingLocationVisible(false);
+    setWriteModalVisible(true);
+  };
+
+  // 🔹 추천글 등록
   const handleSubmit = () => {
     if (!title || !content) {
       Alert.alert("제목과 내용을 입력해주세요.");
       return;
     }
     const postData = {
-      locationLongitude: region.longitude,
-      locationLatitude: region.latitude,
+      locationLongitude: selectedLocation.longitude,
+      locationLatitude: selectedLocation.latitude,
       locationName: locationName || "사용자 선택 위치",
       content,
       title,
@@ -178,19 +208,9 @@ export default function RecommendTab() {
     });
   };
 
-  useEffect(() => {
-    Geocoder.from(region.latitude, region.longitude)
-      .then((json) => {
-        const address = json.results[0].formatted_address;
-        setLocationName(address);
-      })
-      .catch((error) => console.warn(error));
-  }, [region]);
-
-
   return (
     <View style={{ flex: 1 }}>
-      {/* 검색창 */}
+      {/* 🔹 상단 검색창 */}
       <View style={styles.searchBox}>
         <TextInput
           style={styles.input}
@@ -204,19 +224,16 @@ export default function RecommendTab() {
         </TouchableOpacity>
       </View>
 
+      {/* 🔹 지도 본체 */}
       <MapView
         provider="google"
         style={{ flex: 1 }}
-        region={region}
-        /*initialRegion={{
-          latitude: 37.648931,
-          longitude: 127.064411,
-          latitudeDelta: 0.01,
-          longitudeDelta: 0.01,
-        }}*/
+        region={selectingLocationVisible ? selectedLocation : region}
+        zoomControlEnabled
+        zoomEnabled
         onRegionChangeComplete={handleRegionChange}
       >
-        {/* 마커 리스트 불러오기 */}
+        {/* 🔹 추천글 마커 표시 */}
         {postList.map((post) => (
           <Marker
             key={post.recommendRoutePostId}
@@ -230,46 +247,92 @@ export default function RecommendTab() {
               setSelectedPostId(post.recommendRoutePostId);
               setModalVisible(true);
             }}
-          />
+            tracksViewChanges={false}
+          >
+            <MaterialIcons name="place" size={40} color="#31326F" />
+          </Marker>
         ))}
-
-        {writeModalVisible && (
-          <Marker
-            coordinate={{
-              latitude: region.latitude,
-              longitude: region.longitude,
-            }}
-            title="선택한 위치"
-          />
-        )}
       </MapView>
 
-      {/* 상세 정보 모달 */}
+     
+{/* ✅ 중앙 고정 마커 (지도 밖 오버레이로 추가) */}
+{selectingLocationVisible && (
+  <>
+    <View
+      pointerEvents="none" // 지도 드래그 막지 않음
+      style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: [{ translateX: -20 }, { translateY: -40 }],
+        zIndex: 10,
+      }}
+    >
+      <MaterialCommunityIcons name="map-marker" size={50} color="#E53935" />
+    </View>
+
+    {/* 🔹 위치 선택 안내 / 버튼 */}
+    <View style={styles.overlayBottom}>
+      <Text style={styles.overlayText}>
+        📍 지도를 움직여 위치를 선택하세요
+      </Text>
+      <TouchableOpacity
+        style={styles.applyBtn}
+        onPress={handleConfirmLocation}
+      >
+        <Text style={styles.applyText}>이 위치로 선택</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={{ marginTop: 10 }}
+        onPress={() => setSelectingLocationVisible(false)}
+      >
+        <Text style={styles.closeBtn}>닫기</Text>
+      </TouchableOpacity>
+    </View>
+  </>
+)}
+
+      {/* 🔹 추천글 상세 모달 */}
       <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={{ flex: 1, justifyContent: "flex-end", backgroundColor: 'rgba(0,0,0,0.2)' }}>
-          <View style={{
-            backgroundColor: '#fff',
-            padding: 20,
-            borderTopLeftRadius: 16,
-            borderTopRightRadius: 16,
-            maxHeight: '90%', // 원하는 높이 조절
-          }}>
-            {/* 탭 버튼 */}
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalInner}>
+            {/* 탭 전환 */}
             <View style={styles.tabBar}>
               <TouchableOpacity
-                style={[styles.tabBtn, activeTab === "feedback" && styles.activeTab]}
+                style={[
+                  styles.tabBtn,
+                  activeTab === "feedback" && styles.activeTab,
+                ]}
                 onPress={() => setActiveTab("feedback")}
               >
-                <Text style={[styles.tabText, activeTab === "feedback" && styles.activeTabText]}>피드백</Text>
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === "feedback" && styles.activeTabText,
+                  ]}
+                >
+                  피드백
+                </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.tabBtn, activeTab === "walking" && styles.activeTab]}
+                style={[
+                  styles.tabBtn,
+                  activeTab === "walking" && styles.activeTab,
+                ]}
                 onPress={() => setActiveTab("walking")}
               >
-                <Text style={[styles.tabText, activeTab === "walking" && styles.activeTabText]}>함께 산책해요</Text>
+                <Text
+                  style={[
+                    styles.tabText,
+                    activeTab === "walking" && styles.activeTabText,
+                  ]}
+                >
+                  함께 산책해요
+                </Text>
               </TouchableOpacity>
             </View>
 
+            {/* 탭 내용 */}
             <View style={{ minHeight: 500 }}>
               {activeTab === "feedback" && selectedPostId && (
                 <FeedbackTab recommendRoutePostId={selectedPostId} />
@@ -287,43 +350,23 @@ export default function RecommendTab() {
             </TouchableOpacity>
           </View>
         </View>
-
       </Modal>
 
+      {/* 🔹 산책길 추가 버튼 */}
+      {!selectingLocationVisible && !writeModalVisible && (
+        <TouchableOpacity onPress={handleAddCourse} style={styles.addButton}>
+          <Text style={styles.addButtonText}>산책길 코스 추가</Text>
+        </TouchableOpacity>
+      )}
 
-
-      {/* 산책길 추천 추가 버튼 */}
-      <TouchableOpacity
-        onPress={() => setWriteModalVisible(true)}
-        style={{
-          position: 'absolute',
-          bottom: 30,
-          right: 20,
-          backgroundColor: '#6A9C89',
-          paddingVertical: 12,
-          paddingHorizontal: 20,
-          borderRadius: 24,
-          elevation: 5,
-        }}
-      >
-        <Text style={{ color: '#fff', fontSize: 16, fontWeight: 'bold' }}>산책길 추천 추가</Text>
-      </TouchableOpacity>
-
-      {/* 등록 모달 */}
+      {/* 🔹 추천글 작성 모달 */}
       <Modal visible={writeModalVisible} animationType="fade" transparent>
         <View style={styles.modalWrapper}>
           <View style={styles.modalContent}>
             <Text style={styles.modalTitle}>산책길 추천 코스 추가</Text>
-
-            {/* 위치 설정 버튼 */}
-            <TouchableOpacity onPress={() => setSelectingLocationVisible(true)}>
-              <Text style={{ color: "#4A90E2", marginBottom: 8 }}>
-                📍 지도에서 위치 설정하기
-              </Text>
-              <Text style={{ color: "#444", marginBottom: 6 }}>
-                📍 선택한 위치: {locationName || "불러오는 중..."}
-              </Text>
-            </TouchableOpacity>
+            <Text style={{ color: "#444", marginBottom: 6 }}>
+              📍 선택한 위치: {locationName || "불러오는 중..."}
+            </Text>
 
             <TextInput
               placeholder="제목을 입력하세요"
@@ -343,83 +386,19 @@ export default function RecommendTab() {
               <Text style={styles.applyText}>등록</Text>
             </TouchableOpacity>
             <TouchableOpacity
-              style={styles.closeBtn}
+              style={{ marginTop: 10 }}
               onPress={() => setWriteModalVisible(false)}
             >
-              <Text style={styles.closeText}>닫기</Text>
+              <Text style={{ color: "#666" }}>닫기</Text>
             </TouchableOpacity>
           </View>
-        </View>
-      </Modal>
-
-      {/* 지도에서 위치 선택 모달 */}
-      <Modal visible={selectingLocationVisible} animationType="slide">
-        <View style={{ flex: 1 }}>
-          <MapView
-            provider="google"
-            style={{ flex: 1 }}
-            region={selectingLocation}
-            zoomControlEnabled={true} // ✅ 줌 버튼 보이기 (Android만)
-            zoomEnabled={true}        // ✅ 터치 줌 허용
-            scrollEnabled={true}
-            /*initialRegion={{
-              latitude: 37.648931,
-              longitude: 127.064411,
-              latitudeDelta: 0.01,
-              longitudeDelta: 0.01,
-            }}*/
-            onRegionChangeComplete={(newRegion) => {
-              setSelectingLocation(newRegion); // ✅ 사용자 조작에 따라 selectingLocation 업데이트
-            }}
-          />
-
-
-          {/* 지도 움직이면서 마커 고정 */}
-          <View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              top: '50%',
-              left: '50%',
-              marginLeft: -24,
-              marginTop: -48,
-              zIndex: 10,
-            }}
-          >
-            <MaterialCommunityIcons
-              name="map-marker"
-              size={48}
-              color="red" // 원하는 색
-            />
-          </View>
-
-          <TouchableOpacity
-            onPress={() => {
-              setRegion(selectingLocation); // ✅ 메인 region으로 반영
-              setSelectingLocationVisible(false);
-            }}
-            style={{
-              backgroundColor: "#6A9C89",
-              padding: 14,
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ color: "white", fontWeight: "bold" }}>
-              이 위치로 선택
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.closeBtn}
-            onPress={() => setSelectingLocationVisible(false)}
-          >
-            <Text style={styles.closeText}>닫기</Text>
-          </TouchableOpacity>
         </View>
       </Modal>
     </View>
   );
 }
 
+// ===================== 🎨 스타일 ===================== //
 const styles = StyleSheet.create({
   searchBox: {
     position: "absolute",
@@ -437,7 +416,7 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowRadius: 4,
     elevation: 5,
-    zIndex: 10
+    zIndex: 10,
   },
   input: {
     flex: 1,
@@ -455,14 +434,98 @@ const styles = StyleSheet.create({
   searchButtonText: {
     color: "#fff",
     fontSize: 15,
-    alignSelf: "center"
+    alignSelf: "center",
+  },
+  overlayTop: {
+    position: "absolute",
+    top: 60,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  overlayText: {
+    fontSize: 16,
+    backgroundColor: "rgba(255,255,255,0.9)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    color: "#333",
+  },
+  overlayBottom: {
+    position: "absolute",
+    bottom: 40,
+    left: 0,
+    right: 0,
+    alignItems: "center",
+  },
+  addButton: {
+    position: "absolute",
+    bottom: 30,
+    left: 20,
+    backgroundColor: "#6A9C89",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 24,
+    elevation: 5,
+  },
+  addButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  modalBackdrop: {
+    flex: 1,
+    justifyContent: "flex-end",
+    backgroundColor: "rgba(0,0,0,0.2)",
+  },
+  modalInner: {
+    backgroundColor: "#fff",
+    padding: 20,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    maxHeight: "90%",
+  },
+  tabBar: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderColor: "#ddd",
+    backgroundColor: "#f9f9f9",
+  },
+  tabBtn: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 12,
+  },
+  activeTab: {
+    borderBottomWidth: 2,
+    borderColor: "#6A9C89",
+  },
+  tabText: {
+    fontSize: 17,
+    color: "#555",
+  },
+  activeTabText: {
+    color: "#6A9C89",
+    fontWeight: "bold",
+  },
+  closeArea: {
+    paddingVertical: 14,
+    alignItems: "center",
+    backgroundColor: "#eee",
+  },
+  closeText: {
+    fontWeight: "bold",
+    color: "#444",
+  },
+  closeBtn: {
+    marginTop: 10,
+    alignItems: "center",
   },
   modalWrapper: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(0, 0, 0, 0.5)",
-    zIndex: 20,
   },
   modalContent: {
     backgroundColor: "#fff",
@@ -484,13 +547,6 @@ const styles = StyleSheet.create({
   applyText: {
     color: "white",
     fontSize: 16,
-  },
-  closeBtn: {
-    marginTop: 10,
-    alignItems: "center",
-  },
-  closeText: {
-    color: "#666",
   },
   titleInput: {
     fontSize: 16,
@@ -516,40 +572,4 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     marginBottom: 12,
   },
-  tabBar: {
-    flexDirection: "row",
-    borderBottomWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#f9f9f9",
-  },
-  tabBtn: {
-    flex: 1,
-    alignItems: "center",
-    paddingVertical: 12,
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderColor: "#6A9C89",
-  },
-  tabText: {
-    fontFamily: "font",
-    alignItems: "center",
-    fontSize: 17,
-    color: "#555",
-  },
-  activeTabText: {
-    fontFamily: "fontExtra",
-    alignItems: "center",
-    color: "#6A9C89",
-  },
-  closeArea: {
-    paddingVertical: 14,
-    alignItems: "center",
-    backgroundColor: "#eee",
-  },
-  closeText: {
-    fontWeight: "bold",
-    color: "#444",
-  },
-
 });

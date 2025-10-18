@@ -15,6 +15,7 @@ const ChattingStack = () => {
           headerTitleAlign: "center",
           headerStyle: {
             backgroundColor: "#57B4BA",
+            height: 100,
           },
           headerTitle: () => (
             <View style={{ flexDirection: "row", alignItems: "center" }}>

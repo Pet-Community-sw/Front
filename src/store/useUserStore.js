@@ -12,17 +12,14 @@ export const useUserStore = create(
         (set) => ({
             //상태값들
             token: null,
-            name: null,
 
             //상태 변경 함수
             setToken: (token) => set({ token }),
-            setName: (name) => set({ name }),
 
             //로그인 함수
-            login: async (accessToken, name) => {
+            login: async (accessToken) => {
                 await AsyncStorage.setItem("accessToken", accessToken)
-                await AsyncStorage.setItem("name", name)
-                set({ token: accessToken, name: name })
+                set({ token: accessToken})
                 //커넥트 stomp 로직 추가 가능
             },
 
@@ -40,8 +37,8 @@ export const useUserStore = create(
                         console.log('❌ 서버 로그아웃 실패: ', err)
                     }
                 }
-                await AsyncStorage.multiRemove(["accessToken", "name", "memberId"])
-                set({ token: null, name: null, memberId: null })
+                await AsyncStorage.multiRemove(["accessToken", "memberId"])
+                set({ token: null, memberId: null })
 
                 await disconnectNotification()
                 await disconnectStomp()

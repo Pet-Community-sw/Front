@@ -4,6 +4,22 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import { BASE_URL } from "./apiClient";
 
+//펫 종 표시
+export const viewPetBreeds = async () => {
+  try {
+    const response = await apiClient.get("/pet-breeds");
+    return response.data;
+  } catch (error) {
+  console.log("❌ API 요청 실패:", {
+    message: error.message,
+    response: error.response,
+    data: error.response?.data,
+    status: error.response?.status,
+    headers: error.response?.headers,
+  });
+}
+}
+
 // 프로필 추가
 export const addProfile = async (data) => {
   try {
@@ -11,7 +27,7 @@ export const addProfile = async (data) => {
     const formData = new FormData();
 
     formData.append("petName", data.petName);
-    formData.append("petBreed", data.petBreed);
+    formData.append("petBreedId", data.petBreedId);
     formData.append("petBirthDate", data.petBirthDate);
     formData.append("avoidBreeds", data.avoidBreeds);
     formData.append("extraInfo", data.extraInfo);
@@ -25,9 +41,8 @@ export const addProfile = async (data) => {
     }
 
     console.log("🔥 보내는 토큰:", token);
-    for (let pair of formData.entries()) {
-      console.log(`🔥 FormData - ${pair[0]}:`, pair[1]);
-    }
+    console.log("📦 FormData 내용(_parts):", formData?._parts);
+
 
     // ✅ 요청 직전에 인터셉터 설정
     axios.interceptors.request.use((config) => {

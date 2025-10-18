@@ -39,7 +39,7 @@ services:
       retries: 10
 
   app:
-    image: sunjaegood/petapp:latest
+    image: sunjaegood/petapp:test
     container_name: pet-app
     restart: always
     ports:

@@ -46,9 +46,9 @@ const PetProfile = () => {
   const [formData, setFormData] = useState({
     petImageUrl: "",
     petName: "",
-    petBreed: "",
+    petBreedId: null,
     petBirthDate: "",
-    avoidBreeds: "",
+    avoidBreeds: [],
     extraInfo: ""
   });
 
@@ -57,9 +57,9 @@ const PetProfile = () => {
     setFormData({
       petImageUrl: "",
       petName: "",
-      petBreed: "",
+      petBreedId: null,
       petBirthDate: "",
-      avoidBreeds: "",
+      avoidBreeds: [],
       extraInfo: ""
     });
   };
@@ -68,9 +68,9 @@ const PetProfile = () => {
   const [editData, setEditData] = useState({
     petImageUrl: "",
     petName: "",
-    petBreed: "",
+    petBreedId: null,
     petBirthDate: "",
-    avoidBreeds: "",
+    avoidBreeds: [],
     extraInfo: ""
   });
 
@@ -80,9 +80,9 @@ const PetProfile = () => {
       setEditData({
         petImageUrl: profileDetail.petImageUrl || "",
         petName: profileDetail.petName || "",
-        petBreed: profileDetail.petBreed || "",
+        petBreedId: profileDetail.petBreedId || null,
         petBirthDate: profileDetail.petBirthDate || "",
-        avoidBreeds: profileDetail.avoidBreeds || "",
+        avoidBreeds: profileDetail.avoidBreeds || [],
         extraInfo: profileDetail.extraInfo || ""
       });
     }
@@ -99,9 +99,9 @@ const PetProfile = () => {
       setEditData({
         petImageUrl: profileDetail.petImageUrl || "",
         petName: profileDetail.petName || "",
-        petBreed: profileDetail.petBreed || "",
+        petBreedId: profileDetail.petBreedId || null,
         petBirthDate: profileDetail.petBirthDate || "",
-        avoidBreeds: profileDetail.avoidBreeds || "",
+        avoidBreeds: profileDetail.avoidBreeds || [],
         extraInfo: profileDetail.extraInfo || ""
       });
     }
@@ -299,7 +299,7 @@ const PetProfile = () => {
               <ScrollView>
                 <Image source={{ uri: profileDetail?.petImageUrl }} style={styles.modalImage} />
                 <Text style={styles.detailText}>이름: {profileDetail?.petName}</Text>
-                <Text style={styles.detailText}>견종: {profileDetail?.petBreed?.name}</Text>
+                <Text style={styles.detailText}>견종: {profileDetail?.petBreedId?.name}</Text>
                 <Text style={styles.detailText}>생일: {profileDetail?.petBirthDate}</Text>
                 <Text style={styles.detailText}>피해야 할 종: {profileDetail?.avoidBreeds?.name}</Text>
                 <Text style={styles.detailText}>기타 정보: {profileDetail?.extraInfo}</Text>
@@ -337,9 +337,9 @@ const PetProfile = () => {
 
               {/* 입력 필드들 */}
               <TextInput style={styles.input} placeholder="이름" value={formData.petName} onChangeText={(text) => handleChange("petName", text)} />
-              <TextInput style={styles.input} placeholder="견종" value={formData.petBreed} onChangeText={(text) => handleChange("petBreed", text)} />
+              <TextInput style={styles.input} placeholder="견종" value={formData.petBreedId} onChangeText={(text) => handleChange("petBreedId", text)} />
               <TextInput style={styles.input} placeholder="생일 (YYYY-MM-DD)" value={formData.petBirthDate} onChangeText={(text) => handleChange("petBirthDate", text)} />
-              <TextInput style={styles.input} placeholder="피해야 할 종" value={formData.avoidBreeds} onChangeText={(text) => handleChange("avoidBreeds", text)} />
+              <TextInput style={styles.input} placeholder="피해야 할 종" value={formData.avoidBreeds.join(", ")} onChangeText={(text) => handleChange("avoidBreeds", text.split(", "))} />
               <TextInput style={styles.input} placeholder="기타 정보" value={formData.extraInfo} onChangeText={(text) => handleChange("extraInfo", text)} />
 
               {/* 하단 버튼 */}
@@ -382,9 +382,9 @@ const PetProfile = () => {
               )}
 
               <TextInput style={styles.input} placeholder="이름" value={editData.petName} onChangeText={(text) => handleEditData("petName", text)} />
-              <TextInput style={styles.input} placeholder="견종" value={editData.petBreed} onChangeText={(text) => handleEditData("petBreed", text)} />
+              <TextInput style={styles.input} placeholder="견종" value={editData.petBreedId} onChangeText={(text) => handleEditData("petBreedId", text)} />
               <TextInput style={styles.input} placeholder="생일 (YYYY-MM-DD)" value={editData.petBirthDate} onChangeText={(text) => handleEditData("petBirthDate", text)} />
-              <TextInput style={styles.input} placeholder="피해야 할 종" value={editData.avoidBreeds} onChangeText={(text) => handleEditData("avoidBreeds", text)} />
+              <TextInput style={styles.input} placeholder="피해야 할 종" value={editData.avoidBreeds.join(", ")} onChangeText={(text) => handleEditData("avoidBreeds", text.split(", "))} />
               <TextInput style={styles.input} placeholder="기타 정보" value={editData.extraInfo} onChangeText={(text) => handleEditData("extraInfo", text)} />
               <Button title="저장" onPress={handlemodify} />
               <Button title="취소" onPress={() => setEditModalVisible(false)} />

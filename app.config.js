@@ -9,7 +9,7 @@ export default {
     orientation: "portrait",
     icon: "./assets/icon.png",
     userInterfaceStyle: "light",
-    newArchEnabled: true,
+    newArchEnabled: false,
     jsEngine: "hermes", 
     splash: {
       image: "./assets/splash-icon.png",
@@ -39,7 +39,8 @@ export default {
       "NanumGothic-Regular": "./assets/fonts/NanumGothic-Regular.ttf"
     },
     plugins: [
-      "expo-font"
+      "expo-font", 
+      "expo-splash-screen"
     ]
   }
 };

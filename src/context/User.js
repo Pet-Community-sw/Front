@@ -13,7 +13,6 @@ const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
   const [token, setToken] = useState(null);
-  const [name, setName] = useState(null);
   const [memberId, setMemberId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { clearProfile } = useProfileSession();
@@ -29,12 +28,10 @@ const UserProvider = ({ children }) => {
     const loadUserData = async () => {
       try {
         const storedToken = await AsyncStorage.getItem("accessToken");
-        const storedName = await AsyncStorage.getItem("name");
         const storedMemberId = await AsyncStorage.getItem("memberId");
 
         if (storedToken) {
           setToken(storedToken);
-          if (storedName) setName(storedName);
           if (storedMemberId) setMemberId(storedMemberId);
         }
       } catch (e) {
@@ -72,11 +69,9 @@ const UserProvider = ({ children }) => {
 
 
   // 로그인 시 토큰 저장
-  const login = async (accessToken, name) => {
+  const login = async (accessToken) => {
     await AsyncStorage.setItem("accessToken", accessToken);
-    await AsyncStorage.setItem("name", name);
     setToken(accessToken);
-    setName(name);
 
     connectStomp(() => {
     console.log("웹소켓 연결 완료 후 처리할 일");
@@ -109,8 +104,7 @@ const UserProvider = ({ children }) => {
     }
 
     setToken(null);
-    setName(null);
-    await AsyncStorage.multiRemove(["accessToken", "name", "memberId"]);
+    await AsyncStorage.multiRemove(["accessToken", "memberId"]);
 
     // 연결 해제
     await disconnectNotification();
@@ -121,12 +115,11 @@ const UserProvider = ({ children }) => {
 
   const contextValue = useMemo(() => ({
     token,
-    name,
     loading,
     login,
     logout,
     refreshAccessToken,
-  }), [token, name, loading]);
+  }), [token, loading]);
 
   return (
     <UserContext.Provider value={contextValue} >

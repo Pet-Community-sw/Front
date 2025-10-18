@@ -5,8 +5,7 @@ import { useMutation, useQuery, useQueryClient, } from "@tanstack/react-query";
 import { modifyProfile } from "../api/profileApi";
 import { removeProfile } from "../api/profileApi";
 import { viewOneProfile } from "../api/profileApi";
-import { fetchProfileToken } from "../api/profileApi";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { viewPetBreeds } from "../api/profileApi";
 
 //프로필 추가
 //setQueryData ui 업데이트
@@ -73,4 +72,13 @@ const useViewOneProfile = (profileId) => {
   });
 }
 
-export { useAddProfile, useViewProfile, useModifyProfile, useRemoveProfile, useViewOneProfile };
+//펫 종 조회
+const useViewPetBreeds = () => {
+  return useQuery({
+    queryKey: ["preeds"],
+    queryFn: () => viewPetBreeds,
+    enabled: false,
+  });
+}
+
+export { useAddProfile, useViewProfile, useModifyProfile, useRemoveProfile, useViewOneProfile, useViewPetBreeds };
