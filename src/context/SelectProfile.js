@@ -34,6 +34,8 @@ export const SelectProfileProvider = ({ children }) => {
     // 토큰 저장 직후 강제로 로딩
     const checkToken = await AsyncStorage.getItem("accessToken");
     console.log("✅ 토큰 저장 후 확인:", checkToken);
+    console.log("✅ 토큰 길이:", checkToken?.length);
+    console.log("✅ 토큰 미리보기:", checkToken ? checkToken.substring(0, 20) + "..." : "없음");
 
     // 전역 상태 저장
     setProfileToken(accessToken);

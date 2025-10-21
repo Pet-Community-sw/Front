@@ -98,10 +98,12 @@ const PostListScreen = ({ navigation }) => {
     });
   };
 
-  const getImageUri = (relativePath) =>
-    relativePath
-      ? `${BASE_URL.replace(/\/$/, "")}/${relativePath.replace(/^\/+/, "")}`
-      : undefined;
+  const getImageUri = (relativePath) => {
+    if (!relativePath || relativePath === null || relativePath === undefined) {
+      return null;
+    }
+    return `${BASE_URL.replace(/\/$/, "")}/${relativePath.replace(/^\/+/, "")}`;
+  };
 
 
   return (
@@ -136,7 +138,7 @@ const PostListScreen = ({ navigation }) => {
               ]}
               onPress={() => navigation?.navigate("PostDetail", { postId: item.postId })}
             >
-              {item.postImageUrl && (
+              {item.postImageUrl && getImageUri(item.postImageUrl) && (
                 <Image
                   source={{ uri: getImageUri(item.postImageUrl) }}
                   style={styles.thumbnail}

@@ -76,7 +76,7 @@ const useViewOneProfile = (profileId) => {
 const useViewPetBreeds = () => {
   return useQuery({
     queryKey: ["preeds"],
-    queryFn: () => viewPetBreeds,
+    queryFn: () => viewPetBreeds(),
     enabled: false,
   });
 }

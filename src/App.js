@@ -1,5 +1,8 @@
 import "react-native-gesture-handler";
 import React, { useContext, useEffect } from "react";
+
+// TextEncoder/TextDecoder 폴리필 추가 (STOMP 라이브러리용)
+import 'text-encoding';
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

@@ -15,14 +15,14 @@ import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { UserContext } from "../context/User";
 import { NotificationBell } from "../components/notification";
 import PetProfile from "../components/petProfile";
-import { useViewProfile } from "../hooks/useProfile";
+// import { useViewProfile } from "../hooks/useProfile"; // PetProfile에서만 사용
 import { Weather } from "../components/weather";
 import { useViewPosts } from "../hooks/usePost";
 import { BASE_URL } from "../api/apiClient";
 
 const HomeScreen = () => {
   const { logout, loading } = useContext(UserContext);
-  const { data: profiles = [] } = useViewProfile();
+  // const { data: profiles = [] } = useViewProfile(); // PetProfile에서만 사용
   const { data: posts = [], refetch } = useViewPosts();
 
 
@@ -42,14 +42,8 @@ const HomeScreen = () => {
 
   const weatherText = Weather();
 
-  const today = new Date().toISOString().slice(5, 10);
-  const birthdayPet = profiles.find((p) => p.petBirthDate?.slice(5, 10) === today);
-
-  const greetingText = birthdayPet
-    ? `🎉 오늘은 ${birthdayPet.petName}의 생일이에요! 축하합니다 🥳`
-    : profiles.length > 0
-      ? `오늘도 ${profiles[0].petName}와 좋은 하루 보내세요 💛`
-      : "등록된 반려동물이 없습니다.";
+  // PetProfile에서 profiles 데이터를 관리하므로 인사말은 간단하게 변경
+  const greetingText = "오늘도 좋은 하루 보내세요! 💛";
 
   useFocusEffect(
     useCallback(() => {
@@ -97,10 +91,12 @@ const HomeScreen = () => {
           <Text style={styles.petGreetingText}>{greetingText}</Text>
         </View>
 
-        <View style={{ width: "100%", alignItems: "flex-start", marginTop: 7 }}>
+        <View style={styles.petSection}>
           <Text style={styles.title}>🐶🐱 댕냥이 친구들</Text>
+          <View style={styles.petProfileContainer}>
+            <PetProfile />
+          </View>
         </View>
-        <PetProfile />
 
         <View style={styles.divider} />
 
@@ -247,13 +243,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   sectionTitle: {
-    fontSize: 25,
+    fontSize: 28,
     color: "black",
     fontFamily: "cute",
-    marginBottom: 12,
+    marginBottom: 15,
     marginLeft: 3,
-    marginTop: 5,
-    lineHeight: 30,
+    marginTop: 8,
+    lineHeight: 34,
   },
   buttonRow: {
     flexDirection: "row",
@@ -302,16 +298,17 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   title: {
-    fontSize: 23,
+    fontSize: 28,
     color: "#333",
     textAlign: "left",
     alignSelf: "flex-start",
     width: "100%",
     paddingLeft: 20,
     marginLeft: 0,
-    marginTop: 15,
-    marginBottom: -8,
-    fontFamily: "cute"
+    marginTop: 18,
+    marginBottom: 5,
+    fontFamily: "cute",
+    lineHeight: 34,
   },
   feedCard: {
     marginBottom: 20,
@@ -358,6 +355,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#888",
     marginTop: 2,
+  },
+
+  // 댕냥이 친구들 영역 스타일
+  petSection: {
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  petProfileContainer: {
+    backgroundColor: "transparent",
+    padding: 4,
+    marginTop: 4,
+    marginHorizontal: 2,
   },
 
 });

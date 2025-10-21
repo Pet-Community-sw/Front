@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { useCallback, useState, useEffect, useContext } from "react";
 import {
   View,
   TouchableOpacity,
@@ -7,19 +7,107 @@ import {
   Image,
   StyleSheet,
   Alert,
+  Modal,
+  ScrollView,
 } from "react-native";
 import { useGroupChattingList } from "../../hooks/useChatting";
 import { useFocusEffect } from "@react-navigation/native";
 import { BASE_URL } from "../../api/apiClient";
+import { useViewProfile } from "../../hooks/useProfile";
+import { useProfileSession } from "../../context/SelectProfile";
+import { UserContext } from "../../context/User";
+import { 
+  connectStomp, 
+  subscribeChatList, 
+  unsubscribeChatList,
+  isStompConnected,
+  logStompStatus 
+} from "../../api/stompClient";
 
 const GroupChattingListScreen = ({ navigation }) => {
   const { data: chatRooms = [], refetch } = useGroupChattingList();
+  const { data: profiles = [] } = useViewProfile();
+  const { selectProfile } = useProfileSession();
+  const { loggedId } = useContext(UserContext);
+  
+  const [selectProfileModalVisible, setSelectProfileModalVisible] = useState(false);
+  const [selectedPetProfileId, setSelectedPetProfileId] = useState(null);
+
+  // STOMP 연결 및 채팅방 목록 구독
+  useEffect(() => {
+    const initializeStomp = async () => {
+      try {
+        console.log("🔄 STOMP 연결 시도 (채팅방 목록)");
+        logStompStatus();
+        
+        await connectStomp(() => {
+          console.log("✅ STOMP 연결 완료, 채팅방 목록 구독 시작");
+          logStompStatus();
+          
+          // 채팅방 목록 구독
+          subscribeChatList(loggedId, (listUpdate) => {
+            console.log("📥 채팅방 목록 업데이트 수신:", listUpdate);
+            // 목록 새로고침
+            refetch();
+          });
+        });
+      } catch (error) {
+        console.error("❌ STOMP 연결 실패 (채팅방 목록):", error);
+        logStompStatus();
+      }
+    };
+
+    if (loggedId) {
+      initializeStomp();
+    }
+
+    // 컴포넌트 언마운트 시 구독 해제
+    return () => {
+      if (loggedId) {
+        unsubscribeChatList(loggedId);
+        console.log("📤 채팅방 목록 구독 해제");
+      }
+    };
+  }, [loggedId]);
 
   useFocusEffect(
     useCallback(() => {
-      refetch();
+      setSelectProfileModalVisible(true); // 화면 진입 시 프로필 선택 모달 열기
     }, [])
   );
+
+  const handleSelectProfile = async () => {
+    console.log("🚀 채팅 프로필 선택 시작, selectedPetProfileId:", selectedPetProfileId);
+    
+    if (!selectedPetProfileId) {
+      console.log("❌ selectedPetProfileId가 없음");
+      return;
+    }
+    
+    try {
+      console.log("🔄 selectProfile 호출 시작...");
+      await selectProfile(selectedPetProfileId);
+      console.log("✅ selectProfile 완료");
+      
+      await new Promise((resolve) => setTimeout(resolve, 200));
+      console.log("⏰ 대기 완료");
+      
+      setSelectProfileModalVisible(false);
+      console.log("🎉 프로필 선택 완료, 채팅 목록 로드 시작");
+      
+      // 프로필 선택 후 채팅 목록 로드
+      refetch()
+        .then((result) => {
+          console.log("✅ 채팅 목록 refetch 성공:", result?.data);
+        })
+        .catch((error) => {
+          console.error("❌ 채팅 목록 refetch 실패:", error);
+        });
+    } catch (error) {
+      console.error("❌ selectProfile error:", error);
+      Alert.alert("오류", "프로필 선택 중 문제가 발생했습니다.");
+    }
+  };
 
   const handleEdit = (chatRoomId) => {
     Alert.alert("수정 기능", `방 ID ${chatRoomId} 수정 클릭`);
@@ -95,6 +183,71 @@ const GroupChattingListScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      {/* 프로필 선택 모달 */}
+      <Modal
+        visible={selectProfileModalVisible}
+        animationType="slide"
+        transparent
+      >
+        <View style={styles.modalWrapper}>
+          <View style={styles.modalContent}>
+            <ScrollView style={{ maxHeight: 360 }}>
+              <Text style={styles.modalTitle}>
+                🐶 채팅에 사용할 펫을 선택하세요
+              </Text>
+
+              {Array.isArray(profiles) && profiles.length === 0 && (
+                <Text style={{ color: "#666", marginBottom: 12 }}>
+                  등록된 프로필이 없습니다. 먼저 프로필을 추가해주세요.
+                </Text>
+              )}
+
+              {profiles.map((profile) => (
+                <TouchableOpacity
+                  key={profile.profileId}
+                  style={[
+                    styles.profileCard,
+                    selectedPetProfileId === profile.profileId && {
+                      borderColor: "#7EC8C2",
+                      borderWidth: 2,
+                    },
+                  ]}
+                  onPress={() => setSelectedPetProfileId(profile.profileId)}
+                >
+                  <Image
+                    source={
+                      profile.petImageUrl
+                        ? { uri: `${BASE_URL}${profile.petImageUrl}` }
+                        : require("../../../assets/icon.png")
+                    }
+                    style={styles.profileImage}
+                  />
+                  <Text style={styles.profileName}>{profile.petName}</Text>
+                </TouchableOpacity>
+              ))}
+
+              <TouchableOpacity
+                style={[
+                  styles.applyBtn,
+                  { opacity: selectedPetProfileId ? 1 : 0.6 },
+                ]}
+                disabled={!selectedPetProfileId}
+                onPress={handleSelectProfile}
+              >
+                <Text style={styles.applyText}>선택하기</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.applyBtn, { backgroundColor: "#ccc" }]}
+                onPress={() => setSelectProfileModalVisible(false)}
+              >
+                <Text style={styles.applyText}>닫기</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
       <View style={styles.headerRow}>
         <View style={{ flex: 1 }} />
         <TouchableOpacity
@@ -204,6 +357,39 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
     fontSize: 13,
   },
+  // 프로필 선택 모달 스타일
+  modalWrapper: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+    width: "90%",
+  },
+  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 10,
+    borderRadius: 10,
+    backgroundColor: "#F9FAFB",
+    marginBottom: 10,
+  },
+  profileImage: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
+  profileName: { fontSize: 16, color: "#333" },
+  applyBtn: {
+    backgroundColor: "#7EC8C2",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  applyText: { color: "white", fontWeight: "600" },
 });
 
 

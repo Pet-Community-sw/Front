@@ -27,6 +27,7 @@ import { useProfileSession } from "../../context/SelectProfile";
 import { ScrollView } from "react-native-gesture-handler";
 import { BASE_URL } from "../../api/apiClient";
 import dayjs from "dayjs";
+import selectPetProfile from "../../components/Modal/selectPetProfile";
 
 export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
   console.log("🐾 recommendRoutePostId:", recommendRoutePostId);
@@ -243,7 +244,7 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
 
   //매칭 시작
   const handleStartMatching = (walkingTogetherPostId) => {
-    console.log("🚀 매칭 시작 postId:", walkingTogetherPostId);
+    console.log("매칭 시작 postId:", walkingTogetherPostId);
     if (!selectedPost?.walkingTogetherPostId) {
       Alert.alert("오류", "매칭할 게시글 ID가 없습니다.");
       return;

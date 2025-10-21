@@ -24,20 +24,20 @@ const addPost = async (postData) => {
     }
 
     console.log("🔥 보내는 토큰:", token);
+    console.log("🔥 게시글 데이터:", {
+      title: postData.title,
+      content: postData.content,
+      hasImage: !!postData.postImageFile,
+      imageUri: postData.postImageFile?.uri
+    });
     for (let pair of formData.entries()) {
       console.log(`🔥 FormData - ${pair[0]}:`, pair[1]);
     }
 
-    // ✅ 요청 직전에 인터셉터 설정
-    axios.interceptors.request.use((config) => {
-      console.log("🛰️ Axios 요청 구성:", config);
-      return config;
-    });
 
-    const response = await axios.post(`${BASE_URL}/posts`, formData, {
+    const response = await apiClient.post("/posts", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
-        Authorization: `Bearer ${token}`,
       },
     });
 
@@ -51,11 +51,13 @@ const addPost = async (postData) => {
 };
 
 //게시물 목록 조회
-const viewPosts = async (page = 0) => {
+const viewPosts = async (page = 1) => {
   try {
     const response = await apiClient.get("/posts", {
       params: { page },
     });
+    console.log("📋 서버에서 받은 게시글 데이터:", response.data);
+    console.log("📋 첫 번째 게시글:", response.data?.[0]);
     return response.data;
   } catch (error) {
     console.log("❌ 서버 오류 응답:", {

@@ -34,3 +34,6 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+#docker compose down && docker pull sunjaegood/petapp:test && docker compose up -d
+

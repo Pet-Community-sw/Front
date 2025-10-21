@@ -15,8 +15,14 @@ const apiClient = axios.create({
 
 apiClient.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem("accessToken");
-  console.log("🧪 토큰 확인:", token);
-  console.log("👉 axios 최종 요청 config 확인:", config.headers);
+  
+  console.log("API 요청 토큰 상태:", {
+    url: config.url,
+    hasToken: !!token,
+    tokenLength: token?.length || 0,
+    tokenPreview: token ? token.substring(0, 20) + "..." : "없음"
+  });
+  
 
   // 로그인과 회원가입 요청은 토큰 없이 보냄
   if (
@@ -26,12 +32,24 @@ apiClient.interceptors.request.use(async (config) => {
     return config;
   }
 
+  // 이미 Authorization 헤더가 설정되어 있으면 덮어쓰지 않음
+  if (config.headers.Authorization) {
+    return config;
+  }
+
+  // 토큰이 없으면 에러 처리
+  if (!token) {
+    console.error("토큰이 없습니다. 프로필을 선택해주세요.");
+    throw new Error("토큰이 없습니다. 프로필을 먼저 선택해주세요.");
+  }
+
   config.headers = {
     ...config.headers,
     Authorization: `Bearer ${token}`,
   };
 
-  console.log("👉 최종 요청 헤더:", config.headers);
+  console.log("설정된 Authorization 헤더:", config.headers.Authorization);
+
   return config;
 });
 

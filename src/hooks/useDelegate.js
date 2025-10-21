@@ -10,10 +10,13 @@ import {
     applicationDelegate, 
     viewDelegateApplicants, 
     selectDelegateApplicant, 
-    authDelegateRecord, 
- } from "../api/delegateWalk";
+    authDelegateRecord,
+    startAuthorizedDelegate,
+    startDelegateWalk,
+} from "../api/delegateWalk";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useQueryClient } from "@tanstack/react-query";
+import { Alert } from "react-native";
 
 
 //대리 산책자 게시글 추가
@@ -51,8 +54,8 @@ export const useViewPlaceDelegate = (params) => {
 export const useViewDelegatePostDetail = (delegateWalkPostId) => {
     return useQuery({
         queryKey: ["delegatePosts", delegateWalkPostId],
-        queryFn: () => viewDelegatePostDetail(delegateWalkPostId),
-        enabled: false,
+        queryFn: () => viewDelegatePostDetail({ delegateWalkPostId }),
+        enabled: !!delegateWalkPostId, // postId가 있을 때만 실행
     });
 }
 
@@ -104,14 +107,20 @@ export const useCheckProfile = () => {
 };
 
 //대리 산책자 지원
-export const useApplicateDelegate = () => {
+export const useApplicateDelegate = (onSuccess) => {
   return useMutation({
     mutationFn: applicationDelegate,
     onSuccess: () => {
       Alert.alert("지원 완료", "정상적으로 지원되었습니다.");
+      onSuccess?.(); // 성공 시 콜백 실행
     },
     onError: (error) => {
-      Alert.alert("지원 실패", error.message);
+      // 409 Conflict는 중복 신청으로 정상적인 응답
+      if (error.response?.status === 409) {
+        Alert.alert("알림", "이미 신청한 게시글입니다.");
+      } else {
+        Alert.alert("지원 실패", error.message);
+      }
     },
   });
 };
@@ -126,11 +135,15 @@ export const useViewDelegateApplicants = (delegateWalkPostId) => {
 };
 
 //대리 산책 지원자 선정
-export const useSelectDelegateApplicant = () => {
+export const useSelectDelegateApplicant = (onSuccess) => {
   return useMutation({
     mutationFn: selectDelegateApplicant,
-    onSuccess: () => {
+    onSuccess: (data, variables) => {
       Alert.alert("선정 완료", "지원자가 선정되었습니다.");
+      // 콜백이 있으면 실행 (data와 variables 모두 전달)
+      if (onSuccess) {
+        onSuccess(data, variables);
+      }
     },
     onError: (error) => {
       Alert.alert("선정 실패", error.message);
@@ -140,14 +153,33 @@ export const useSelectDelegateApplicant = () => {
 
 
 //산책 기록 권한 부여
-export const useAuthDelegateRecord = () => {
+export const useAuthDelegateRecord = (onSuccess) => {
   return useMutation({
     mutationFn: authDelegateRecord,
     onSuccess: () => {
       Alert.alert("권한 부여 완료", "산책 기록 권한이 부여되었습니다.");
+      if (onSuccess) {
+        onSuccess();
+      }
     },
     onError: (error) => {
       Alert.alert("권한 부여 실패", error.message);
+    },
+  });
+};
+
+//대리 산책 시작 권한 부여
+export const useStartAuthorizedDelegate = (onSuccess) => {
+  return useMutation({
+    mutationFn: startAuthorizedDelegate,
+    onSuccess: () => {
+      Alert.alert("시작 권한 부여 완료", "대리 산책 시작 권한이 부여되었습니다.");
+      if (onSuccess) {
+        onSuccess();
+      }
+    },
+    onError: (error) => {
+      Alert.alert("시작 권한 부여 실패", error.message);
     },
   });
 };

@@ -47,6 +47,7 @@ export default function RecommendTab() {
   const [usePlaceMode, setUsePlaceMode] = useState(false); // 장소 검색 모드 여부
   const [activeTab, setActiveTab] = useState("feedback"); // 탭 (피드백 / 함께 산책)
   const [like, setLike] = useState(false); // 좋아요 상태
+  const [showBubble, setShowBubble] = useState(true); // 말풍선 표시 여부 (기본값 true)
 
   // 🔹 위치 선택 및 작성 모드
   const [selectingLocationVisible, setSelectingLocationVisible] =
@@ -59,7 +60,8 @@ export default function RecommendTab() {
   const [content, setContent] = useState("");
   const [locationName, setLocationName] = useState("");
 
-  const mapRef = useRef < MapView > null;
+  const mapRef = useRef(null);
+
 
   // 🔹 API Hooks
   const { mutate: addRecommendPost } = useAddRecommend();
@@ -254,43 +256,46 @@ export default function RecommendTab() {
         ))}
       </MapView>
 
-     
-{/* ✅ 중앙 고정 마커 (지도 밖 오버레이로 추가) */}
-{selectingLocationVisible && (
-  <>
-    <View
-      pointerEvents="none" // 지도 드래그 막지 않음
-      style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: [{ translateX: -20 }, { translateY: -40 }],
-        zIndex: 10,
-      }}
-    >
-      <MaterialCommunityIcons name="map-marker" size={50} color="#E53935" />
-    </View>
+      {/* ✅ 중앙 고정 마커 (지도 밖 오버레이로 추가) */}
+      {selectingLocationVisible && (
+        <>
+          <View
+            pointerEvents="none" // 지도 드래그 막지 않음
+            style={{
+              position: "absolute",
+              top: "50%",
+              left: "50%",
+              transform: [{ translateX: -20 }, { translateY: -40 }],
+              zIndex: 10,
+            }}
+          >
+            <MaterialCommunityIcons
+              name="map-marker"
+              size={50}
+              color="#E53935"
+            />
+          </View>
 
-    {/* 🔹 위치 선택 안내 / 버튼 */}
-    <View style={styles.overlayBottom}>
-      <Text style={styles.overlayText}>
-        📍 지도를 움직여 위치를 선택하세요
-      </Text>
-      <TouchableOpacity
-        style={styles.applyBtn}
-        onPress={handleConfirmLocation}
-      >
-        <Text style={styles.applyText}>이 위치로 선택</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={{ marginTop: 10 }}
-        onPress={() => setSelectingLocationVisible(false)}
-      >
-        <Text style={styles.closeBtn}>닫기</Text>
-      </TouchableOpacity>
-    </View>
-  </>
-)}
+          {/* 🔹 위치 선택 안내 / 버튼 */}
+          <View style={styles.overlayBottom}>
+            <Text style={styles.overlayText}>
+              📍 지도를 움직여 위치를 선택하세요
+            </Text>
+            <TouchableOpacity
+              style={styles.applyBtn}
+              onPress={handleConfirmLocation}
+            >
+              <Text style={styles.applyText}>이 위치로 선택</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={{ marginTop: 10 }}
+              onPress={() => setSelectingLocationVisible(false)}
+            >
+              <Text style={styles.closeBtn}>닫기</Text>
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
 
       {/* 🔹 추천글 상세 모달 */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -352,12 +357,32 @@ export default function RecommendTab() {
         </View>
       </Modal>
 
+      {/* 🔹 귀여운 말풍선 */}
+      {showBubble && !selectingLocationVisible && !writeModalVisible && (
+        <View style={styles.bubbleContainer}>
+          <View style={styles.bubble}>
+            <Text style={styles.bubbleText}>🐕💕</Text>
+            <Text style={styles.bubbleMessage}>
+              산책길 코스 선택 후 {'\n'}산책 메이트를 찾아보세요!
+            </Text>
+            <TouchableOpacity 
+              style={styles.bubbleCloseButton}
+              onPress={() => setShowBubble(false)}
+            >
+              <Text style={styles.bubbleCloseText}>×</Text>
+            </TouchableOpacity>
+            <View style={styles.bubbleTail} />
+          </View>
+        </View>
+      )}
+
       {/* 🔹 산책길 추가 버튼 */}
       {!selectingLocationVisible && !writeModalVisible && (
         <TouchableOpacity onPress={handleAddCourse} style={styles.addButton}>
           <Text style={styles.addButtonText}>산책길 코스 추가</Text>
         </TouchableOpacity>
       )}
+
 
       {/* 🔹 추천글 작성 모달 */}
       <Modal visible={writeModalVisible} animationType="fade" transparent>
@@ -572,4 +597,67 @@ const styles = StyleSheet.create({
     textAlignVertical: "top",
     marginBottom: 12,
   },
+  
+  // 🔹 말풍선 스타일
+  bubbleContainer: {
+    position: "absolute",
+    top: 80,
+    right: 20,
+    zIndex: 1000,
+  },
+  bubble: {
+    backgroundColor: "#FF6B9D",
+    borderRadius: 15,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    maxWidth: 250,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 4,
+    position: "relative",
+  },
+  bubbleText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 2,
+  },
+  bubbleMessage: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+    textAlign: "center",
+    lineHeight: 16,
+  },
+  bubbleCloseButton: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  bubbleCloseText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  bubbleTail: {
+    position: "absolute",
+    bottom: -6,
+    right: 20,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderTopWidth: 6,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderTopColor: "#FF6B9D",
+  },
+
 });

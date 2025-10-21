@@ -121,7 +121,7 @@ export const useStartWalking = () => {
       console.log("매칭 성공, 채팅방 생성");
     },
     onError: (error) => {
-      console.log("❌ API 요청 실패:", {
+      console.log("API 요청 실패:", {
         message: error.message,
         status: error.response?.status,
         data: error.response?.data,
