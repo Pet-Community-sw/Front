@@ -1,6 +1,6 @@
 //게시물 hook
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { addPost, viewOnePost, viewPosts, modifyPost, removePost } from "../api/postApi"; 
+import { addPost, viewOnePost, viewPosts, modifyPost, removePost } from "../api/community/postApi"; 
 import { FlatList } from "react-native-gesture-handler";
 
 //게시물 추가

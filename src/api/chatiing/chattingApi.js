@@ -1,4 +1,4 @@
-import apiClient from "./apiClient";
+import apiClient from "../apiClient";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import jwtDecode from "jwt-decode";
 //채팅 api 연동, 개인 or 단체에 따라 조건부로 연동

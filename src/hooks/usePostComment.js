@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { postComment, modifyComment, removeComment } from "../api/postCommentApi";
+import { postComment, modifyComment, removeComment } from "../api/community/postCommentApi";
 
 //댓글 추가
 const usePostComment = () => {

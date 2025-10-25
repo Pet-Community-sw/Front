@@ -1,53 +1,27 @@
 //게시물 api
-import apiClient from "./apiClient";
-import { BASE_URL } from "./apiClient";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios from "axios";
+import apiClient from "../apiClient";
 
 //게시물 추가
-// 게시물 추가 - 이미지 URL을 문자열로 보내는 경우
-// hooks/usePost.js 안에 정의된 API 함수 예시
 const addPost = async (postData) => {
-  try {
-    const token = await AsyncStorage.getItem("accessToken");
-    const formData = new FormData();
+  const formData = new FormData();
+  formData.append("profileId", postData.profileId);
+  formData.append("title", postData.title);
+  formData.append("content", postData.content);
 
-    formData.append("title", postData.title);
-    formData.append("content", postData.content);
-
-    if (postData.postImageFile) {
-      formData.append("postImageFile", {
-        uri: postData.postImageFile.uri,
-        name: postData.postImageFile.name,
-        type: "image/jpeg", // 필요 시 동적으로 수정 가능
-      });
-    }
-
-    console.log("🔥 보내는 토큰:", token);
-    console.log("🔥 게시글 데이터:", {
-      title: postData.title,
-      content: postData.content,
-      hasImage: !!postData.postImageFile,
-      imageUri: postData.postImageFile?.uri
+  if (postData.postImageFile) {
+    formData.append("postImageFile", {
+      uri: postData.postImageFile.uri,
+      name: postData.postImageFile.name,
+      type: "image/jpeg",
     });
-    for (let pair of formData.entries()) {
-      console.log(`🔥 FormData - ${pair[0]}:`, pair[1]);
-    }
-
-
-    const response = await apiClient.post("/posts", formData, {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    });
-
-    return response.data;
-  } catch (error) {
-    console.log("❌ 서버 오류 응답:", {
-      message: error.message,
-    });
-    throw new Error(error.response?.data?.message || "게시물 추가 실패");
   }
+
+  const response = await apiClient.post("/posts", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
 };
 
 //게시물 목록 조회

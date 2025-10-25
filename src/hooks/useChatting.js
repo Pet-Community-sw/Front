@@ -5,7 +5,7 @@ import {
     modifyChattingRoom,
     exitChattingRoom,
     fetchMessages,
-} from "../api/chattingApi";
+} from "../api/chatiing/chattingApi";
 
 //개인 채팅방 생성
 const useAddMemberChat = () => {

@@ -1,6 +1,6 @@
 //게시물 좋아요 hook
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { likePost, likeList } from "../api/likePostApi";
+import { likePost, likeList } from "../api/community/likePostApi";
 
 // 좋아요 추가 or 삭제
 const useLikePost = () => {

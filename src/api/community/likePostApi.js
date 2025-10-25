@@ -1,5 +1,5 @@
 //게시글 좋아요 api
-import apiClient from "./apiClient";
+import apiClient from "../../api/apiClient";
 
 //좋아요 추가 및 삭제
 const likePost = async ({ postId, postType}) => {

@@ -4,12 +4,13 @@ import { useNavigation } from "@react-navigation/native";
 import { useLogin } from "../../hooks/useMember";
 import CustomButton from "../../components/button";
 import { UserContext } from "../../context/User";
+import { connectStomp } from "../../api/chatiing/stompClient";
 
 const LoginScreen = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const navigation = useNavigation();
-  const { login } = useContext(UserContext); // ✅ Zustand 대신 Context 사용
+  const { login } = useContext(UserContext);
   const { mutate: loginMutate, isLoading } = useLogin();
 
   const handleLogin = () => {
@@ -18,10 +19,12 @@ const LoginScreen = () => {
       { email, password },
       {
         onSuccess: async (data) => {
-          console.log("✅ 서버 응답:", data);
-          await login(data.accessToken);
-          console.log("✅ Context 저장 완료 후 token 확인:", data.accessToken);
+          await login(data.accessToken); // 토큰 저장 (UserContext)
+          console.log("✅ 토큰 저장 완료:", data.accessToken);
+
+          await connectStomp(data.accessToken);
         },
+
         onError: (error) => {
           const message =
             error.response?.data?.message ||

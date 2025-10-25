@@ -22,7 +22,7 @@ import {
   unsubscribeChatList,
   isStompConnected,
   logStompStatus 
-} from "../../api/stompClient";
+} from "../../api/chatiing/stompClient"; 
 
 const GroupChattingListScreen = ({ navigation }) => {
   const { data: chatRooms = [], refetch } = useGroupChattingList();

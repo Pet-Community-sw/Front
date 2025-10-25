@@ -15,7 +15,6 @@ import { ChatProvider } from "./context/Chatting";
 import { NotificationProvider } from "./context/Notification";
 import { useFonts } from "expo-font";
 import { SelectProfileProvider } from "./context/SelectProfile";
-import { connectStomp } from "./api/stompClient";
 
 // Screens
 import WelcomeScreen from "./screens/Member/WelcomeScreen";
@@ -77,12 +76,6 @@ const AppInner = () => {
 
   console.log("📦 AppInner 렌더링 중, token 상태:", token);
   console.log("📦 token typeof:", typeof token);
-
-  useEffect(() => {
-    connectStomp(() => {
-      console.log("웹소켓 연결 완료");
-    });
-  }, [token]);
 
   if (loading) return <LoadingScreen />;
 
