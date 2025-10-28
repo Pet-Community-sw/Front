@@ -67,6 +67,10 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
 
       // 2. 모달 전환
       setSelectProfileModalVisible(false);
+      
+      // 3. 목록 다시 불러오기 (새로운 토큰으로 owner 값 업데이트)
+      await new Promise((resolve) => setTimeout(resolve, 200)); // 토큰 완전히 반영되도록 추가 대기
+      refetch();
     } catch (error) {
       Alert.alert("토큰 발급 실패", "프로필 선택 중 오류가 발생했습니다.");
       console.error("❌ selectProfile 에러:", error);
@@ -95,6 +99,15 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
     refetch,
     isLoading,
   } = useViewWalkingTogether({ recommendRoutePostId });
+
+  // 목록 데이터 확인
+  useEffect(() => {
+    console.log("📋 함께 산책해요 전체 목록:", walks);
+    walks.forEach((item, index) => {
+      console.log(`📌 [${index}] walkingTogetherPostId: ${item.walkingTogetherPostId}, petName: ${item.petName}, owner: ${item.owner}`);
+    });
+  }, [walks]);
+  
 
   //글 상세 조회
   const {
@@ -245,7 +258,9 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
   //매칭 시작
   const handleStartMatching = (walkingTogetherPostId) => {
     console.log("매칭 시작 postId:", walkingTogetherPostId);
-    if (!selectedPost?.walkingTogetherPostId) {
+    console.log("매칭 시작 요청 데이터:", { walkingTogetherPostId });
+    
+    if (!walkingTogetherPostId) {
       Alert.alert("오류", "매칭할 게시글 ID가 없습니다.");
       return;
     }
@@ -254,19 +269,27 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
       { walkingTogetherPostId },
       {
         onSuccess: (response) => {
+          console.log("🎉 매칭 시작 성공 응답:", response);
           if (response?.chatRoomId) {
             // 새 채팅방 or 기존 채팅방 모두 chatRoomId와 chatName 포함됨
             navigation.navigate("ChattingScreen", {
               chatRoomId: response.chatRoomId,
               chatRoomType: "MANY", // 매칭 기반은 무조건 단체
-              chatName: response.chatName, // 서버에서 제공된 이름 그대로 사용
+
             });
           } else {
             // 혹시 모를 예외 대응
-            Alert.alert("오류", "채팅방 정보를 불러올 수 없습니다.");
+            Alert.alert("채팅방이 생성되었습니다.");
           }
         },
         onError: (error) => {
+          console.log("❌ 매칭 시작 오류:", {
+            status: error?.response?.status,
+            statusText: error?.response?.statusText,
+            data: error?.response?.data,
+            message: error?.message
+          });
+          
           const raw = error?.response?.data;
 
           const message =
@@ -284,14 +307,12 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>🐾 함께 산책해요</Text>
-
       {/* 매칭 글 쓰기 버튼 */}
       <TouchableOpacity
         style={styles.matchButton}
         onPress={() => setWriteModalVisible(true)}
       >
-        <MaterialIcons name="check-circle" size={18} color="#7EC8C2" />
+        <MaterialIcons name="check-circle" size={22} color="#7EC8C2" />
         <Text style={styles.matchText}>매칭 글 쓰기</Text>
       </TouchableOpacity>
 
@@ -303,36 +324,81 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
             ? item.walkingTogetherPostId.toString()
             : `fallback-${index}`
         }
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            style={styles.card}
-            onPress={() => openModal(item.walkingTogetherPostId)}
-          >
-            <Image
-              source={{ uri: `${BASE_URL}${item.petImageUrl}` }}
-              style={{
-                width: 50,
-                height: 50,
-                borderRadius: 25,
-                marginBottom: 8,
-              }}
-            />
-
-            <Text style={styles.walkMeta}>
-              {item.scheduledTime || "시간 미정"} · {item.petName || "작성자"}
-            </Text>
-            {item.isOwner && (
-              <View style={styles.ownerButtonRow}>
-                <TouchableOpacity onPress={() => handleEditFromList(item)}>
-                  <Text style={styles.editButton}>수정</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => handleDeleteFromList(item)}>
-                  <Text style={styles.deleteButton}>삭제</Text>
-                </TouchableOpacity>
+        renderItem={({ item }) => {
+          console.log("🐾 WalkingTogether Item:", {
+            walkingTogetherPostId: item.walkingTogetherPostId,
+            petName: item.petName,
+            owner: item.owner,
+            isOwner: item.isOwner,
+          });
+          
+          return (
+          <View style={styles.walkCard}>
+            {/* 펫 정보 섹션 */}
+            <View style={styles.walkCardHeader}>
+              <Image
+                source={{ uri: `${BASE_URL}${item.petImageUrl}` }}
+                style={styles.walkPetImage}
+              />
+              <View style={styles.walkPetInfo}>
+                <Text style={styles.walkPetName}>{item.petName || "알 수 없음"}</Text>
+                <Text style={styles.walkCreatedAt}>{item.createdAt || "방금 전"}</Text>
               </View>
-            )}
-          </TouchableOpacity>
-        )}
+              {/* {item.owner === true && (
+                <View style={styles.ownerBadge}>
+                  <Text style={styles.ownerBadgeText}>내 글</Text>
+                </View>
+              )} */}
+            </View>
+
+            {/* 산책 정보 */}
+            <View style={styles.walkInfoSection}>
+              <View style={styles.walkInfoRow}>
+                <MaterialIcons name="event" size={18} color="#7EC8C2" />
+                <Text style={styles.walkInfoText}>
+                  {item.scheduledTime 
+                    ? dayjs(item.scheduledTime).format("MM월 DD일 HH:mm") 
+                    : "시간 미정"}
+                </Text>
+              </View>
+              <View style={styles.walkInfoRow}>
+                <MaterialIcons name="people" size={18} color="#7EC8C2" />
+                <Text style={styles.walkInfoText}>
+                  {item.currentCount || 1}/{item.limitCount || 0}명
+                </Text>
+              </View>
+            </View>
+
+            {/* 버튼 영역 */}
+            <View style={styles.walkCardActions}>
+              {/* {item.owner === true ? (
+                <View style={styles.walkOwnerActions}>
+                  <TouchableOpacity 
+                    style={styles.walkEditButton}
+                    onPress={() => handleEditFromList(item)}
+                  >
+                    <Text style={styles.walkEditButtonText}>수정</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    style={styles.walkDeleteButton}
+                    onPress={() => handleDeleteFromList(item)}
+                  >
+                    <Text style={styles.walkDeleteButtonText}>삭제</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : ( */}
+                <TouchableOpacity 
+                  style={styles.walkMatchButton}
+                  onPress={() => handleStartMatching(item.walkingTogetherPostId)}
+                >
+                  <MaterialIcons name="pets" size={18} color="#FFFFFF" />
+                  <Text style={styles.walkMatchButtonText}>매칭 시작</Text>
+                </TouchableOpacity>
+              {/* )} */}
+            </View>
+          </View>
+          );
+        }}
         ListEmptyComponent={
           !isLoading && <Text style={styles.empty}>등록된 글이 없어요!</Text>
         }
@@ -344,55 +410,61 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
         animationType="slide"
         transparent
       >
-        <View style={styles.modalWrapper}>
-          <View style={styles.modalContent}>
-            <ScrollView style={{ maxHeight: 300 }}>
-              <Text style={styles.modalTitle}>
-                🐶 함께 산책할 펫을 선택하세요
-              </Text>
+        <View style={styles.petModalWrapper}>
+          <View style={styles.petModalContent}>
+            {/* 모달 헤더 */}
+            <View style={styles.petModalHeader}>
+              <Text style={styles.petModalTitle}>🐶 함께 산책할 펫을 선택하세요</Text>
+            </View>
+
+            {/* 펫 프로필 리스트 */}
+            <ScrollView style={styles.petProfileList} showsVerticalScrollIndicator={false}>
               {profiles.map((profile) => (
                 <TouchableOpacity
                   key={profile.profileId}
                   style={[
-                    styles.card,
-                    selectedPetProfileId === profile.profileId && {
-                      borderColor: "#7EC8C2",
-                      borderWidth: 2,
-                    },
+                    styles.petProfileCard,
+                    selectedPetProfileId === profile.profileId && styles.petProfileCardSelected
                   ]}
                   onPress={() => setSelectedPetProfileId(profile.profileId)}
                 >
-                  <Image
-                    source={{ uri: `${BASE_URL}${profile.petImageUrl}` }}
-                    style={{
-                      width: 50,
-                      height: 50,
-                      borderRadius: 25,
-                      marginBottom: 8,
-                    }}
-                  />
-                  <Text
-                    style={{ fontFamily: "cute", fontSize: 20, marginLeft: 5 }}
-                  >
+                  <View style={styles.petProfileImageContainer}>
+                    <Image
+                      source={{ uri: `${BASE_URL}${profile.petImageUrl}` }}
+                      style={styles.petProfileImage}
+                    />
+                    {selectedPetProfileId === profile.profileId && (
+                      <View style={styles.petProfileSelectedBadge}>
+                        <Text style={styles.petProfileSelectedText}>✓</Text>
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.petProfileName}>
                     {profile.petName}
                   </Text>
                 </TouchableOpacity>
               ))}
+            </ScrollView>
 
-              <TouchableOpacity
-                style={styles.applyBtn}
+            {/* 버튼들 */}
+            <View style={styles.petModalButtonContainer}>
+              <TouchableOpacity 
+                style={styles.petModalCancelButton} 
+                onPress={() => setSelectProfileModalVisible(false)}
+              >
+                <Text style={styles.petModalCancelText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[
+                  styles.petModalSelectButton,
+                  !selectedPetProfileId && styles.petModalSelectButtonDisabled
+                ]} 
                 disabled={!selectedPetProfileId}
                 onPress={handleSelectProfile}
               >
-                <Text style={styles.applyText}>선택하기</Text>
+                <Text style={styles.petModalSelectText}>선택하기</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.applyBtn}
-                onPress={() => setSelectProfileModalVisible(false)}
-              >
-                <Text style={styles.applyText}>닫기</Text>
-              </TouchableOpacity>
-            </ScrollView>
+            </View>
           </View>
         </View>
       </Modal>
@@ -451,36 +523,64 @@ export const WalkingTogetherTab = ({ recommendRoutePostId }) => {
       </Modal>
 
       {/* 매칭 글 쓰기 모달 */}
-      <Modal visible={writeModalVisible} animationType="fade" transparent>
-        <View style={styles.modalWrapper}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>매칭 글 작성</Text>
-            <TouchableOpacity
-              style={styles.dateButton}
-              onPress={() => setDatePickerVisibility(true)}
-            >
-              <Text>
-                {scheduledTime
-                  ? scheduledTime.toLocaleString()
-                  : "날짜/시간 선택"}
-              </Text>
-            </TouchableOpacity>
-            <TextInput
-              placeholder="최대 인원 수"
-              value={limitCount}
-              onChangeText={setLimitCount}
-              keyboardType="number-pad"
-              style={styles.input}
-            />
-            <TouchableOpacity style={styles.applyBtn} onPress={handleSubmit}>
-              <Text style={styles.applyText}>등록</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.closeBtn}
-              onPress={() => setWriteModalVisible(false)}
-            >
-              <Text style={styles.closeText}>닫기</Text>
-            </TouchableOpacity>
+      <Modal visible={writeModalVisible} animationType="slide" transparent>
+        <View style={styles.writeMatchModalWrapper}>
+          <View style={styles.writeMatchModalContent}>
+            {/* 모달 헤더 */}
+            <View style={styles.writeMatchModalHeader}>
+              <Text style={styles.writeMatchModalTitle}>매칭 글 작성</Text>
+            </View>
+
+            {/* 입력 필드들 */}
+            <View style={styles.writeMatchInputSection}>
+              <View style={styles.writeMatchInputGroup}>
+                <Text style={styles.writeMatchInputLabel}>산책 날짜 & 시간</Text>
+                <TouchableOpacity
+                  style={styles.writeMatchDateButton}
+                  onPress={() => setDatePickerVisibility(true)}
+                >
+                  <MaterialIcons name="event" size={20} color="#7EC8C2" />
+                  <Text style={styles.writeMatchDateText}>
+                    {scheduledTime
+                      ? dayjs(scheduledTime).format("YYYY년 MM월 DD일 HH:mm")
+                      : "날짜와 시간을 선택해주세요"}
+                  </Text>
+                  <MaterialIcons name="chevron-right" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.writeMatchInputGroup}>
+                <Text style={styles.writeMatchInputLabel}>최대 인원 수</Text>
+                <TextInput
+                  placeholder="최대 인원 수를 입력하세요"
+                  value={limitCount}
+                  onChangeText={setLimitCount}
+                  keyboardType="number-pad"
+                  style={styles.writeMatchInput}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+            </View>
+
+            {/* 버튼들 */}
+            <View style={styles.writeMatchButtonContainer}>
+              <TouchableOpacity 
+                style={styles.writeMatchCancelButton} 
+                onPress={() => setWriteModalVisible(false)}
+              >
+                <Text style={styles.writeMatchCancelText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[
+                  styles.writeMatchSubmitButton,
+                  (!scheduledTime || !limitCount) && styles.writeMatchSubmitButtonDisabled
+                ]} 
+                onPress={handleSubmit}
+                disabled={!scheduledTime || !limitCount}
+              >
+                <Text style={styles.writeMatchSubmitText}>등록하기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -558,40 +658,146 @@ const styles = StyleSheet.create({
     fontFamily: "cute",
     color: "#333",
   },
-  card: {
-    backgroundColor: "#F6FDFC",
-    padding: 14,
-    borderRadius: 12,
+  /* 🐾 산책 카드 스타일 */
+  walkCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#D2EAE4",
+    borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  walkTitle: {
-    fontSize: 15,
+  walkCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 12,
+  },
+  walkPetImage: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    marginRight: 12,
+  },
+  walkPetInfo: {
+    flex: 1,
+  },
+  walkPetName: {
+    fontSize: 20,
     fontWeight: "600",
-    marginBottom: 4,
-    color: "#2C3E50",
+    color: "#1F2937",
+    fontFamily: "cute",
+    marginBottom: 2,
   },
-  walkMeta: {
-    fontSize: 13,
-    color: "#6B7B8C",
-    marginBottom: 8,
+  walkCreatedAt: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    fontFamily: "cute",
+  },
+  ownerBadge: {
+    backgroundColor: "#D1FAE5",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  ownerBadgeText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#059669",
+    fontFamily: "cute",
+  },
+  walkInfoSection: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 12,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: "#F3F4F6",
+  },
+  walkInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  walkInfoText: {
+    fontSize: 16,
+    color: "#374151",
+    fontFamily: "cute",
+  },
+  walkCardActions: {
+    marginTop: 4,
+  },
+  walkOwnerActions: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  walkEditButton: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  walkEditButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#6B7280",
+    fontFamily: "cute",
+  },
+  walkDeleteButton: {
+    flex: 1,
+    backgroundColor: "#FEE2E2",
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  walkDeleteButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#DC2626",
+    fontFamily: "cute",
+  },
+  walkMatchButton: {
+    backgroundColor: "#7EC8C2",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 6,
+    shadowColor: "#7EC8C2",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  walkMatchButtonText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    fontFamily: "cute",
   },
   matchButton: {
     flexDirection: "row",
     alignItems: "center",
     alignSelf: "flex-start",
     backgroundColor: "#E8F7F1",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginBottom: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginBottom: 12,
   },
   matchText: {
-    marginLeft: 6,
+    marginLeft: 8,
     color: "#4CA195",
-    fontWeight: "500",
-    fontSize: 13,
+    fontWeight: "600",
+    fontSize: 18,
+    fontFamily: "cute",
   },
   empty: {
     textAlign: "center",
@@ -615,6 +821,254 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     marginBottom: 12,
   },
+
+  /* 🐾 펫 선택 모달 스타일 */
+  petModalWrapper: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  petModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 24,
+    width: "90%",
+    maxHeight: "80%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 10,
+  },
+  petModalHeader: {
+    alignItems: "center",
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  petModalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
+    fontFamily: "cute",
+  },
+  petProfileList: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    maxHeight: 300,
+  },
+  petProfileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 2,
+    borderColor: "transparent",
+  },
+  petProfileCardSelected: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#7EC8C2",
+  },
+  petProfileImageContainer: {
+    position: "relative",
+    marginRight: 16,
+  },
+  petProfileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+  },
+  petProfileSelectedBadge: {
+    position: "absolute",
+    top: -4,
+    right: -4,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: "#7EC8C2",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  petProfileSelectedText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  petProfileName: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1F2937",
+    fontFamily: "cute",
+  },
+  petModalButtonContainer: {
+    flexDirection: "row",
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+    paddingTop: 16,
+    gap: 12,
+  },
+  petModalCancelButton: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  petModalCancelText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#6B7280",
+    fontFamily: "cute",
+  },
+  petModalSelectButton: {
+    flex: 2,
+    backgroundColor: "#7EC8C2",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#7EC8C2",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  petModalSelectButtonDisabled: {
+    backgroundColor: "#D1D5DB",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  petModalSelectText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    fontFamily: "cute",
+  },
+
+  /* 📝 매칭 글 작성 모달 스타일 */
+  writeMatchModalWrapper: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  writeMatchModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 34,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  writeMatchModalHeader: {
+    alignItems: "center",
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+    marginBottom: 20,
+  },
+  writeMatchModalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1F2937",
+    fontFamily: "cute",
+  },
+  writeMatchInputSection: {
+    marginBottom: 24,
+  },
+  writeMatchInputGroup: {
+    marginBottom: 20,
+  },
+  writeMatchInputLabel: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+    fontFamily: "cute",
+  },
+  writeMatchDateButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    backgroundColor: "#FFFFFF",
+    gap: 12,
+  },
+  writeMatchDateText: {
+    flex: 1,
+    fontSize: 18,
+    color: "#1F2937",
+    fontFamily: "cute",
+  },
+  writeMatchInput: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    fontSize: 18,
+    color: "#1F2937",
+    backgroundColor: "#FFFFFF",
+    fontFamily: "cute",
+  },
+  writeMatchButtonContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  writeMatchCancelButton: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  writeMatchCancelText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#6B7280",
+    fontFamily: "cute",
+  },
+  writeMatchSubmitButton: {
+    flex: 2,
+    backgroundColor: "#7EC8C2",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#7EC8C2",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  writeMatchSubmitButtonDisabled: {
+    backgroundColor: "#D1D5DB",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  writeMatchSubmitText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    fontFamily: "cute",
+  },
+
   meta: {
     fontSize: 14,
     marginBottom: 6,

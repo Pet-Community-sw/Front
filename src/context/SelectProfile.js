@@ -12,35 +12,37 @@ export const SelectProfileProvider = ({ children }) => {
   const [profileId, setProfileId] = useState(null);
 
   const selectProfile = async (profileId) => {
-    const data = await fetchProfileToken(profileId);
-    const { accessToken } = data;
+    try {
+      // 1️⃣ 서버에서 새 토큰 발급
+      const data = await fetchProfileToken(profileId);
+      const { accessToken } = data;
+  
+      if (!accessToken) throw new Error("토큰 발급 실패");
+  
+      // 2️⃣ AsyncStorage에 저장
+      await AsyncStorage.setItem("accessToken", accessToken);
+      await AsyncStorage.setItem("profileId", profileId.toString());
 
-    //const decoded = jwtDecode(accessToken);
-    const decoded = jwtDecode(accessToken);
-
-    console.log("🔐 JWT Payload:", decoded);
-
-    console.log("🔐 JWT Payload:", decoded);
-
-    // AsyncStorage 저장
-    await AsyncStorage.setItem("accessToken", accessToken);
-    await AsyncStorage.setItem("profileId", profileId.toString());
-
-    // Axios 헤더에 새 토큰 바로 반영
-    apiClient.defaults.headers.common[
-      "Authorization"
-    ] = `Bearer ${accessToken}`;
-
-    // 토큰 저장 직후 강제로 로딩
-    const checkToken = await AsyncStorage.getItem("accessToken");
-    console.log("✅ 토큰 저장 후 확인:", checkToken);
-    console.log("✅ 토큰 길이:", checkToken?.length);
-    console.log("✅ 토큰 미리보기:", checkToken ? checkToken.substring(0, 20) + "..." : "없음");
-
-    // 전역 상태 저장
-    setProfileToken(accessToken);
-    setProfileId(profileId);
+      apiClient.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
+  
+      // 3️⃣ 저장이 끝났으니 확인 로그
+      console.log("✅ 프로필 토큰 저장 완료:", accessToken.substring(0, 20) + "...");
+  
+      // 4️⃣ 딜레이를 주어 인터셉터가 새 토큰을 읽을 수 있게 함
+      await new Promise((resolve) => setTimeout(resolve, 150));
+  
+      // 5️⃣ 상태 업데이트
+      setProfileToken(accessToken);
+      setProfileId(profileId);
+  
+      console.log("🚀 새 프로필 적용 완료 (이제 모든 요청에 새 토큰 사용)");
+  
+    } catch (err) {
+      console.error("❌ selectProfile 에러:", err);
+      throw err;
+    }
   };
+  
 
   //로그아웃, 프로필 변경 시 프로필 정보 초기화
   const clearProfile = () => {

@@ -170,9 +170,9 @@ const PetProfile = () => {
     if (addModalVisible) {
       breedsRefetch();
       resetData();
-      setValue(null); 
-      setOpen(false); 
-      setOpenAvoid(false); 
+      setValue(null);
+      setOpen(false);
+      setOpenAvoid(false);
     }
   }, [addModalVisible]);
 
@@ -283,7 +283,7 @@ const PetProfile = () => {
             </TouchableOpacity>
           );
         })}
-        
+
         {/* 플러스 버튼을 맨 뒤에 배치 */}
         <TouchableOpacity
           onPress={() => setAddModalVisible(true)}
@@ -300,43 +300,79 @@ const PetProfile = () => {
         transparent={true}
         onRequestClose={() => setDetailModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { overflow: "visible" }]}>
+        <View style={styles.modalWrapper}>
+          <View style={styles.modalContent}>
             {isLoading ? (
-              <ActivityIndicator size="large" color="#000" />
+              <ActivityIndicator size="large" color="#7EC8C2" />
             ) : (
-              <ScrollView>
-                <Image
-                  source={{ uri: profileDetail?.petImageUrl }}
-                  style={styles.modalImage}
-                />
-                <Text style={styles.detailText}>
-                  이름: {profileDetail?.petName}
-                </Text>
-                <Text style={styles.detailText}>
-                  견종: {profileDetail?.petBreedId?.name}
-                </Text>
-                <Text style={styles.detailText}>
-                  생일: {profileDetail?.petBirthDate}
-                </Text>
-                <Text style={styles.detailText}>
-                  피해야 할 종: {profileDetail?.avoidBreeds?.name}
-                </Text>
-                <Text style={styles.detailText}>
-                  기타 정보: {profileDetail?.extraInfo}
-                </Text>
-                <Button
-                  title="수정"
-                  onPress={() => {
-                    setEditModalVisible(true);
-                    setDetailModalVisible(false);
-                  }}
-                />
-                <Button title="삭제" color="red" onPress={handledelete} />
-                <Button
-                  title="닫기"
-                  onPress={() => setDetailModalVisible(false)}
-                />
+              <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.modalHeader}>
+                  <Text style={styles.modalTitle}>🐕 펫 프로필 상세</Text>
+                </View>
+
+                <View style={styles.profileImageContainer}>
+                  <Image
+                    source={
+                      profileDetail?.petImageUrl
+                        ? { uri: `${BASE_URL}${profileDetail.petImageUrl}` }
+                        : require("../../assets/icon.png")
+                    }
+                    style={styles.modalImage}
+                  />
+                </View>
+
+                <View style={styles.detailInfoContainer}>
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>🐾 이름</Text>
+                    <Text style={styles.detailValue}>{profileDetail?.petName}</Text>
+                  </View>
+                  
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>🏷️ 견종</Text>
+                    <Text style={styles.detailValue}>{profileDetail?.petBreedName}</Text>
+                  </View>
+                  
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>🎂 생일</Text>
+                    <Text style={styles.detailValue}>{profileDetail?.petBirthDate}</Text>
+                  </View>
+                  
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>⚠️ 피해야 할 종</Text>
+                    <Text style={styles.detailValue}>
+                      {Array.isArray(profileDetail?.avoidBreeds) &&
+                      profileDetail.avoidBreeds.length > 0
+                        ? profileDetail.avoidBreeds.map((b) => b.name).join(", ")
+                        : "없음"}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={styles.buttonContainer}>
+                  <TouchableOpacity
+                    style={styles.submitButton}
+                    onPress={() => {
+                      setEditModalVisible(true);
+                      setDetailModalVisible(false);
+                    }}
+                  >
+                    <Text style={styles.submitButtonText}>✏️ 수정</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={handledelete}
+                  >
+                    <Text style={styles.deleteButtonText}>🗑️ 삭제</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity
+                    style={styles.cancelButton}
+                    onPress={() => setDetailModalVisible(false)}
+                  >
+                    <Text style={styles.cancelButtonText}>닫기</Text>
+                  </TouchableOpacity>
+                </View>
               </ScrollView>
             )}
           </View>
@@ -350,108 +386,122 @@ const PetProfile = () => {
         transparent={true}
         onRequestClose={() => setAddModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalWrapper}>
           <View style={styles.modalContent}>
             <ScrollView showsVerticalScrollIndicator={false}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>
-                  반려동물의 정보를 입력해주세요 💕
-                </Text>
+                <Text style={styles.modalTitle}>🐕 펫 프로필 추가</Text>
+                <Text style={styles.modalSubtitle}>반려동물의 정보를 입력해주세요</Text>
               </View>
-              {/* 이미지 선택 버튼 */}
-              <TouchableOpacity
-                style={styles.imageSelectBtn}
-                onPress={pickImage}
-              >
-                <Text style={styles.imageSelectText}>+ 프로필 사진 선택</Text>
-              </TouchableOpacity>
 
-              {/* 이미지 미리보기 */}
-              {formData.petImageUrl?.uri && (
-                <Image
-                  source={{ uri: formData.petImageUrl.uri }}
-                  style={styles.imagePreview}
-                />
-              )}
-
-              {/* 입력 필드들 */}
-              <TextInput
-                style={styles.inputRequired}
-                placeholder="이름"
-                value={formData.petName}
-                onChangeText={(text) => handleChange("petName", text)}
-              />
-              <DropDownPicker
-                open={open}
-                value={value}
-                items={items}
-                setOpen={setOpen}
-                setValue={(callback) => {
-                  const newValue = callback(value);
-                  setValue(newValue);
-                  handleChange("petBreedId", newValue);
-                }}
-                setItems={() => {}}
-                placeholder="견종을 선택하세요"
-                listMode="SCROLLVIEW"
-                style={styles.dropdownRequired}
-                dropDownContainerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
-                placeholderStyle={styles.dropdownPlaceholder}
-                zIndex={3000}
-                zIndexInverse={1000}
-              />
-
-              <TextInput
-                style={styles.inputRequired}
-                placeholder="생일 (YYYY-MM-DD)"
-                value={formData.petBirthDate}
-                onChangeText={(text) => handleChange("petBirthDate", text)}
-              />
-              <DropDownPicker
-                multiple={true}
-                min={0}
-                open={openAvoid}
-                value={formData.avoidBreeds}
-                items={items}
-                setOpen={setOpenAvoid}
-                setValue={(callback) => {
-                  const newValues = callback(formData.avoidBreeds);
-                  handleChange("avoidBreeds", newValues);
-                }}
-                setItems={() => {}}
-                placeholder="피해야 할 견종을 선택하세요 (선택)"
-                listMode="SCROLLVIEW"
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
-                placeholderStyle={styles.dropdownPlaceholder}
-                zIndex={2000}
-                zIndexInverse={1000}
-              />
-
-              <TextInput
-                style={styles.input}
-                placeholder="기타 정보 (선택)"
-                value={formData.extraInfo}
-                onChangeText={(text) => handleChange("extraInfo", text)}
-              />
-
-              {/* 하단 버튼 */}
-              <View style={styles.buttonRow}>
+              <View style={styles.profileImageContainer}>
                 <TouchableOpacity
-                  style={styles.modalBtn}
+                  style={styles.imageSelectBtn}
+                  onPress={pickImage}
+                >
+                  <Text style={styles.imageSelectText}>📷 프로필 사진 선택</Text>
+                </TouchableOpacity>
+
+                {formData.petImageUrl?.uri && (
+                  <Image
+                    source={{ uri: formData.petImageUrl.uri }}
+                    style={styles.modalImage}
+                  />
+                )}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>🐾 이름</Text>
+                <TextInput
+                  style={styles.inputRequired}
+                  placeholder="이름을 입력하세요"
+                  value={formData.petName}
+                  onChangeText={(text) => handleChange("petName", text)}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>🏷️ 견종</Text>
+                <DropDownPicker
+                  open={open}
+                  value={value}
+                  items={items}
+                  setOpen={setOpen}
+                  setValue={(callback) => {
+                    const newValue = callback(value);
+                    setValue(newValue);
+                    handleChange("petBreedId", newValue);
+                  }}
+                  setItems={() => {}}
+                  placeholder="견종을 선택하세요"
+                  listMode="SCROLLVIEW"
+                  style={styles.dropdownRequired}
+                  dropDownContainerStyle={styles.dropdownContainer}
+                  textStyle={styles.dropdownText}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  zIndex={3000}
+                  zIndexInverse={1000}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>🎂 생일</Text>
+                <TextInput
+                  style={styles.inputRequired}
+                  placeholder="생일 (YYYY-MM-DD)"
+                  value={formData.petBirthDate}
+                  onChangeText={(text) => handleChange("petBirthDate", text)}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>⚠️ 피해야 할 종</Text>
+                <DropDownPicker
+                  multiple={true}
+                  min={0}
+                  open={openAvoid}
+                  value={formData.avoidBreeds}
+                  items={items}
+                  setOpen={setOpenAvoid}
+                  setValue={(callback) => {
+                    const newValues = callback(formData.avoidBreeds);
+                    handleChange("avoidBreeds", newValues);
+                  }}
+                  setItems={() => {}}
+                  placeholder="피해야 할 견종을 선택하세요 (선택)"
+                  listMode="SCROLLVIEW"
+                  style={styles.dropdown}
+                  dropDownContainerStyle={styles.dropdownContainer}
+                  textStyle={styles.dropdownText}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  zIndex={2000}
+                  zIndexInverse={1000}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>📝 기타 정보</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="기타 정보를 입력하세요 (선택)"
+                  value={formData.extraInfo}
+                  onChangeText={(text) => handleChange("extraInfo", text)}
+                />
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.submitButton}
                   onPress={handleAddProfile}
                 >
-                  <Text style={styles.modalBtnText}>추가</Text>
+                  <Text style={styles.submitButtonText}>➕ 추가</Text>
                 </TouchableOpacity>
+                
                 <TouchableOpacity
-                  style={[styles.modalBtn, styles.cancelBtn]}
+                  style={styles.cancelButton}
                   onPress={() => setAddModalVisible(false)}
                 >
-                  <Text style={[styles.modalBtnText, { color: "#666" }]}>
-                    취소
-                  </Text>
+                  <Text style={styles.cancelButtonText}>취소</Text>
                 </TouchableOpacity>
               </View>
             </ScrollView>
@@ -466,88 +516,127 @@ const PetProfile = () => {
         transparent={true}
         onRequestClose={() => setEditModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
+        <View style={styles.modalWrapper}>
           <View style={styles.modalContent}>
             <ScrollView
               showsVerticalScrollIndicator={false}
               keyboardShouldPersistTaps="handled"
               contentContainerStyle={{ paddingBottom: 30 }}
             >
-              <Button title="이미지 변경" onPress={pickEditImage} />
-              {editData.petImageUrl?.uri && (
-                <Image
-                  source={{ uri: editData.petImageUrl.uri }}
-                  style={{
-                    width: 120,
-                    height: 120,
-                    borderRadius: 12,
-                    alignSelf: "center",
-                    marginBottom: 16,
-                  }}
-                />
-              )}
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>✏️ 펫 프로필 수정</Text>
+              </View>
 
-              <TextInput
-                style={styles.input}
-                placeholder="이름"
-                value={editData.petName}
-                onChangeText={(text) => handleEditData("petName", text)}
-              />
-              <DropDownPicker
-                open={open}
-                value={value}
-                items={items}
-                setOpen={setOpen}
-                setValue={(callback) => {
-                  const newValue = callback(value);
-                  setValue(newValue);
-                  handleEditData("petBreedId", newValue);
-                }}
-                setItems={() => {}}
-                placeholder="견종을 선택하세요"
-                listMode="SCROLLVIEW"
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
-                placeholderStyle={styles.dropdownPlaceholder}
-                zIndex={3000}
-                zIndexInverse={1000}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="생일 (YYYY-MM-DD)"
-                value={editData.petBirthDate}
-                onChangeText={(text) => handleEditData("petBirthDate", text)}
-              />
-              <DropDownPicker
-                multiple={true}
-                min={0}
-                open={openAvoid}
-                value={formData.avoidBreeds}
-                items={items}
-                setOpen={setOpenAvoid}
-                setValue={(callback) => {
-                  const newValues = callback(formData.avoidBreeds);
-                  handleEditData("avoidBreeds", newValues);
-                }}
-                setItems={() => {}}
-                placeholder="피해야 할 견종을 선택하세요 (선택)"
-                listMode="SCROLLVIEW"
-                style={styles.dropdown}
-                dropDownContainerStyle={styles.dropdownContainer}
-                textStyle={styles.dropdownText}
-                placeholderStyle={styles.dropdownPlaceholder}
-                zIndex={2000}
-                zIndexInverse={1000}
-              />
-              <TextInput
-                style={styles.input}
-                placeholder="기타 정보 (선택)"
-                value={editData.extraInfo}
-                onChangeText={(text) => handleEditData("extraInfo", text)}
-              />
-              <Button title="저장" onPress={handlemodify} />
-              <Button title="취소" onPress={() => setEditModalVisible(false)} />
+              <View style={styles.profileImageContainer}>
+                <TouchableOpacity
+                  style={styles.imageSelectBtn}
+                  onPress={pickEditImage}
+                >
+                  <Text style={styles.imageSelectText}>📷 이미지 변경</Text>
+                </TouchableOpacity>
+                
+                {editData.petImageUrl?.uri && (
+                  <Image
+                    source={{ uri: editData.petImageUrl.uri }}
+                    style={styles.modalImage}
+                  />
+                )}
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>🐾 이름</Text>
+                <TextInput
+                  style={styles.inputRequired}
+                  placeholder="이름을 입력하세요"
+                  value={editData.petName}
+                  onChangeText={(text) => handleEditData("petName", text)}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>🏷️ 견종</Text>
+                <DropDownPicker
+                  open={open}
+                  value={value}
+                  items={items}
+                  setOpen={setOpen}
+                  setValue={(callback) => {
+                    const newValue = callback(value);
+                    setValue(newValue);
+                    handleEditData("petBreedId", newValue);
+                  }}
+                  setItems={() => {}}
+                  placeholder="견종을 선택하세요"
+                  listMode="SCROLLVIEW"
+                  style={styles.dropdownRequired}
+                  dropDownContainerStyle={styles.dropdownContainer}
+                  textStyle={styles.dropdownText}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  zIndex={3000}
+                  zIndexInverse={1000}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>🎂 생일</Text>
+                <TextInput
+                  style={styles.inputRequired}
+                  placeholder="생일 (YYYY-MM-DD)"
+                  value={editData.petBirthDate}
+                  onChangeText={(text) => handleEditData("petBirthDate", text)}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>⚠️ 피해야 할 종</Text>
+                <DropDownPicker
+                  multiple={true}
+                  min={0}
+                  open={openAvoid}
+                  value={formData.avoidBreeds}
+                  items={items}
+                  setOpen={setOpenAvoid}
+                  setValue={(callback) => {
+                    const newValues = callback(formData.avoidBreeds);
+                    handleEditData("avoidBreeds", newValues);
+                  }}
+                  setItems={() => {}}
+                  placeholder="피해야 할 견종을 선택하세요 (선택)"
+                  listMode="SCROLLVIEW"
+                  style={styles.dropdown}
+                  dropDownContainerStyle={styles.dropdownContainer}
+                  textStyle={styles.dropdownText}
+                  placeholderStyle={styles.dropdownPlaceholder}
+                  zIndex={2000}
+                  zIndexInverse={1000}
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>📝 기타 정보</Text>
+                <TextInput
+                  style={styles.input}
+                  placeholder="기타 정보를 입력하세요 (선택)"
+                  value={editData.extraInfo}
+                  onChangeText={(text) => handleEditData("extraInfo", text)}
+                />
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <TouchableOpacity
+                  style={styles.submitButton}
+                  onPress={handlemodify}
+                >
+                  <Text style={styles.submitButtonText}>💾 저장</Text>
+                </TouchableOpacity>
+                
+                <TouchableOpacity
+                  style={styles.cancelButton}
+                  onPress={() => setEditModalVisible(false)}
+                >
+                  <Text style={styles.cancelButtonText}>취소</Text>
+                </TouchableOpacity>
+              </View>
             </ScrollView>
           </View>
         </View>
@@ -593,7 +682,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   profileName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "600",
     color: "#333",
     textAlign: "center",
@@ -612,9 +701,10 @@ const styles = StyleSheet.create({
 
   imageSelectBtn: {
     backgroundColor: "#E4EFE7",
-    paddingVertical: 15,
+    paddingVertical: 12, 
+    paddingHorizontal: 30,
     borderRadius: 12,
-    marginBottom: 15,
+    marginBottom: 10,
     alignItems: "center",
   },
   imageSelectText: {
@@ -629,36 +719,137 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     marginBottom: 16,
   },
-  modalOverlay: {
+  modalWrapper: {
     flex: 1,
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
   },
   modalContent: {
     backgroundColor: "#fff",
+    padding: 20,
+    borderRadius: 16,
     width: "90%",
-    borderRadius: 20,
-    padding: 24,
+    maxHeight: "85%",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
-    maxHeight: "70%",
-    flexGrow: 1,
-    overflow: "visible",
+    shadowOpacity: 0.25,
+    shadowOffset: { width: 0, height: 8 },
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  modalHeader: {
+    marginBottom: 12,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2C3E50",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  modalSubtitle: {
+    fontSize: 13,
+    color: "#6C757D",
+    textAlign: "center",
+    lineHeight: 16,
+  },
+  inputGroup: {
+    marginBottom: 4,
+  },
+  inputLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#2C3E50",
+    marginBottom: 4,
+  },
+  profileImageContainer: {
+    alignItems: "center",
+    marginBottom: 12,
   },
   modalImage: {
-    width: "100%",
-    height: 200,
-    borderRadius: 12,
-    marginBottom: 16,
+    width: 120,
+    height: 120,
+    borderRadius: 75,
+    borderWidth: 3,
+    borderColor: "#7EC8C2",
   },
-  detailText: {
-    fontSize: 16,
+  detailInfoContainer: {
+    marginBottom: 20,
+  },
+  detailItem: {
+    flexDirection: "column",
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    backgroundColor: "#F8F9FA",
+    borderRadius: 8,
     marginBottom: 8,
-    color: "#333",
+  },
+  detailLabel: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#2C3E50",
+    marginBottom: 4,
+  },
+  detailValue: {
+    fontSize: 14,
+    color: "#495057",
+    lineHeight: 20,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 16,
+    gap: 8,
+  },
+  submitButton: {
+    flex: 1,
+    backgroundColor: "#A8E6CF",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    shadowColor: "#A8E6CF",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  submitButtonText: {
+    color: "#2C3E50",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  deleteButton: {
+    flex: 1,
+    backgroundColor: "#FFB3BA",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+    shadowColor: "#FFB3BA",
+    shadowOpacity: 0.3,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  deleteButtonText: {
+    color: "#2C3E50",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#D4D4D4",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  cancelButtonText: {
+    color: "#2C3E50",
+    fontSize: 14,
+    fontWeight: "600",
   },
   input: {
     height: 48,
@@ -671,11 +862,11 @@ const styles = StyleSheet.create({
   },
   inputRequired: {
     height: 48,
-    borderColor: "#9CA3AF", 
+    borderColor: "#9CA3AF",
     borderWidth: 1.5,
     borderRadius: 12,
     paddingHorizontal: 14,
-    marginBottom: 10,
+    marginBottom: 6,
     backgroundColor: "#F9FAFB",
   },
   buttonRow: {
@@ -719,7 +910,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 12,
     paddingHorizontal: 14,
-    marginBottom: 14,
+    marginBottom: 8,
     backgroundColor: "#F9FAFB",
     justifyContent: "center",
   },
@@ -736,15 +927,15 @@ const styles = StyleSheet.create({
   },
   dropdownRequired: {
     height: 48,
-    borderColor: "#9CA3AF", 
+    borderColor: "#9CA3AF",
     borderWidth: 1.5,
     borderRadius: 12,
     paddingHorizontal: 14,
-    marginBottom: 14,
+    marginBottom: 8,
     backgroundColor: "#F9FAFB",
     justifyContent: "center",
   },
-  
+
   dropdownPlaceholder: {
     fontSize: 14,
     color: "#666",

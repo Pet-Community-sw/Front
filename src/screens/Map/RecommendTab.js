@@ -146,12 +146,18 @@ export default function RecommendTab() {
   );
 
   const handleRegionChange = (newRegion) => {
-    const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
-    const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
-    if (latMoved || lngMoved) {
-      setRegion(newRegion);
-      setUsePlaceMode(false);
-      debouncedRefetch();
+    if (selectingLocationVisible) {
+      // 위치 선택 모드일 때는 선택된 위치 업데이트
+      handleSelectingRegion(newRegion);
+    } else {
+      // 일반 모드일 때는 기존 로직
+      const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
+      const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
+      if (latMoved || lngMoved) {
+        setRegion(newRegion);
+        setUsePlaceMode(false);
+        debouncedRefetch();
+      }
     }
   };
 
@@ -214,12 +220,15 @@ export default function RecommendTab() {
     <View style={{ flex: 1 }}>
       {/* 🔹 상단 검색창 */}
       <View style={styles.searchBox}>
+        <View style={styles.searchIconContainer}>
+          <Text style={styles.searchIcon}>🔍</Text>
+        </View>
         <TextInput
           style={styles.input}
-          placeholder="📍 원하시는 장소를 입력해주세요"
+          placeholder="원하시는 장소를 입력해주세요"
           value={searchInput}
           onChangeText={setSearchInput}
-          placeholderTextColor="#888"
+          placeholderTextColor="#9CA3AF"
         />
         <TouchableOpacity style={styles.searchButton} onPress={handleSearch}>
           <Text style={styles.searchButtonText}>검색</Text>
@@ -251,7 +260,19 @@ export default function RecommendTab() {
             }}
             tracksViewChanges={false}
           >
-            <MaterialIcons name="place" size={40} color="#31326F" />
+            <View style={styles.customMarker}>
+              <View style={[
+                styles.markerIcon, 
+                { backgroundColor: post.owner ? "#4A9B8E" : "#31326F" }
+              ]}>
+                <MaterialIcons 
+                  name="pets" 
+                  size={24} 
+                  color="#FFFFFF" 
+                />
+              </View>
+              <View style={styles.markerShadow} />
+            </View>
           </Marker>
         ))}
       </MapView>
@@ -276,23 +297,33 @@ export default function RecommendTab() {
             />
           </View>
 
-          {/* 🔹 위치 선택 안내 / 버튼 */}
-          <View style={styles.overlayBottom}>
-            <Text style={styles.overlayText}>
-              📍 지도를 움직여 위치를 선택하세요
+          {/* 🔹 위치 선택 안내 카드 */}
+          <View style={styles.locationSelectionCard}>
+            <View style={styles.cardHeader}>
+              <MaterialCommunityIcons name="map-marker-radius" size={24} color="#7EC8C2" />
+              <Text style={styles.cardTitle}>📍 위치 선택</Text>
+            </View>
+            <Text style={styles.cardDescription}>
+              지도를 움직여서 산책길을 추가할 위치를 선택해주세요
             </Text>
-            <TouchableOpacity
-              style={styles.applyBtn}
-              onPress={handleConfirmLocation}
-            >
-              <Text style={styles.applyText}>이 위치로 선택</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ marginTop: 10 }}
-              onPress={() => setSelectingLocationVisible(false)}
-            >
-              <Text style={styles.closeBtn}>닫기</Text>
-            </TouchableOpacity>
+            
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={handleConfirmLocation}
+              >
+                <MaterialCommunityIcons name="check" size={20} color="#fff" />
+                <Text style={styles.confirmButtonText}>이 위치로 선택</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setSelectingLocationVisible(false)}
+              >
+                <MaterialCommunityIcons name="close" size={20} color="#666" />
+                <Text style={styles.cancelButtonText}>취소</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </>
       )}
@@ -357,6 +388,25 @@ export default function RecommendTab() {
         </View>
       </Modal>
 
+      {/* 🔹 색깔 범례 */}
+      {!selectingLocationVisible && !writeModalVisible && (
+        <View style={styles.legendContainer}>
+          <View style={styles.legendCard}>
+            <Text style={styles.legendTitle}>마커 색깔 구분</Text>
+            <View style={styles.legendItems}>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: '#4A9B8E' }]} />
+                <Text style={styles.legendText}>내가 쓴 글</Text>
+              </View>
+              <View style={styles.legendItem}>
+                <View style={[styles.legendDot, { backgroundColor: '#31326F' }]} />
+                <Text style={styles.legendText}>다른 사람이 쓴 글</Text>
+              </View>
+            </View>
+          </View>
+        </View>
+      )}
+
       {/* 🔹 귀여운 말풍선 */}
       {showBubble && !selectingLocationVisible && !writeModalVisible && (
         <View style={styles.bubbleContainer}>
@@ -385,37 +435,77 @@ export default function RecommendTab() {
 
 
       {/* 🔹 추천글 작성 모달 */}
-      <Modal visible={writeModalVisible} animationType="fade" transparent>
-        <View style={styles.modalWrapper}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>산책길 추천 코스 추가</Text>
-            <Text style={{ color: "#444", marginBottom: 6 }}>
-              📍 선택한 위치: {locationName || "불러오는 중..."}
-            </Text>
+      <Modal visible={writeModalVisible} animationType="slide" transparent>
+        <View style={styles.writeModalWrapper}>
+          <View style={styles.writeModalContent}>
+            {/* 모달 헤더 */}
+            <View style={styles.writeModalHeader}>
+              <Text style={styles.writeModalTitle}>산책길 추천 코스 추가</Text>
+              <TouchableOpacity 
+                onPress={() => setWriteModalVisible(false)}
+                style={styles.writeModalCloseButton}
+              >
+                <Text style={styles.writeModalCloseText}>×</Text>
+              </TouchableOpacity>
+            </View>
 
-            <TextInput
-              placeholder="제목을 입력하세요"
-              value={title}
-              onChangeText={setTitle}
-              style={styles.titleInput}
-            />
-            <TextInput
-              placeholder="내용을 입력하세요"
-              value={content}
-              onChangeText={setContent}
-              multiline
-              numberOfLines={4}
-              style={styles.contentInput}
-            />
-            <TouchableOpacity style={styles.applyBtn} onPress={handleSubmit}>
-              <Text style={styles.applyText}>등록</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={{ marginTop: 10 }}
-              onPress={() => setWriteModalVisible(false)}
-            >
-              <Text style={{ color: "#666" }}>닫기</Text>
-            </TouchableOpacity>
+            {/* 선택된 위치 표시 */}
+            <View style={styles.selectedLocationCard}>
+              <View style={styles.locationIcon}>
+                <Text style={styles.locationEmoji}>📍</Text>
+              </View>
+              <View style={styles.locationInfo}>
+                <Text style={styles.locationLabel}>선택한 위치</Text>
+                <Text style={styles.locationName}>
+                  {locationName || "불러오는 중..."}
+                </Text>
+              </View>
+            </View>
+
+            {/* 입력 필드들 */}
+            <View style={styles.inputSection}>
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>제목</Text>
+                <TextInput
+                  placeholder="산책길 제목을 입력하세요"
+                  value={title}
+                  onChangeText={setTitle}
+                  style={styles.writeTitleInput}
+                  placeholderTextColor="#9CA3AF"
+                />
+              </View>
+
+              <View style={styles.inputGroup}>
+                <Text style={styles.inputLabel}>내용</Text>
+                <TextInput
+                  placeholder="산책길에 대한 설명을 입력하세요"
+                  value={content}
+                  onChangeText={setContent}
+                  multiline
+                  numberOfLines={4}
+                  style={styles.writeContentInput}
+                  placeholderTextColor="#9CA3AF"
+                  textAlignVertical="top"
+                />
+              </View>
+            </View>
+
+            {/* 버튼들 */}
+            <View style={styles.writeButtonContainer}>
+              <TouchableOpacity 
+                style={styles.writeCancelButton} 
+                onPress={() => setWriteModalVisible(false)}
+              >
+                <Text style={styles.writeCancelText}>취소</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={[styles.writeSubmitButton, (!title.trim() || !content.trim()) && styles.writeSubmitButtonDisabled]} 
+                onPress={handleSubmit}
+                disabled={!title.trim() || !content.trim()}
+              >
+                <Text style={styles.writeSubmitText}>등록하기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -430,36 +520,50 @@ const styles = StyleSheet.create({
     top: 15,
     left: 16,
     right: 16,
-    backgroundColor: "white",
-    borderRadius: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 16,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
     shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 5,
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 8,
+    elevation: 8,
     zIndex: 10,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.8)",
+  },
+  searchIconContainer: {
+    marginRight: 12,
+  },
+  searchIcon: {
+    fontSize: 18,
   },
   input: {
     flex: 1,
     fontSize: 16,
-    color: "#333",
-    paddingVertical: 4,
+    color: "#1F2937",
+    paddingVertical: 2,
+    fontFamily: "font",
   },
   searchButton: {
-    backgroundColor: "#8DB596",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    width: "20%",
+    backgroundColor: "#7EC8C2",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    marginLeft: 8,
+    shadowColor: "#7EC8C2",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
   },
   searchButtonText: {
-    color: "#fff",
-    fontSize: 15,
-    alignSelf: "center",
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "600",
   },
   overlayTop: {
     position: "absolute",
@@ -476,6 +580,113 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     color: "#333",
   },
+  
+  /* 📍 위치 선택 카드 스타일 */
+  locationSelectionCard: {
+    position: "absolute",
+    bottom: 20,
+    left: 16,
+    right: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#2C3E50",
+    marginLeft: 6,
+  },
+  cardDescription: {
+    fontSize: 13,
+    color: "#6C757D",
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: "#7EC8C2",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    shadowColor: "#7EC8C2",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  confirmButtonText: {
+    color: "#FFFFFF",
+    fontSize: 14,
+    fontWeight: "700",
+    marginLeft: 4,
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#F8F9FA",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+  },
+  cancelButtonText: {
+    color: "#6C757D",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  
+  /* 🐾 커스텀 마커 스타일 */
+  customMarker: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  markerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 4,
+    borderColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.4,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  markerShadow: {
+    width: 36,
+    height: 18,
+    backgroundColor: "rgba(0,0,0,0.25)",
+    borderRadius: 18,
+    marginTop: -6,
+    zIndex: -1,
+  },
+  
   overlayBottom: {
     position: "absolute",
     bottom: 40,
@@ -546,57 +757,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignItems: "center",
   },
-  modalWrapper: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.5)",
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 12,
-    width: "80%",
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    marginBottom: 12,
-  },
-  applyBtn: {
-    backgroundColor: "#6A9C89",
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  applyText: {
-    color: "white",
-    fontSize: 16,
-  },
-  titleInput: {
-    fontSize: 16,
-    color: "#333",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    backgroundColor: "#f9f9f9",
-    marginBottom: 12,
-  },
-  contentInput: {
-    fontSize: 16,
-    color: "#333",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    backgroundColor: "#f9f9f9",
-    height: 100,
-    textAlignVertical: "top",
-    marginBottom: 12,
-  },
   
   // 🔹 말풍선 스타일
   bubbleContainer: {
@@ -658,6 +818,213 @@ const styles = StyleSheet.create({
     borderLeftColor: "transparent",
     borderRightColor: "transparent",
     borderTopColor: "#FF6B9D",
+  },
+
+  /* 📝 추천글 작성 모달 스타일 */
+  writeModalWrapper: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  writeModalContent: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingTop: 20,
+    paddingHorizontal: 20,
+    paddingBottom: 34,
+    maxHeight: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  writeModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  writeModalTitle: {
+    fontSize: 24,
+    fontWeight: "700",
+    color: "#1F2937",
+    fontFamily: "cute",
+  },
+  writeModalCloseButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  writeModalCloseText: {
+    fontSize: 20,
+    color: "#6B7280",
+    fontWeight: "600",
+  },
+  selectedLocationCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F0FDF4",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#D1FAE5",
+  },
+  locationIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#D1FAE5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  locationEmoji: {
+    fontSize: 20,
+  },
+  locationInfo: {
+    flex: 1,
+  },
+  locationLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 2,
+    fontWeight: "500",
+  },
+  locationName: {
+    fontSize: 18,
+    color: "#1F2937",
+    fontWeight: "600",
+    fontFamily: "cute",
+  },
+  inputSection: {
+    marginBottom: 24,
+  },
+  inputGroup: {
+    marginBottom: 20,
+  },
+  inputLabel: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+    fontFamily: "cute",
+  },
+  writeTitleInput: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 18,
+    color: "#1F2937",
+    backgroundColor: "#FFFFFF",
+    fontFamily: "cute",
+  },
+  writeContentInput: {
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 18,
+    color: "#1F2937",
+    backgroundColor: "#FFFFFF",
+    fontFamily: "cute",
+    minHeight: 100,
+  },
+  writeButtonContainer: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  writeCancelButton: {
+    flex: 1,
+    backgroundColor: "#F3F4F6",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+  },
+  writeCancelText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#6B7280",
+    fontFamily: "cute",
+  },
+  writeSubmitButton: {
+    flex: 2,
+    backgroundColor: "#7EC8C2",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#7EC8C2",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  writeSubmitButtonDisabled: {
+    backgroundColor: "#D1D5DB",
+    shadowOpacity: 0,
+    elevation: 0,
+  },
+  writeSubmitText: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    fontFamily: "cute",
+  },
+
+  /* 🎨 색깔 범례 스타일 */
+  legendContainer: {
+    position: "absolute",
+    top: 80,
+    left: 16,
+    zIndex: 10,
+  },
+  legendCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 12,
+    padding: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  legendTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 8,
+    fontFamily: "cute",
+  },
+  legendItems: {
+    gap: 6,
+  },
+  legendItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  legendDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+  },
+  legendText: {
+    fontSize: 14,
+    color: "#374151",
+    fontFamily: "cute",
   },
 
 });

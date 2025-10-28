@@ -1,8 +1,8 @@
-import React, { useContext, useCallback, useRef, useState } from "react";
+import React, { useContext, useCallback, useRef, useState, useEffect } from "react";
 import {
   View,
   Text,
-  StyleSheet,
+  StyleSheet, 
   TouchableOpacity,
   FlatList,
   ScrollView,
@@ -11,18 +11,17 @@ import {
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserContext } from "../context/User";
 import { NotificationBell } from "../components/notification";
 import PetProfile from "../components/petProfile";
-// import { useViewProfile } from "../hooks/useProfile"; // PetProfile에서만 사용
 import { Weather } from "../components/weather";
 import { useViewPosts } from "../hooks/usePost";
 import { BASE_URL } from "../api/apiClient";
+import { connectStomp } from "../api/chatiing/stompClient";
 
 const HomeScreen = () => {
   const { logout, loading } = useContext(UserContext);
-  // const { data: profiles = [] } = useViewProfile(); // PetProfile에서만 사용
   const { data: posts = [], refetch } = useViewPosts();
 
   const scrollRef = useRef(null);
@@ -30,7 +29,7 @@ const HomeScreen = () => {
 
   const handleScroll = (e) => {
     const offsetY = e.nativeEvent.contentOffset.y;
-    setShowScrollTop(offsetY > 200); // 200 이상 스크롤 시 버튼 표시
+    setShowScrollTop(offsetY > 200);
   };
 
   const scrollToTop = () => {
@@ -38,10 +37,7 @@ const HomeScreen = () => {
   };
 
   const navigation = useNavigation();
-
   const weatherText = Weather();
-
-  // PetProfile에서 profiles 데이터를 관리하므로 인사말은 간단하게 변경
   const greetingText = "오늘도 좋은 하루 보내세요! 💛";
 
   useFocusEffect(
@@ -50,6 +46,17 @@ const HomeScreen = () => {
     }, [])
   );
 
+  useEffect(() => {
+    const initStomp = async () => {
+      const token = await AsyncStorage.getItem("accessToken");
+      if (token) {
+        await connectStomp(token);
+        console.log("✅ 홈 진입 후 STOMP 연결 성공");
+      }
+    };
+    initStomp();
+  }, []);
+  
   const getImageUri = (relativePath) =>
     relativePath
       ? `${BASE_URL.replace(/\/$/, "")}/${relativePath.replace(/^\/+/, "")}`
@@ -60,8 +67,6 @@ const HomeScreen = () => {
   const handleLogout = async () => {
     try {
       await logout();
-
-      // 웹소켓 연결 끊기
       if (socket && socket.readyState === WebSocket.OPEN) {
         socket.close();
         console.log("🔌 웹소켓 연결 종료 (로그아웃)");
@@ -111,30 +116,12 @@ const HomeScreen = () => {
           </View>
         </View>
 
-        <View style={styles.divider} />
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>📍 산책 기능 바로가기</Text>
-          <View style={styles.buttonRow}>
-            <IconButton
-              icon="paw"
-              label="산책 매칭"
-              onPress={() => navigation.navigate("Matching")}
-            />
-            <IconButton
-              icon="run"
-              label="대리 산책자"
-              onPress={() => navigation.navigate("Walker")}
-            />
-            <IconButton
-              icon="map"
-              label="산책길 추천"
-              onPress={() => navigation.navigate("MapRoute")}
-            />
-          </View>
-        </View>
+        {/* 🐕 펫 말풍선 */}
+        <PetSpeechBubble />
 
         <View style={styles.divider} />
+
+        {/* 📍 산책 기능 바로가기 섹션 완전 제거 */}
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>💬 커뮤니티</Text>
@@ -153,7 +140,6 @@ const HomeScreen = () => {
                     navigation.navigate("PostDetail", { postId: item.postId })
                   }
                 >
-                  {/* 상단 프로필 */}
                   <View style={styles.feedHeader}>
                     {profileUri && (
                       <Image
@@ -164,7 +150,6 @@ const HomeScreen = () => {
                     <Text style={styles.authorName}>{item.memberName}</Text>
                   </View>
 
-                  {/* 게시글 이미지 */}
                   {imageUri && (
                     <Image
                       source={{ uri: imageUri }}
@@ -172,7 +157,6 @@ const HomeScreen = () => {
                     />
                   )}
 
-                  {/* 아래 정보 */}
                   <View style={styles.feedMeta}>
                     <Text style={styles.feedLikes}>
                       ❤️ 좋아요 {item.likeCount}
@@ -188,6 +172,7 @@ const HomeScreen = () => {
           />
         </View>
       </ScrollView>
+
       {showScrollTop && (
         <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
           <MaterialCommunityIcons
@@ -201,14 +186,42 @@ const HomeScreen = () => {
   );
 };
 
-const IconButton = ({ icon, label, onPress }) => (
-  <TouchableOpacity style={styles.iconButton} onPress={onPress}>
-    <View style={styles.iconCircle}>
-      <MaterialCommunityIcons name={icon} size={26} color="#6D9886" />
+/* ✅ WalkCheckCard 추가 (서버 연동 없이 작동) */
+const PetSpeechBubble = () => {
+  const speechMessages = [
+    "오늘은 산책가기 딱 좋은 날이에요! 🌤️",
+    "오늘은 잔디밭에서 뛰어놀자! 🌱",
+    "바람이 시원해서 산책하기 좋아요! 💨",
+    "오늘은 친구들과 만나서 놀고 싶어요! 🐕",
+    "햇살이 따뜻해서 나가고 싶어요! ☀️",
+    "오늘은 공원에서 뛰어놀까요? 🏞️",
+    "산책하면서 맛있는 간식도 먹고 싶어요! 🍖",
+    "오늘은 새로운 길로 산책해볼까요? 🛤️",
+    "날씨가 좋아서 산책하기 딱이에요! 🌈",
+    "오늘은 물놀이도 하고 싶어요! 💦"
+  ];
+
+  const [currentMessage, setCurrentMessage] = useState(
+    speechMessages[Math.floor(Math.random() * speechMessages.length)]
+  );
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentMessage(speechMessages[Math.floor(Math.random() * speechMessages.length)]);
+    }, 60000); // 1분마다 메시지 변경
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <View style={styles.speechBubbleContainer}>
+      <View style={styles.speechBubble}>
+        <Text style={styles.speechBubbleText}>{currentMessage}</Text>
+        <View style={styles.speechBubbleTail} />
+      </View>
     </View>
-    <Text style={styles.iconLabel}>{label}</Text>
-  </TouchableOpacity>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -247,7 +260,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   logoutButton: {
-    backgroundColor: "#F7B4C3",
+    backgroundColor: "#9CA3AF",
     paddingVertical: 6,
     paddingHorizontal: 13,
     borderRadius: 8,
@@ -290,25 +303,6 @@ const styles = StyleSheet.create({
     marginLeft: 3,
     marginTop: 8,
     lineHeight: 34,
-  },
-  buttonRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-  },
-  iconButton: {
-    alignItems: "center",
-    padding: 8,
-  },
-  iconCircle: {
-    backgroundColor: "#F3F4F6",
-    padding: 10,
-    borderRadius: 100,
-  },
-  iconLabel: {
-    marginTop: 6,
-    fontSize: 13,
-    color: "#333",
-    fontFamily: "font",
   },
   threadCard: {
     borderBottomWidth: 1,
@@ -370,7 +364,7 @@ const styles = StyleSheet.create({
   },
   authorName: {
     fontWeight: "600",
-    fontSize: 14,
+    fontSize: 15,
     color: "#333",
   },
   feedImage: {
@@ -396,8 +390,6 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 2,
   },
-
-  // 댕냥이 친구들 영역 스타일
   petSection: {
     marginBottom: 20,
     marginTop: 10,
@@ -407,6 +399,49 @@ const styles = StyleSheet.create({
     padding: 4,
     marginTop: 4,
     marginHorizontal: 2,
+  },
+
+  /* 🐕 펫 말풍선 스타일 */
+  speechBubbleContainer: {
+    alignItems: "flex-start",
+    marginVertical: 10,
+    marginHorizontal: 10,
+    marginLeft: 20,
+    marginTop: -10,
+  },
+  speechBubble: {
+    backgroundColor: "#E8F5E8",
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    maxWidth: "80%",
+    position: "relative",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  speechBubbleText: {
+    fontSize: 17,
+    color: "#2C3E50",
+    fontFamily: "cute",
+    textAlign: "left",
+    lineHeight: 22,
+    flexWrap: "wrap",
+  },
+  speechBubbleTail: {
+    position: "absolute",
+    top: -6,
+    left: 20,
+    width: 0,
+    height: 0,
+    borderLeftWidth: 6,
+    borderRightWidth: 6,
+    borderBottomWidth: 6,
+    borderLeftColor: "transparent",
+    borderRightColor: "transparent",
+    borderBottomColor: "#E8F5E8",
   },
 });
 

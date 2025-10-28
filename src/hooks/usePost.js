@@ -48,7 +48,7 @@ const useRemovePost = () => {
 };
 
 //게시물 목록 조회
-const useViewPosts = (page = 0) => {
+const useViewPosts = (page = 1) => {
   return useQuery({
     queryKey: ["posts", page], 
     queryFn: () => viewPosts(page), 

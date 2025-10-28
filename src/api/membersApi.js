@@ -41,6 +41,7 @@ const signup = async (userData) => {
 //로그인
 const login = async (userData) => {
   const response = await apiClient.post("/members/login", userData);
+  console.log("📤 로그인 요청 보냄:", response.config);
   return response.data;
 };
 

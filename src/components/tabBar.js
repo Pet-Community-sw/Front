@@ -43,11 +43,29 @@ const TabBar = () => {
         },
         tabBarStyle: {
           backgroundColor: "#fff",
-          height: 50,
-          paddingBottom: 5,
+          height: 65,
+          paddingBottom: 8,
+          paddingTop: 8,
+          borderTopWidth: 0,
+          shadowColor: "#000",
+          shadowOffset: {
+            width: 0,
+            height: -2,
+          },
+          shadowOpacity: 0.1,
+          shadowRadius: 8,
+          elevation: 8,
         },
-        tabBarActiveTintColor: "#6A9C89",
-        tabBarInactiveTintColor: "#BDBDBD",
+        tabBarActiveTintColor: "#7EC8C2",
+        tabBarInactiveTintColor: "#9CA3AF",
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+          marginTop: 2,
+        },
+        tabBarIconStyle: {
+          marginTop: 2,
+        },
       })}
     >
       <Tab.Screen name="Home" component={HomeScreen}

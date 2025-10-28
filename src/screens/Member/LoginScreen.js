@@ -19,10 +19,14 @@ const LoginScreen = () => {
       { email, password },
       {
         onSuccess: async (data) => {
-          await login(data.accessToken); // 토큰 저장 (UserContext)
+          await login(data.accessToken, data.memberId); // 토큰과 memberId 저장
           console.log("✅ 토큰 저장 완료:", data.accessToken);
+          console.log("✅ memberId 저장 완료:", data.memberId);
 
           await connectStomp(data.accessToken);
+          
+          // 로그인 성공 후 메인 화면으로 이동
+          navigation.navigate("Home");
         },
 
         onError: (error) => {

@@ -30,7 +30,8 @@ export default {
         }
       },
       package: "com.anonymous.petapp",
-      permissions: ["ACCESS_FINE_LOCATION"]
+      permissions: ["ACCESS_FINE_LOCATION"], 
+      usesCleartextTraffic: true,
     },
     web: {
       favicon: "./assets/favicon.png"
@@ -41,6 +42,11 @@ export default {
     plugins: [
       "expo-font", 
       "expo-splash-screen"
-    ]
+    ],
+    extra: {
+      eas: {
+        projectId: "c9ca1310-0088-4c5c-aaba-1bcb9a44a68c"
+      }
+    }
   }
 };

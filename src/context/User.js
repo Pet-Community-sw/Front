@@ -10,7 +10,7 @@ const UserContext = createContext();
 
 const UserProvider = ({ children }) => {
   const [token, setToken] = useState(null);
-  const [memberId, setMemberId] = useState(null);
+  const [userId, setUserId] = useState(null);
   const [loading, setLoading] = useState(true);
   const { clearProfile } = useProfileSession();
 
@@ -23,19 +23,30 @@ const UserProvider = ({ children }) => {
   useEffect(() => {
     const loadUserData = async () => {
       try {
+        // await disconnectStomp();
         const storedToken = await AsyncStorage.getItem("accessToken");
-        const storedMemberId = await AsyncStorage.getItem("memberId");
+        const storedUserId = await AsyncStorage.getItem("userId");
+
+        console.log("🔍 저장된 사용자 데이터:", { storedToken: !!storedToken, storedUserId });
 
         if (storedToken) {
           setToken(storedToken);
-          if (storedMemberId) setMemberId(storedMemberId);
-          // 앱 재실행 시 자동 STOMP 재연결
-          await connectStomp(storedToken);
+          if (storedUserId) {
+            setUserId(storedUserId);
+            console.log("✅ userId 설정됨:", storedUserId);
+          }
+
+          try {
+            await connectStomp(storedToken);
+            console.log("✅ STOMP 자동 연결 성공");
+          } catch (err) {
+            console.log("❌ STOMP 자동 연결 실패:", err);
+          }
         }
       } catch (e) {
         console.log("유저 데이터 로딩 실패:", e);
       } finally {
-        console.log("✅ setLoading(false) 호출");
+        console.log("✅ setLoading(false) 호출 (무조건 실행)");
         setLoading(false);
       }
     };
@@ -64,9 +75,11 @@ const UserProvider = ({ children }) => {
   };
 
   // ✅ 로그인 시 토큰 저장 및 STOMP 연결
-  const login = async (accessToken) => {
+  const login = async (accessToken, memberId) => {
     await AsyncStorage.setItem("accessToken", accessToken);
+    await AsyncStorage.setItem("userId", memberId.toString());
     setToken(accessToken);
+    setUserId(memberId);
 
     // try {
     //   await connectStomp(accessToken);
@@ -104,7 +117,7 @@ const UserProvider = ({ children }) => {
     // ✅ STOMP 연결 해제
     await disconnectStomp();
 
-    await AsyncStorage.multiRemove(["accessToken", "memberId"]);
+    await AsyncStorage.multiRemove(["accessToken", "userId"]);
 
     // ✅ 토큰 및 사용자 정보 제거
     setToken(null);
@@ -117,12 +130,13 @@ const UserProvider = ({ children }) => {
   const contextValue = useMemo(
     () => ({
       token,
+      userId,
       loading,
       login,
       logout,
       refreshAccessToken,
     }),
-    [token, loading]
+    [token, userId, loading]
   );
 
   return (

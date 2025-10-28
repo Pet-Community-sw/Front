@@ -25,7 +25,7 @@ const useGroupChattingList = () => {
     return useQuery({
         queryKey: ['chatting', 'MANY'], 
         queryFn: () => chattingList({chatRoomType: 'GROUP'}), 
-        enabled: false, 
+        enabled: true, 
     });
 };
 
@@ -63,7 +63,7 @@ const useFetchMessages = ({ chatRoomId, chatRoomType, page = 0 }) => {
   return useQuery({
     queryKey: ["messages", { chatRoomId, chatRoomType, page }],
     queryFn: () => fetchMessages({ chatRoomId, chatRoomType, page }),
-    enabled: false, 
+    enabled: !!chatRoomId, 
   });
 };
 

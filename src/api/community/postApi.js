@@ -27,8 +27,9 @@ const addPost = async (postData) => {
 //게시물 목록 조회
 const viewPosts = async (page = 1) => {
   try {
+    const safePage = Math.max(0, page);
     const response = await apiClient.get("/posts", {
-      params: { page },
+      params: { page: safePage },
     });
     console.log("📋 서버에서 받은 게시글 데이터:", response.data);
     console.log("📋 첫 번째 게시글:", response.data?.[0]);

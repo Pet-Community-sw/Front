@@ -50,7 +50,19 @@ export const deleteWalkingTogetherPost = async ({ walkingTogetherPostId }) => {
 
 //매칭 시작
 export const startWalkingTogether = async ({ walkingTogetherPostId }) => {
+    console.log("🚀 매칭 시작 API 호출:", {
+        url: `/walking-together-posts/${walkingTogetherPostId}`,
+        method: "POST",
+        walkingTogetherPostId
+    });
+    
     const response = await apiClient.post(`/walking-together-posts/${walkingTogetherPostId}`)
+    
+    console.log("✅ 매칭 시작 API 응답:", {
+        status: response.status,
+        data: response.data
+    });
+    
     return response.data;
 }
 
