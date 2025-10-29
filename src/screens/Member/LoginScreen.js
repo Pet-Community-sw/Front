@@ -26,7 +26,7 @@ const LoginScreen = () => {
           await connectStomp(data.accessToken);
           
           // 로그인 성공 후 메인 화면으로 이동
-          navigation.navigate("Home");
+          // navigation.navigate(Home);
         },
 
         onError: (error) => {
