@@ -40,7 +40,6 @@ const UserProvider = ({ children }) => {
             await connectStomp(storedToken);
             console.log("✅ STOMP 자동 연결 성공");
           } catch (err) {
-            console.log("❌ STOMP 자동 연결 실패:", err);
           }
         }
       } catch (e) {
@@ -69,7 +68,6 @@ const UserProvider = ({ children }) => {
       console.log("🔄 토큰 갱신 완료:", newToken);
       return newToken;
     } catch (error) {
-      console.log("❌ 토큰 갱신 실패:", error);
       throw error;
     }
   };

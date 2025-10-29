@@ -48,9 +48,6 @@ const ChattingScreen = ({ route }) => {
     
     // ✅ 채팅방 구독
     subscriptionRef.current = subscribeChatRoom(chatRoomId, (message) => {
-      console.log("📥 새 메시지 수신:", message);
-      console.log("📥 메시지 타입:", message.messageType);
-      console.log("📥 메시지 body:", message.body);
       console.log("📥 전체 메시지 구조:", JSON.stringify(message, null, 2));
       
              // STOMP 메시지 구조에 맞게 처리 (서버 명세에 따라)
@@ -78,7 +75,6 @@ const ChattingScreen = ({ route }) => {
                    return prev;
                  }
                  
-                 console.log("📥 새 메시지 추가:", messageData);
                  const newMessages = [...prev, messageData];
                  
                  // ✅ 새 메시지 추가 후 맨 아래로 스크롤

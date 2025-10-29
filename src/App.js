@@ -70,13 +70,9 @@ function Notification() {
 
 // 내부 라우팅
 const AppInner = () => {
-  console.log("🚀 App 컴포넌트 진입");
 
   const { token, loading } = useContext(UserContext);
   // useNotificationSetup();
-
-  console.log("📦 AppInner 렌더링 중, token 상태:", token);
-  console.log("📦 token typeof:", typeof token);
 
   if (loading) return <LoadingScreen />;
 
@@ -129,9 +125,7 @@ const App = () => {
   });
 
   if (!fontsLoaded) return <LoadingScreen />;
-
-  console.log("🧩 AppInner 렌더 준비");
-
+  
   return (
     <GestureHandlerRootView style={styles.container}>
       <StatusBar backgroundColor="black" barStyle="light-content" />

@@ -266,7 +266,6 @@ const DelegateTab = () => {
     );
 
     if (!selectedPetProfileId) {
-      console.log("❌ selectedPetProfileId가 없음");
       return;
     }
 

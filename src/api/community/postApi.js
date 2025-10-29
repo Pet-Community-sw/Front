@@ -35,9 +35,6 @@ const viewPosts = async (page = 1) => {
     console.log("📋 첫 번째 게시글:", response.data?.[0]);
     return response.data;
   } catch (error) {
-    console.log("❌ 서버 오류 응답:", {
-      message: error.message,
-    });
     throw new Error(error.response?.data?.message || "게시물 조회 실패");
   }
 }
@@ -48,9 +45,6 @@ const viewOnePost = async (postId) => {
     const response = await apiClient.get(`/posts/${postId}`);
     return response.data;
   } catch (error) {
-    console.log("❌ 서버 오류 응답:", {
-      message: error.message,
-    });
     throw new Error(error.response?.data?.message || "특정 게시물 조회 실패");
   }
 }
@@ -61,11 +55,6 @@ const modifyPost = async (postId, formData) => {
     const response = await apiClient.put(`/posts/${postId}`, formData);
     return response.data;
   } catch (error) {
-  console.log("❌ 서버 오류 응답:", {
-    code: error?.response?.status,
-    serverMessage: error?.response?.data,
-    defaultMessage: error.message,
-  });
 
   const serverMsg =
     error?.response?.data?.message ||
@@ -83,9 +72,6 @@ const removePost = async (postId) => {
     const response = await apiClient.delete(`/posts/${postId}`);
     return response.data;
   } catch (error) {
-    console.log("❌ 서버 오류 응답:", {
-      message: error.message,
-    });
     throw new Error(error.response?.data?.message || "게시물 수정 실패");
   }
 }
