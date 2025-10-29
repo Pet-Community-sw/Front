@@ -50,11 +50,12 @@ const useRemovePost = () => {
 //게시물 목록 조회
 const useViewPosts = (page = 1) => {
   return useQuery({
-    queryKey: ["posts", page], 
-    queryFn: () => viewPosts(page), 
-    enabled: false, 
+    queryKey: ["posts", page],
+    queryFn: () => viewPosts(page),
+    keepPreviousData: true, // ✅ 페이지 이동 시 이전 데이터 유지
   });
-}
+};
+
 
 //특정 게시물 조회
 const useViewOnePost = (postId) => {

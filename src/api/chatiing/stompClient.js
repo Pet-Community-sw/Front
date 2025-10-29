@@ -1,5 +1,6 @@
 import { Client } from "@stomp/stompjs";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { BASE_URL } from "../apiClient";
 
 export let client = null;
 
@@ -20,9 +21,10 @@ export const connectStomp = async () => {
       resolve(true);
       return;
     }
+    const WS_URL = BASE_URL.replace("https://", "wss://").replace("http://", "ws://");
 
     client = new Client({
-      brokerURL: "ws://10.0.2.2:8080/ws-stomp",
+      brokerURL: `${WS_URL}/ws-stomp`,
       connectHeaders: { Authorization: `Bearer ${token}` },
       reconnectDelay: 5000,
       debug: (msg) => msg.includes("CONNECT") && console.log("🐛", msg),
@@ -61,12 +63,18 @@ export const connectStomp = async () => {
 };
 
 export const disconnectStomp = async () => {
-  if (client && client.connected) {
-    console.log("🔌 STOMP 연결 해제 중...");
-    await client.deactivate();
+  try {
+    if (client && client.active) {
+      await client.deactivate();
+      console.log("✅ STOMP 연결 해제 완료");
+    } else {
+      console.log("⚠️ STOMP 클라이언트가 없거나 이미 비활성화 상태입니다.");
+    }
+  } catch (err) {
+    console.log("❌ STOMP 연결 해제 중 오류:", err);
   }
-  client = null;
 };
+
 
 export const isStompConnected = () => !!client && client.connected;
 

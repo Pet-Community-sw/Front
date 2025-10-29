@@ -2,7 +2,7 @@ import "react-native-gesture-handler";
 import React, { useContext, useEffect } from "react";
 
 // TextEncoder/TextDecoder 폴리필 추가 (STOMP 라이브러리용)
-import 'text-encoding';
+import "text-encoding";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -25,6 +25,7 @@ import FindpasswordScreen from "./screens/Member/FindpasswordScreen";
 import NotificationScreen from "./screens/Member/NotificationListScreen";
 import TabBar from "./components/tabBar";
 import LoadingScreen from "./components/Loading";
+import PostDetailScreen from "./screens/Community/PostDetailScreen";
 
 // 네비게이터
 const Stack = createNativeStackNavigator();
@@ -88,11 +89,16 @@ const AppInner = () => {
             <>
               <Stack.Screen name="TabRoot" component={TabBar} />
 
-
               <Stack.Screen
                 name="NotificationList"
                 component={NotificationScreen}
                 options={{ title: "알림 목록" }}
+              />
+
+              <Stack.Screen
+                name="PostDetail"
+                component={PostDetailScreen}
+                options={{ title: "게시글 상세", headerShown: true }}
               />
             </>
           ) : (
@@ -101,15 +107,17 @@ const AppInner = () => {
               <Stack.Screen name="Signup" component={SignupScreen} />
               <Stack.Screen name="Login" component={LoginScreen} />
               <Stack.Screen name="Findid" component={FindidScreen} />
-              <Stack.Screen name="Findpassword" component={FindpasswordScreen} />
+              <Stack.Screen
+                name="Findpassword"
+                component={FindpasswordScreen}
+              />
             </>
           )}
         </Stack.Navigator>
       </NavigationContainer>
     </>
   );
-}
-
+};
 
 // 최상위 앱
 const App = () => {
@@ -126,17 +134,14 @@ const App = () => {
 
   return (
     <GestureHandlerRootView style={styles.container}>
-      <StatusBar
-        backgroundColor="black"
-        barStyle="light-content"
-      />
+      <StatusBar backgroundColor="black" barStyle="light-content" />
       <QueryClientProvider client={queryClient}>
         <SelectProfileProvider>
           <UserProvider>
             <NotificationProvider>
-                <ChatProvider>
-                  <AppInner />
-                </ChatProvider>
+              <ChatProvider>
+                <AppInner />
+              </ChatProvider>
             </NotificationProvider>
           </UserProvider>
         </SelectProfileProvider>

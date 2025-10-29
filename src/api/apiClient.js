@@ -3,7 +3,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 
-export const BASE_URL = "http://192.168.45.195:8080";
+export const BASE_URL = process.env.EXPO_PUBLIC_BASE_URL;
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
@@ -16,11 +16,10 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use(async (config) => {
   const token = await AsyncStorage.getItem("accessToken");
   
-  console.log("API 요청 토큰 상태:", {
-    url: config.url,
-    hasToken: !!token,
-    tokenLength: token?.length || 0,
-    tokenPreview: token ? token.substring(0, 20) + "..." : "없음"
+  console.log("🌐 API 요청 정보:", {
+    baseURL: config?.baseURL || "(baseURL 없음)",
+    endpoint: config?.url,
+    token: token ? token.substring(0, 20) + "..." : "없음",
   });
   
 

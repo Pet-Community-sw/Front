@@ -30,7 +30,11 @@ import {
 } from "../../hooks/useDelegate";
 import { useViewProfile } from "../../hooks/useProfile";
 import { useProfileSession } from "../../context/SelectProfile";
-import { useWalkStart, useWalkFinish, useGetWalkLocation } from "../../hooks/useWalkRecord";
+import {
+  useWalkStart,
+  useWalkFinish,
+  useGetWalkLocation,
+} from "../../hooks/useWalkRecord";
 import { BASE_URL } from "../../api/apiClient";
 
 // Geocoder 초기화
@@ -57,7 +61,8 @@ const DelegateTab = () => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [showBubble, setShowBubble] = useState(true); // 말풍선 표시 여부
-  const [supportMessageModalVisible, setSupportMessageModalVisible] = useState(false); // 지원 메시지 입력 모달
+  const [supportMessageModalVisible, setSupportMessageModalVisible] =
+    useState(false); // 지원 메시지 입력 모달
   const [supportMessage, setSupportMessage] = useState(""); // 지원 메시지
 
   // 글쓰기 폼 상태
@@ -73,80 +78,97 @@ const DelegateTab = () => {
 
   // ------------------ API ------------------
   // 플러스 버튼을 눌렀을 때만 데이터 조회
-  const { data: postList = [], refetch: refetchPosts, isLoading, error } =
-    useViewLocationDelegate({
-      minLatitude: 37.643931,
-      maxLatitude: 37.653931,
-      minLongitude: 127.059411,
-      maxLongitude: 127.069411,
-    });
+  const {
+    data: postList = [],
+    refetch: refetchPosts,
+    isLoading,
+    error,
+  } = useViewLocationDelegate({
+    minLatitude: 37.643931,
+    maxLatitude: 37.653931,
+    minLongitude: 127.059411,
+    maxLongitude: 127.069411,
+  });
   const { mutate: createDelegatePost } = useAddDelegate();
   const { mutate: applyDelegate } = useApplicateDelegate(() => {
     // 지원 성공 시 모달 닫기
     setDetailModalVisible(false);
   });
-  const { mutate: selectApplicant } = useSelectDelegateApplicant((data, variables) => {
-    // 지원자 선정 성공 시 해당 게시글과 지원자 ID, 채팅방 ID를 저장
-    const selectedMemberId = variables?.memberId; // API 호출 시 전달한 memberId 사용 (안전하게)
-    const chatRoomId = data?.chatRoomId;
-    
-      console.log("선정 콜백 호출됨:", { selectedPostId, selectedMemberId, chatRoomId });
+  const { mutate: selectApplicant } = useSelectDelegateApplicant(
+    (data, variables) => {
+      // 지원자 선정 성공 시 해당 게시글과 지원자 ID, 채팅방 ID를 저장
+      const selectedMemberId = variables?.memberId; // API 호출 시 전달한 memberId 사용 (안전하게)
+      const chatRoomId = data?.chatRoomId;
+
+      console.log("선정 콜백 호출됨:", {
+        selectedPostId,
+        selectedMemberId,
+        chatRoomId,
+      });
       console.log("selectedPostId 타입:", typeof selectedPostId);
       console.log("selectedMemberId 타입:", typeof selectedMemberId);
       console.log("chatRoomId:", chatRoomId);
       console.log("variables:", variables);
       console.log("data:", data);
-    
-    if (selectedPostId && selectedMemberId) {
-      setSelectedPosts(prev => {
-        const newSet = new Set([...prev, selectedPostId]);
-        console.log("selectedPosts 업데이트:", newSet);
-        return newSet;
-      });
-      setSelectedApplicants(prev => {
-        const newMap = new Map([...prev, [selectedPostId, selectedMemberId]]);
-        console.log("selectedApplicants 업데이트:", newMap);
-        console.log("Map에 저장된 키-값 쌍:", Array.from(newMap.entries()));
-        return newMap;
-      });
-      if (chatRoomId) {
-        setChatRoomIds(prev => {
-          const newMap = new Map([...prev, [selectedPostId, chatRoomId]]);
-          console.log("chatRoomIds 업데이트:", newMap);
-          return newMap;
-        });
-      }
-      
-      // 지원자 선정 후 자동으로 권한 부여
-      console.log("지원자 선정 후 권한 부여 시작");
-      console.log("authRecord 호출 전:", { selectedPostId });
-      try {
-        authRecord({ delegateWalkPostId: selectedPostId });
-        console.log("authRecord 호출 완료");
-      } catch (error) {
-        console.error("authRecord 호출 에러:", error);
-        // 권한 부여 실패 시에도 임시로 권한 부여된 것으로 처리
-        console.log("권한 부여 실패, 임시로 권한 부여 처리");
-        setAuthorizedPosts(prev => {
+
+      if (selectedPostId && selectedMemberId) {
+        setSelectedPosts((prev) => {
           const newSet = new Set([...prev, selectedPostId]);
-          console.log("임시 authorizedPosts 업데이트:", newSet);
+          console.log("selectedPosts 업데이트:", newSet);
           return newSet;
         });
+        setSelectedApplicants((prev) => {
+          const newMap = new Map([...prev, [selectedPostId, selectedMemberId]]);
+          console.log("selectedApplicants 업데이트:", newMap);
+          console.log("Map에 저장된 키-값 쌍:", Array.from(newMap.entries()));
+          return newMap;
+        });
+        if (chatRoomId) {
+          setChatRoomIds((prev) => {
+            const newMap = new Map([...prev, [selectedPostId, chatRoomId]]);
+            console.log("chatRoomIds 업데이트:", newMap);
+            return newMap;
+          });
+        }
+
+        // 지원자 선정 후 자동으로 권한 부여
+        console.log("지원자 선정 후 권한 부여 시작");
+        console.log("authRecord 호출 전:", { selectedPostId });
+        try {
+          authRecord({ delegateWalkPostId: selectedPostId });
+          console.log("authRecord 호출 완료");
+        } catch (error) {
+          console.error("authRecord 호출 에러:", error);
+          // 권한 부여 실패 시에도 임시로 권한 부여된 것으로 처리
+          console.log("권한 부여 실패, 임시로 권한 부여 처리");
+          setAuthorizedPosts((prev) => {
+            const newSet = new Set([...prev, selectedPostId]);
+            console.log("임시 authorizedPosts 업데이트:", newSet);
+            return newSet;
+          });
+        }
+
+        // 권한 부여 API 상태 확인을 위한 추가 로그
+        console.log("authRecord 함수:", authRecord);
+        console.log("authRecord 타입:", typeof authRecord);
+
+        console.log(
+          "지원자 선정 완료, 게시글 ID:",
+          selectedPostId,
+          "선정된 지원자 ID:",
+          selectedMemberId,
+          "채팅방 ID:",
+          chatRoomId
+        );
       }
-      
-      // 권한 부여 API 상태 확인을 위한 추가 로그
-      console.log("authRecord 함수:", authRecord);
-      console.log("authRecord 타입:", typeof authRecord);
-      
-      console.log("지원자 선정 완료, 게시글 ID:", selectedPostId, "선정된 지원자 ID:", selectedMemberId, "채팅방 ID:", chatRoomId);
     }
-  });
+  );
   const { mutate: authRecord } = useAuthDelegateRecord(() => {
     // 권한 부여 성공 시 해당 게시글을 권한 부여된 목록에 추가
     console.log("authRecord 콜백 실행됨!");
     console.log("selectedPostId:", selectedPostId);
     if (selectedPostId) {
-      setAuthorizedPosts(prev => {
+      setAuthorizedPosts((prev) => {
         const newSet = new Set([...prev, selectedPostId]);
         console.log("권한 부여 완료, 게시글 ID:", selectedPostId);
         console.log("authorizedPosts 업데이트:", newSet);
@@ -165,9 +187,17 @@ const DelegateTab = () => {
   const currentUserId = profiles?.[0]?.profileId || null;
 
   // 상세 조회 API
-  const { data: postDetail, isLoading: isDetailLoading, error: detailError } = useViewDelegatePostDetail(selectedPostId);
-  const { data: applicants, isLoading: isApplicantsLoading, error: applicantsError } = useViewDelegateApplicants(selectedPostId);
-  
+  const {
+    data: postDetail,
+    isLoading: isDetailLoading,
+    error: detailError,
+  } = useViewDelegatePostDetail(selectedPostId);
+  const {
+    data: applicants,
+    isLoading: isApplicantsLoading,
+    error: applicantsError,
+  } = useViewDelegateApplicants(selectedPostId);
+
   // 상세 조회 데이터 로그
   console.log("🔍 selectedPostId:", selectedPostId);
   console.log("🔍 postDetail:", postDetail);
@@ -188,7 +218,6 @@ const DelegateTab = () => {
     }
   };
 
-  
   // selectedPostId가 변경될 때마다 로그
   React.useEffect(() => {
     if (selectedPostId) {
@@ -198,11 +227,17 @@ const DelegateTab = () => {
 
   // postDetail이 로드되면 위치 변환
   React.useEffect(() => {
-    if (postDetail && postDetail.locationLatitude && postDetail.locationLongitude) {
-      convertLocationToAddress(postDetail.locationLatitude, postDetail.locationLongitude);
+    if (
+      postDetail &&
+      postDetail.locationLatitude &&
+      postDetail.locationLongitude
+    ) {
+      convertLocationToAddress(
+        postDetail.locationLatitude,
+        postDetail.locationLongitude
+      );
     }
   }, [postDetail]);
-
 
   // ------------------ 지도 초기 위치 ------------------
   const [region, setRegion] = useState({
@@ -225,21 +260,24 @@ const DelegateTab = () => {
 
   // 프로필 선택
   const handleSelectProfile = async () => {
-    console.log("🚀 handleSelectProfile 시작, selectedPetProfileId:", selectedPetProfileId);
-    
+    console.log(
+      "🚀 handleSelectProfile 시작, selectedPetProfileId:",
+      selectedPetProfileId
+    );
+
     if (!selectedPetProfileId) {
       console.log("❌ selectedPetProfileId가 없음");
       return;
     }
-    
+
     try {
       console.log("🔄 selectProfile 호출 시작...");
       await selectProfile(selectedPetProfileId);
       console.log("✅ selectProfile 완료");
-      
+
       await new Promise((resolve) => setTimeout(resolve, 200)); // 토큰 반영 대기 시간 증가
       console.log("⏰ 대기 완료");
-      
+
       setSelectProfileModalVisible(false);
       // 프로필 선택 완료 후 데이터 조회
       console.log("🔄 프로필 선택 완료, 데이터 조회 시작");
@@ -256,7 +294,7 @@ const DelegateTab = () => {
   // 글 등록
   const handleAddPost = () => {
     console.log("🚀 handleAddPost 시작");
-    
+
     if (
       !title ||
       !content ||
@@ -269,17 +307,20 @@ const DelegateTab = () => {
     }
 
     const payload = {
-        title,
-        content,
-        price: Number(price),
-        locationLongitude: Number(locationLongitude),
-        locationLatitude: Number(locationLatitude),
+      title,
+      content,
+      price: Number(price),
+      locationLongitude: Number(locationLongitude),
+      locationLatitude: Number(locationLatitude),
       allowedRadiusMeters: Number(allowedRadiusMeters),
       scheduledTime: scheduledTime ? scheduledTime.toISOString() : null,
-        requireProfile,
+      requireProfile,
     };
 
-    console.log("📤 Delegate Post 요청 payload:", JSON.stringify(payload, null, 2));
+    console.log(
+      "📤 Delegate Post 요청 payload:",
+      JSON.stringify(payload, null, 2)
+    );
     console.log("🔄 createDelegatePost 호출 중...");
 
     createDelegatePost(payload, {
@@ -287,7 +328,7 @@ const DelegateTab = () => {
         console.log("✅ API 요청 성공:", data);
         Alert.alert("등록 완료", "대리 산책자 글이 등록되었습니다!");
         setModalVisible(false);
-          resetForm();
+        resetForm();
         // 등록 성공 후 목록 새로고침
         console.log("🔄 등록 완료, 목록 새로고침 시작");
         refetchPosts();
@@ -326,11 +367,11 @@ const DelegateTab = () => {
   const handleRegionChange = (newRegion) => {
     const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
     const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
-    
+
     if (latMoved || lngMoved) {
       console.log("🗺️ 지도 영역 변경:", {
         from: { lat: region.latitude, lng: region.longitude },
-        to: { lat: newRegion.latitude, lng: newRegion.longitude }
+        to: { lat: newRegion.latitude, lng: newRegion.longitude },
       });
       setRegion(newRegion);
       debouncedRefetch();
@@ -351,8 +392,6 @@ const DelegateTab = () => {
           selectingLocationVisible ? handleSelectingRegion : handleRegionChange
         }
       >
-
-
         {/* 기본 모드일 때만 게시글 마커 표시 */}
         {!selectingLocationVisible &&
           Array.isArray(postList) &&
@@ -362,61 +401,75 @@ const DelegateTab = () => {
             // 위치가 0,0인 경우 테스트용 위치 사용
             let latitude = Number(post.locationLatitude);
             let longitude = Number(post.locationLongitude);
-            
+
             if (latitude === 0 && longitude === 0) {
               // 서울 근처 테스트용 위치들
               const testLocations = [
-                { lat: 37.5665, lng: 126.9780 }, // 서울시청
-                { lat: 37.5665, lng: 126.9780 + (index * 0.01) }, // 약간씩 다른 위치
-                { lat: 37.5665 + (index * 0.01), lng: 126.9780 },
+                { lat: 37.5665, lng: 126.978 }, // 서울시청
+                { lat: 37.5665, lng: 126.978 + index * 0.01 }, // 약간씩 다른 위치
+                { lat: 37.5665 + index * 0.01, lng: 126.978 },
               ];
               const testLoc = testLocations[index % testLocations.length];
               latitude = testLoc.lat;
               longitude = testLoc.lng;
             }
-            
+
             // 유효한 좌표인지 확인
-            if (!latitude || !longitude || isNaN(latitude) || isNaN(longitude)) {
+            if (
+              !latitude ||
+              !longitude ||
+              isNaN(latitude) ||
+              isNaN(longitude)
+            ) {
               return null;
             }
-            
+
             return (
-            <Marker
-              key={`marker-${post.delegatePostId || index}-${Date.now()}`}
-              coordinate={{
-                latitude: latitude,
-                longitude: longitude,
-              }}
-              title={post.title}
-              description={post.content}
-              onPress={() => {
-                console.log("🎯 마커 클릭됨, 전체 post 객체:", post);
-                console.log("🎯 마커 클릭됨, delegateWalkPostId:", post.delegateWalkPostId);
-                console.log("🎯 마커 클릭됨, postId:", post.postId);
-                console.log("🎯 마커 클릭됨, id:", post.id);
-                // delegateWalkPostId를 우선적으로 사용
-                const finalPostId = post.delegateWalkPostId;
-                
-                if (!finalPostId) {
-                  console.error("❌ delegateWalkPostId가 없습니다!");
-                  console.error("❌ post 객체:", post);
-                  Alert.alert("오류", "게시글 ID를 찾을 수 없습니다.");
-                  return;
-                }
-                
-                setSelectedPostId(finalPostId);
-                setDetailModalVisible(true);
-                console.log("🎯 selectedPostId 설정 완료:", finalPostId);
-                console.log("🎯 finalPostId 타입:", typeof finalPostId);
-              }}
-              tracksViewChanges={false}
-            >
-              <MaterialIcons 
-                name="place" 
-                size={50} 
-                color={selectedPosts.has(post.delegateWalkPostId || post.postId || post.id) ? "#000000" : "#FF0000"} 
-              />
-            </Marker>
+              <Marker
+                key={`marker-${post.delegatePostId || index}-${Date.now()}`}
+                coordinate={{
+                  latitude: latitude,
+                  longitude: longitude,
+                }}
+                title={post.title}
+                description={post.content}
+                onPress={() => {
+                  console.log("🎯 마커 클릭됨, 전체 post 객체:", post);
+                  console.log(
+                    "🎯 마커 클릭됨, delegateWalkPostId:",
+                    post.delegateWalkPostId
+                  );
+                  console.log("🎯 마커 클릭됨, postId:", post.postId);
+                  console.log("🎯 마커 클릭됨, id:", post.id);
+                  // delegateWalkPostId를 우선적으로 사용
+                  const finalPostId = post.delegateWalkPostId;
+
+                  if (!finalPostId) {
+                    console.error("❌ delegateWalkPostId가 없습니다!");
+                    console.error("❌ post 객체:", post);
+                    Alert.alert("오류", "게시글 ID를 찾을 수 없습니다.");
+                    return;
+                  }
+
+                  setSelectedPostId(finalPostId);
+                  setDetailModalVisible(true);
+                  console.log("🎯 selectedPostId 설정 완료:", finalPostId);
+                  console.log("🎯 finalPostId 타입:", typeof finalPostId);
+                }}
+                tracksViewChanges={false}
+              >
+                <View style={styles.customMarker}>
+                  <View
+                    style={[
+                      styles.markerIcon,
+                      { backgroundColor: post.owner ? "#4A9B8E" : "#31326F" },
+                    ]}
+                  >
+                    <MaterialIcons name="pets" size={24} color="#FFFFFF" />
+                  </View>
+                  <View style={styles.markerShadow} />
+                </View>
+              </Marker>
             );
           })}
       </MapView>
@@ -427,14 +480,14 @@ const DelegateTab = () => {
           <View style={styles.bubble}>
             <Text style={styles.bubbleText}>🐕🤝</Text>
             <Text style={styles.bubbleMessage}>
-              아이콘의 위치는 {'\n'}반려동물을 넘겨주는 곳입니다!
+              아이콘의 위치는 {"\n"}반려동물을 넘겨주는 곳입니다!
             </Text>
-      <TouchableOpacity
+            <TouchableOpacity
               style={styles.bubbleCloseButton}
               onPress={() => setShowBubble(false)}
-      >
+            >
               <Text style={styles.bubbleCloseText}>×</Text>
-      </TouchableOpacity>
+            </TouchableOpacity>
             <View style={styles.bubbleTail} />
           </View>
         </View>
@@ -451,54 +504,64 @@ const DelegateTab = () => {
               top: "50%",
               left: "50%",
               transform: [{ translateX: -20 }, { translateY: -40 }],
+              zIndex: 10,
             }}
           >
-            <MaterialIcons name="place" size={40} color="#E53935" />
+            <MaterialIcons name="place" size={48} color="#E53935" />
           </View>
 
-          {/* 하단 안내 + 버튼 */}
-          <View style={styles.overlayBottom}>
-            <Text style={styles.overlayText}>
-              📍 지도를 움직여 위치를 선택하세요
+          {/* 🔹 감성형 하단 카드 */}
+          <View style={styles.locationSelectionCard}>
+            <View style={styles.cardHeader}>
+              <MaterialIcons name="map" size={24} color="#7EC8C2" />
+              <Text style={styles.cardTitle}>위치 선택</Text>
+            </View>
+
+            <Text style={styles.cardDescription}>
+              지도를 움직여 산책 위치를 지정하세요.
             </Text>
 
-          <TouchableOpacity
-              style={styles.applyBtn}
-              onPress={async () => {
-                // 선택된 위치의 주소를 변환
-                try {
-                  const response = await Geocoder.from(selectedLocation.latitude, selectedLocation.longitude);
-                  const address = response.results[0].formatted_address;
-                  setLocationName(address); // 입력창에 표시될 주소 설정
-                } catch (error) {
-                  console.error("❌ 위치 변환 실패:", error);
-                  setLocationName("위치 정보를 가져올 수 없습니다.");
-                }
-                
-                setLocationLatitude(selectedLocation.latitude);
-                setLocationLongitude(selectedLocation.longitude);
-                setSelectingLocationVisible(false);
-              setModalVisible(true);
-            }}
-          >
-              <Text style={styles.applyText}>이 위치로 선택</Text>
-          </TouchableOpacity>
+            <View style={styles.cardButtonRow}>
+              <TouchableOpacity
+                style={styles.confirmButton}
+                onPress={async () => {
+                  try {
+                    const response = await Geocoder.from(
+                      selectedLocation.latitude,
+                      selectedLocation.longitude
+                    );
+                    const address = response.results[0].formatted_address;
+                    setLocationName(address);
+                  } catch (error) {
+                    setLocationName("위치 정보를 가져올 수 없습니다.");
+                  }
 
-            <TouchableOpacity
-              style={{ marginTop: 10 }}
-              onPress={() => setSelectingLocationVisible(false)}
-            >
-              <Text style={styles.closeText}>닫기</Text>
-            </TouchableOpacity>
+                  setLocationLatitude(selectedLocation.latitude);
+                  setLocationLongitude(selectedLocation.longitude);
+                  setSelectingLocationVisible(false);
+                  setModalVisible(true);
+                }}
+              >
+                <Text style={styles.confirmButtonText}>이 위치로 선택</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => setSelectingLocationVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>닫기</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </>
       )}
 
-
-
       {/* 대리 산책자 구하기 버튼 */}
       {!selectingLocationVisible && (
-        <TouchableOpacity style={styles.delegateButton} onPress={() => setModalVisible(true)}>
+        <TouchableOpacity
+          style={styles.delegateButton}
+          onPress={() => setModalVisible(true)}
+        >
           <Text style={styles.delegateButtonText}>🐕 대리 산책자 구하기</Text>
         </TouchableOpacity>
       )}
@@ -618,40 +681,60 @@ const DelegateTab = () => {
                 <MaterialIcons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
-            
+
             {isDetailLoading ? (
               <View style={styles.detailLoadingContainer}>
                 <Text style={styles.detailLoadingText}>📱 로딩 중...</Text>
               </View>
             ) : detailError ? (
               <View style={styles.detailErrorContainer}>
-                <Text style={styles.detailErrorText}>❌ 에러가 발생했습니다: {detailError.message}</Text>
+                <Text style={styles.detailErrorText}>
+                  ❌ 에러가 발생했습니다: {detailError.message}
+                </Text>
               </View>
             ) : postDetail ? (
-              <ScrollView style={styles.detailModalBody} showsVerticalScrollIndicator={false}>
+              <ScrollView
+                style={styles.detailModalBody}
+                showsVerticalScrollIndicator={false}
+              >
                 {/* 게시글 정보 카드 */}
                 <View style={styles.detailCard}>
                   <View style={styles.detailTitleRow}>
-                    <Text style={styles.detailTitle}>{postDetail.postResponseDto?.title || "제목이 없습니다."}</Text>
+                    <Text style={styles.detailTitle}>
+                      {postDetail.postResponseDto?.title || "제목이 없습니다."}
+                    </Text>
                     <TouchableOpacity style={styles.detailHeartButton}>
-                      <Text style={[styles.detailHeart, postDetail.postResponseDto?.like ? styles.detailHeartFilled : styles.detailHeartEmpty]}>
+                      <Text
+                        style={[
+                          styles.detailHeart,
+                          postDetail.postResponseDto?.like
+                            ? styles.detailHeartFilled
+                            : styles.detailHeartEmpty,
+                        ]}
+                      >
                         {postDetail.postResponseDto?.like ? "❤️" : "🤍"}
                       </Text>
                     </TouchableOpacity>
                   </View>
-                  <Text style={styles.detailContent}>{postDetail.content || "내용이 없습니다."}</Text>
+                  <Text style={styles.detailContent}>
+                    {postDetail.content || "내용이 없습니다."}
+                  </Text>
 
                   {/* 반려동물 정보 - 제목과 내용 바로 아래 */}
                   <View style={styles.detailPetSection}>
                     <View style={styles.detailPetInfo}>
                       {postDetail.petImageUrl && (
                         <Image
-                          source={{ uri: `${BASE_URL}${postDetail.petImageUrl}` }}
+                          source={{
+                            uri: `${BASE_URL}${postDetail.petImageUrl}`,
+                          }}
                           style={styles.detailPetImage}
                         />
                       )}
                       <View style={styles.detailPetText}>
-                        <Text style={styles.detailPetName}>{postDetail.petName || "정보 없음"}</Text>
+                        <Text style={styles.detailPetName}>
+                          {postDetail.petName || "정보 없음"}
+                        </Text>
                         <Text style={styles.detailPetLabel}>반려동물</Text>
                       </View>
                     </View>
@@ -660,12 +743,16 @@ const DelegateTab = () => {
                   <View style={styles.detailMetaRow}>
                     <View style={styles.detailMetaItem}>
                       <Text style={styles.detailMetaLabel}>💰 가격</Text>
-                      <Text style={styles.detailMetaValue}>{postDetail.price || 0}원</Text>
+                      <Text style={styles.detailMetaValue}>
+                        {postDetail.price || 0}원
+                      </Text>
                     </View>
                     <View style={styles.detailMetaItem}>
                       <Text style={styles.detailMetaLabel}>📅 예정시간</Text>
                       <Text style={styles.detailMetaValue}>
-                        {postDetail.scheduledTime ? new Date(postDetail.scheduledTime).toLocaleString() : "미정"}
+                        {postDetail.scheduledTime
+                          ? new Date(postDetail.scheduledTime).toLocaleString()
+                          : "미정"}
                       </Text>
                     </View>
                   </View>
@@ -680,33 +767,39 @@ const DelegateTab = () => {
                     </View>
                     <View style={styles.detailInfoRow}>
                       <Text style={styles.detailInfoLabel}>📊 지원자 수</Text>
-                      <Text style={styles.detailInfoValue}>{postDetail.applicantCount || 0}명</Text>
+                      <Text style={styles.detailInfoValue}>
+                        {postDetail.applicantCount || 0}명
+                      </Text>
                     </View>
                     <View style={styles.detailInfoRow}>
                       <Text style={styles.detailInfoLabel}>⏰ 작성시간</Text>
-                      <Text style={styles.detailInfoValue}>{postDetail.createdAt || "정보 없음"}</Text>
+                      <Text style={styles.detailInfoValue}>
+                        {postDetail.createdAt || "정보 없음"}
+                      </Text>
                     </View>
                     <View style={styles.detailInfoRow}>
                       <Text style={styles.detailInfoLabel}>🔍 필터링</Text>
-                      <Text style={styles.detailInfoValue}>{postDetail.filtering ? "활성화" : "비활성화"}</Text>
+                      <Text style={styles.detailInfoValue}>
+                        {postDetail.filtering ? "활성화" : "비활성화"}
+                      </Text>
                     </View>
                   </View>
-
                 </View>
-
 
                 {/* 지원 버튼 */}
                 <View style={styles.applyButtonContainer}>
-                  <TouchableOpacity 
+                  <TouchableOpacity
                     style={styles.applyButton}
                     onPress={() => {
                       console.log("🐕 지원하기 버튼 클릭됨");
                       console.log("🐕 현재 selectedPostId:", selectedPostId);
-                      
+
                       if (selectedPostId) {
                         setSupportMessageModalVisible(true);
                       } else {
-                        console.error("❌ selectedPostId가 null 또는 undefined입니다!");
+                        console.error(
+                          "❌ selectedPostId가 null 또는 undefined입니다!"
+                        );
                         Alert.alert("오류", "게시글 정보를 찾을 수 없습니다.");
                       }
                     }}
@@ -718,7 +811,7 @@ const DelegateTab = () => {
                 {/* 지원자 목록 조회 버튼 (owner일 때만) */}
                 {postDetail?.owner && (
                   <View style={styles.applicantsButtonContainer}>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.applicantsButton}
                       onPress={() => {
                         console.log("👥 지원자 목록 조회 버튼 클릭됨");
@@ -727,113 +820,163 @@ const DelegateTab = () => {
                         // 이미 useViewDelegateApplicants 훅이 자동으로 호출됨
                       }}
                     >
-                      <Text style={styles.applicantsButtonText}>👥 지원자 목록 보기</Text>
+                      <Text style={styles.applicantsButtonText}>
+                        👥 지원자 목록 보기
+                      </Text>
                     </TouchableOpacity>
                   </View>
                 )}
 
                 {/* 산책 시작 버튼 (권한 부여된 게시글의 선정된 지원자에게만) */}
                 {(() => {
-                  const selectedApplicantId = selectedApplicants.get(selectedPostId); // 이제 직접 memberId가 저장됨
-                  const isSelectedApplicant = selectedApplicantId && selectedApplicantId === currentUserId; // 현재 사용자가 선정된 지원자인지 확인
+                  const selectedApplicantId =
+                    selectedApplicants.get(selectedPostId); // 이제 직접 memberId가 저장됨
+                  const isSelectedApplicant =
+                    selectedApplicantId &&
+                    selectedApplicantId === currentUserId; // 현재 사용자가 선정된 지원자인지 확인
                   const hasAuthorization = authorizedPosts.has(selectedPostId); // 권한 부여 여부
-                  
+
                   console.log("🔍 산책 시작 버튼 조건 확인:", {
                     selectedPostId: selectedPostId,
                     selectedApplicantId: selectedApplicantId,
                     currentUserId: currentUserId,
                     isSelectedApplicant: isSelectedApplicant,
                     hasAuthorization: hasAuthorization,
-                    authorizedPosts: authorizedPosts
+                    authorizedPosts: authorizedPosts,
                   });
-                  
-                  return isSelectedApplicant && hasAuthorization && (
-                    <View style={styles.authorizationSection}>
-                      <TouchableOpacity
-                        style={styles.startWalkButton}
-                        onPress={() => {
-                          console.log("🏃 산책 시작 버튼 클릭됨");
-                          startWalk({ walkRecordId: selectedPostId });
-                        }}
-                      >
-                        <Text style={styles.startWalkButtonText}>🏃 산책 시작</Text>
-                      </TouchableOpacity>
-                    </View>
+
+                  return (
+                    isSelectedApplicant &&
+                    hasAuthorization && (
+                      <View style={styles.authorizationSection}>
+                        <TouchableOpacity
+                          style={styles.startWalkButton}
+                          onPress={() => {
+                            console.log("🏃 산책 시작 버튼 클릭됨");
+                            startWalk({ walkRecordId: selectedPostId });
+                          }}
+                        >
+                          <Text style={styles.startWalkButtonText}>
+                            🏃 산책 시작
+                          </Text>
+                        </TouchableOpacity>
+                      </View>
+                    )
                   );
                 })()}
 
                 {/* 지원자 목록 */}
                 {applicants && applicants.length > 0 && (
                   <View style={styles.applicantsSection}>
-                    <Text style={styles.applicantsTitle}>👥 지원자 목록 ({applicants.length}명)</Text>
+                    <Text style={styles.applicantsTitle}>
+                      👥 지원자 목록 ({applicants.length}명)
+                    </Text>
                     <FlatList
                       data={applicants}
-                      keyExtractor={(item) => item.memberId?.toString() || item.id?.toString()}
+                      keyExtractor={(item) =>
+                        item.memberId?.toString() || item.id?.toString()
+                      }
                       scrollEnabled={false}
                       renderItem={({ item }) => {
-                        const selectedApplicantId = selectedApplicants.get(selectedPostId); // 이제 직접 memberId가 저장됨
-                        const isSelected = selectedApplicantId === item.memberId;
+                        const selectedApplicantId =
+                          selectedApplicants.get(selectedPostId); // 이제 직접 memberId가 저장됨
+                        const isSelected =
+                          selectedApplicantId === item.memberId;
                         console.log("🔍 지원자 렌더링:", {
                           memberId: item.memberId,
                           selectedPostId: selectedPostId,
                           selectedApplicantId: selectedApplicantId,
                           selectedApplicants: selectedApplicants,
-                          isSelected: isSelected
+                          isSelected: isSelected,
                         });
                         return (
-                        <View style={[styles.applicantCard, isSelected && styles.selectedApplicantCard]}>
-                          <View style={styles.applicantHeader}>
-                            {item.memberImageUrl ? (
-                              <Image
-                                source={{ uri: `${BASE_URL}${item.memberImageUrl}` }}
-                                style={styles.applicantAvatar}
-                              />
-                            ) : (
-                              <View style={styles.applicantAvatar}>
-                                <Text style={styles.applicantAvatarText}>👤</Text>
+                          <View
+                            style={[
+                              styles.applicantCard,
+                              isSelected && styles.selectedApplicantCard,
+                            ]}
+                          >
+                            <View style={styles.applicantHeader}>
+                              {item.memberImageUrl ? (
+                                <Image
+                                  source={{
+                                    uri: `${BASE_URL}${item.memberImageUrl}`,
+                                  }}
+                                  style={styles.applicantAvatar}
+                                />
+                              ) : (
+                                <View style={styles.applicantAvatar}>
+                                  <Text style={styles.applicantAvatarText}>
+                                    👤
+                                  </Text>
+                                </View>
+                              )}
+                              <View style={styles.applicantInfo}>
+                                <View style={styles.applicantNameRow}>
+                                  <Text style={styles.applicantName}>
+                                    {item.memberName}
+                                  </Text>
+                                  {isSelected && (
+                                    <Text style={styles.selectedBadge}>
+                                      ✅ 선정됨
+                                    </Text>
+                                  )}
+                                </View>
+                                <Text style={styles.applicantTime}>
+                                  {item.createdAt}
+                                </Text>
                               </View>
-                            )}
-                            <View style={styles.applicantInfo}>
-                              <View style={styles.applicantNameRow}>
-                                <Text style={styles.applicantName}>{item.memberName}</Text>
-                                {isSelected && (
-                                  <Text style={styles.selectedBadge}>✅ 선정됨</Text>
-                                )}
-                              </View>
-                              <Text style={styles.applicantTime}>{item.createdAt}</Text>
+                              <TouchableOpacity
+                                style={styles.selectApplicantButton}
+                                onPress={() => {
+                                  Alert.alert(
+                                    "지원자 선택",
+                                    `${
+                                      item.memberName || `ID: ${item.memberId}`
+                                    }님을 대리 산책자로 선택하시겠습니까?`,
+                                    [
+                                      { text: "취소", style: "cancel" },
+                                      {
+                                        text: "선택",
+                                        onPress: () => {
+                                          console.log(
+                                            "👤 지원자 선택:",
+                                            item.memberId
+                                          );
+                                          console.log(
+                                            "👤 memberId 타입:",
+                                            typeof item.memberId
+                                          );
+                                          console.log(
+                                            "👤 delegateWalkPostId:",
+                                            selectedPostId
+                                          );
+                                          console.log(
+                                            "👤 전체 item 데이터:",
+                                            item
+                                          );
+                                          selectApplicant({
+                                            delegateWalkPostId: selectedPostId,
+                                            memberId: item.memberId,
+                                          });
+                                        },
+                                      },
+                                    ]
+                                  );
+                                }}
+                              >
+                                <Text style={styles.selectApplicantButtonText}>
+                                  선택
+                                </Text>
+                              </TouchableOpacity>
                             </View>
-                            <TouchableOpacity
-                              style={styles.selectApplicantButton}
-                              onPress={() => {
-                                Alert.alert(
-                                  "지원자 선택",
-                                  `${item.memberName || `ID: ${item.memberId}`}님을 대리 산책자로 선택하시겠습니까?`,
-                                  [
-                                    { text: "취소", style: "cancel" },
-                                    {
-                                      text: "선택",
-                                      onPress: () => {
-                                        console.log("👤 지원자 선택:", item.memberId);
-                                        console.log("👤 memberId 타입:", typeof item.memberId);
-                                        console.log("👤 delegateWalkPostId:", selectedPostId);
-                                        console.log("👤 전체 item 데이터:", item);
-                                        selectApplicant({ 
-                                          delegateWalkPostId: selectedPostId,
-                                          memberId: item.memberId 
-                                        });
-                                      }
-                                    }
-                                  ]
-                                );
-                              }}
-                            >
-                              <Text style={styles.selectApplicantButtonText}>선택</Text>
-                            </TouchableOpacity>
+                            <Text style={styles.applicantMessage}>
+                              {item.message || "지원 메시지가 없습니다."}
+                            </Text>
                           </View>
-                          <Text style={styles.applicantMessage}>{item.message || "지원 메시지가 없습니다."}</Text>
-                        </View>
-                      )}
-                      }/>
+                        );
+                      }}
+                    />
                   </View>
                 )}
 
@@ -846,18 +989,26 @@ const DelegateTab = () => {
                         <TouchableOpacity
                           style={styles.startWalkButton}
                           onPress={() => {
-                            console.log("🚶‍♂️ 산책 시작, walkRecordId:", walkRecordId);
+                            console.log(
+                              "🚶‍♂️ 산책 시작, walkRecordId:",
+                              walkRecordId
+                            );
                             startWalk({ walkRecordId });
                             setIsWalkStarted(true);
                           }}
                         >
-                          <Text style={styles.walkButtonText}>🏃‍♂️ 산책 시작</Text>
+                          <Text style={styles.walkButtonText}>
+                            🏃‍♂️ 산책 시작
+                          </Text>
                         </TouchableOpacity>
                       ) : (
                         <TouchableOpacity
                           style={styles.finishWalkButton}
                           onPress={() => {
-                            console.log("🏁 산책 끝, walkRecordId:", walkRecordId);
+                            console.log(
+                              "🏁 산책 끝, walkRecordId:",
+                              walkRecordId
+                            );
                             finishWalk({ walkRecordId });
                             setIsWalkStarted(false);
                           }}
@@ -865,14 +1016,16 @@ const DelegateTab = () => {
                           <Text style={styles.walkButtonText}>🏁 산책 끝</Text>
                         </TouchableOpacity>
                       )}
-                      
+
                       <TouchableOpacity
                         style={styles.locationButton}
                         onPress={() => {
                           setShowLocationModal(true);
                         }}
                       >
-                        <Text style={styles.walkButtonText}>📍 현재 위치 보기</Text>
+                        <Text style={styles.walkButtonText}>
+                          📍 현재 위치 보기
+                        </Text>
                       </TouchableOpacity>
                     </View>
                   </View>
@@ -880,7 +1033,9 @@ const DelegateTab = () => {
               </ScrollView>
             ) : (
               <View style={styles.detailLoadingContainer}>
-                <Text style={styles.detailLoadingText}>📭 데이터가 없습니다.</Text>
+                <Text style={styles.detailLoadingText}>
+                  📭 데이터가 없습니다.
+                </Text>
               </View>
             )}
           </View>
@@ -905,7 +1060,7 @@ const DelegateTab = () => {
                 <MaterialIcons name="close" size={24} color="#666" />
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.locationMapContainer}>
               <MapView
                 style={styles.locationMap}
@@ -942,7 +1097,9 @@ const DelegateTab = () => {
         <View style={styles.supportMessageModalWrapper}>
           <View style={styles.supportMessageModalContent}>
             <View style={styles.supportMessageModalHeader}>
-              <Text style={styles.supportMessageModalTitle}>💬 지원 메시지</Text>
+              <Text style={styles.supportMessageModalTitle}>
+                💬 지원 메시지
+              </Text>
               <TouchableOpacity
                 onPress={() => setSupportMessageModalVisible(false)}
                 style={styles.supportMessageCloseButton}
@@ -950,9 +1107,11 @@ const DelegateTab = () => {
                 <Text style={styles.supportMessageCloseText}>×</Text>
               </TouchableOpacity>
             </View>
-            
+
             <View style={styles.supportMessageModalBody}>
-              <Text style={styles.supportMessageLabel}>지원 메시지를 입력해주세요</Text>
+              <Text style={styles.supportMessageLabel}>
+                지원 메시지를 입력해주세요
+              </Text>
               <TextInput
                 style={styles.supportMessageInput}
                 placeholder="지원하고 싶은 이유나 메시지를 입력해주세요"
@@ -962,7 +1121,7 @@ const DelegateTab = () => {
                 numberOfLines={4}
                 textAlignVertical="top"
               />
-              
+
               <View style={styles.supportMessageButtonContainer}>
                 <TouchableOpacity
                   style={styles.supportMessageCancelButton}
@@ -973,19 +1132,19 @@ const DelegateTab = () => {
                 >
                   <Text style={styles.supportMessageCancelText}>취소</Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={styles.supportMessageSubmitButton}
                   onPress={() => {
                     console.log("💬 지원 메시지:", supportMessage);
                     console.log("💬 delegateWalkPostId:", selectedPostId);
-                    
+
                     // 지원 메시지와 함께 API 호출
-                    applyDelegate({ 
+                    applyDelegate({
                       delegateWalkPostId: selectedPostId,
-                      message: supportMessage 
+                      message: supportMessage,
                     });
-                    
+
                     setSupportMessageModalVisible(false);
                     setSupportMessage("");
                   }}
@@ -1005,6 +1164,34 @@ export default DelegateTab;
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  // 🎯 커스텀 마커 (RecommendTab과 유사한 깔끔한 스타일)
+  customMarker: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  markerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 4,
+    borderColor: "#FFFFFF",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  markerShadow: {
+    width: 36,
+    height: 18,
+    backgroundColor: "rgba(0,0,0,0.22)",
+    borderRadius: 18,
+    marginTop: -6,
+    zIndex: -1,
+  },
 
   floatingButton: {
     position: "absolute",
@@ -1454,7 +1641,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
-
   // 대리 산책자 구하기 버튼 스타일 (RecommendTab의 addButton과 동일)
   delegateButton: {
     position: "absolute",
@@ -1504,7 +1690,7 @@ const styles = StyleSheet.create({
   // 지원자 목록 스타일
   applicantsSection: {
     padding: 20,
-    paddingTop:0,
+    paddingTop: 0,
     marginBottom: 30,
   },
   applicantsTitle: {
@@ -1798,7 +1984,7 @@ const styles = StyleSheet.create({
   locationMap: {
     flex: 1,
   },
-  
+
   // 🔹 말풍선 스타일
   bubbleContainer: {
     position: "absolute",
@@ -1860,7 +2046,7 @@ const styles = StyleSheet.create({
     borderRightColor: "transparent",
     borderTopColor: "#4CAF50",
   },
-  
+
   // 지원자 목록 조회 버튼 스타일
   applicantsButtonContainer: {
     marginTop: 16,
@@ -1883,7 +2069,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
-  
+
   // 지원 메시지 모달 스타일
   supportMessageModalWrapper: {
     flex: 1,
@@ -1985,4 +2171,67 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  locationSelectionCard: {
+    position: "absolute",
+    bottom: 20,
+    left: 16,
+    right: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "#F0F0F0",
+  },
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#2C3E50",
+    marginLeft: 8,
+  },
+  cardDescription: {
+    fontSize: 13,
+    color: "#6C757D",
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  cardButtonRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  confirmButton: {
+    flex: 1,
+    backgroundColor: "#7EC8C2",
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+  },
+  confirmButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+  },
+  cancelButton: {
+    flex: 1,
+    backgroundColor: "#F8F9FA",
+    paddingVertical: 10,
+    borderRadius: 10,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#E9ECEF",
+  },
+  cancelButtonText: {
+    color: "#6C757D",
+    fontWeight: "600",
+  },
+  
 });

@@ -1,25 +1,22 @@
-//산책길 추천 코스 -> 산책길 피드백 탭
 import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   Image,
-  TextInput,
   TouchableOpacity,
-  FlatList,
+  ScrollView,
+  Modal,
 } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import { AntDesign } from "@expo/vector-icons";
+import { useLikePost, useLikeList } from "../../hooks/useLikePost";
 import { useViewRecommendPostDetail } from "../../hooks/useRecommend";
-import { useLikePost } from "../../hooks/useLikePost";
-import {
-  usePostComment,
-  useRemoveComment,
-  useModifyComment,
-}
-  from "../../hooks/usePostComment"
 import { BASE_URL } from "../../api/apiClient";
 
 export const FeedbackTab = ({ recommendRoutePostId }) => {
+  const queryClient = useQueryClient();
+
   const {
     data: feedback,
     refetch,
@@ -29,97 +26,61 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
     enabled: !!recommendRoutePostId,
   });
 
-  const { mutate: like, isLoading: isLiking } = useLikePost();
-  const { mutate: postComment } = usePostComment();
-  const { mutate: removeComment } = useRemoveComment();
-  const { mutate: modifyComment } = useModifyComment();
+  const { mutate: likeMutate } = useLikePost();
+  const { data: likeListData, refetch: refetchLikes } =
+    useLikeList(recommendRoutePostId);
 
-  const [commentInput, setCommentInput] = useState("");
-  const [editCommentId, setEditCommentId] = useState(null);
-  const [editCommentInput, setEditCommentInput] = useState("");
-
+  const [liked, setLiked] = useState(false);
+  const [likeModalVisible, setLikeModalVisible] = useState(false);
 
   useEffect(() => {
-    if (!recommendRoutePostId) return;
+    if (feedback?.like !== undefined) setLiked(feedback.like);
+  }, [feedback]);
 
-    refetch()
-      .then((res) => {
-        if (res.status === "error") {
-          console.error("❌ refetch 에러 상태:", res.failureReason?.response?.data || res.failureReason?.message);
-        } else {
-          console.log("✅ refetch 성공 데이터:", res.data);
-        }
-      })
-      .catch((error) => {
-        console.error("❌ refetch 함수 자체 실패:", error.response?.data || error.message);
-      });
-  }, []);
-
-
+  useEffect(() => {
+    if (recommendRoutePostId) refetch();
+  }, [recommendRoutePostId]);
 
   const handleLike = () => {
-    if (!isLiking) {
-      like({ postId: recommendRoutePostId });
-    }
-  };
-
-  const handleSubmitComment = () => {
-    if (!commentInput.trim()) return;
-    postComment(
+    likeMutate(
+      { postId: recommendRoutePostId, postType: "RECOMMEND" },
       {
-        postId: recommendRoutePostId,
-        content: commentInput,
-        postType: "RECOMMEND",
-      },
-      {
-        onSuccess: () => {
-          setCommentInput("");
+        onSuccess: (res) => {
+          const msg =
+            typeof res === "string" ? res : res?.message || JSON.stringify(res);
+          const isLiked = msg.includes("생성");
+          setLiked(isLiked);
+          queryClient.invalidateQueries([
+            "recommendPostDetail",
+            recommendRoutePostId,
+          ]);
+          refetchLikes();
+          refetch();
         },
       }
     );
   };
 
-  const handleDeleteComment = (commentId) => {
-    removeComment({ commentId, postId: recommendRoutePostId, postType: "RECOMMEND" });
-  };
-
-  const handleEditComment = (commentId, content) => {
-    setEditCommentId(commentId);
-    setEditCommentInput(content);
-  };
-
-  const handleSubmitEdit = () => {
-    if (!editCommentInput.trim()) return;
-    modifyComment(
-      {
-        commentId: editCommentId,
-        content: editCommentInput,
-        postId: recommendRoutePostId,
-        postType: "RECOMMEND",
-      },
-      {
-        onSuccess: () => {
-          setEditCommentId(null);
-          setEditCommentInput("");
-        },
-      }
-    );
-  };
-
-  if (isLoading) return <Text>불러오는 중...</Text>;
-  if (isError || !feedback) return <Text>피드백을 불러오지 못했어요</Text>;
+  if (isLoading)
+    return <Text style={styles.statusText}>불러오는 중...</Text>;
+  if (isError || !feedback)
+    return <Text style={styles.statusText}>피드백을 불러오지 못했어요</Text>;
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>📝 유저 피드백</Text>
 
-      <View style={styles.card}>
+      {/* 🔹 피드백 본문 카드 */}
+      <View style={styles.feedbackContainer}>
         <View style={styles.profileRow}>
           <Image
-            source={{ uri: feedback.memberImageUrl ? `${BASE_URL}${feedback.memberImageUrl}` : undefined }}
+            source={{
+              uri: feedback.memberImageUrl
+                ? `${BASE_URL}${feedback.memberImageUrl}`
+                : undefined,
+            }}
             style={styles.avatar}
           />
-
           <View>
             <Text style={styles.user}>{feedback.memberName}</Text>
             <Text style={styles.time}>{feedback.createdAt}</Text>
@@ -127,192 +88,236 @@ export const FeedbackTab = ({ recommendRoutePostId }) => {
         </View>
 
         <Text style={styles.feedbackTitle}>{feedback.title}</Text>
-        <Text style={styles.content}>{feedback.content || "아직 피드백 내용이 없습니다."}</Text>
+        <Text style={styles.feedbackContent}>
+          {feedback.content || "아직 피드백 내용이 없습니다."}
+        </Text>
 
-        <TouchableOpacity style={styles.likeRow} onPress={handleLike}>
-          <Text style={[styles.heart, feedback.like ? styles.heartFilled : styles.heartEmpty]}>
-            {feedback.like ? "❤️" : "🤍"}
-          </Text>
-          <Text style={styles.likes}>{feedback.likeCount}명에게 도움이 되었어요</Text>
-        </TouchableOpacity>
-      </View>
+        <View style={styles.likeRow}>
+          <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
+            <AntDesign
+              name={liked ? "heart" : "hearto"}
+              size={22}
+              color={liked ? "#ff6262" : "#999"}
+            />
+            <Text
+              style={[styles.likeText, liked && { color: "#ff6262" }]}
+            >{`좋아요 ${feedback.likeCount}`}</Text>
+          </TouchableOpacity>
 
-      {/* 댓글 입력 */}
-      <View style={{ marginTop: 20 }}>
-        <Text style={{ fontWeight: "600", marginBottom: 6 }}>✍️ 댓글 달기</Text>
-        <View style={styles.commentRow}>
-          <TextInput
-            value={commentInput}
-            onChangeText={setCommentInput}
-            placeholder="댓글을 입력하세요"
-            style={styles.commentInput}
-          />
-          <TouchableOpacity onPress={handleSubmitComment} style={styles.commentButton}>
-            <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>등록</Text>
+          <TouchableOpacity onPress={() => setLikeModalVisible(true)}>
+            <Text style={styles.likeListText}>좋아요 목록 보기</Text>
           </TouchableOpacity>
         </View>
       </View>
 
-      {/* 댓글 목록 */}
-      <View style={{ marginTop: 24 }}>
-        <Text style={{ fontWeight: "600", marginBottom: 6 }}>🖍️ 댓글 목록</Text>
-        {feedback.comments?.length > 0 ? (
-          <FlatList
-            data={feedback.comments}
-            keyExtractor={(item) => item.commentId.toString()}
-            renderItem={({ item }) => (
-              <View style={{ marginBottom: 16 }}>
-                <View style={styles.profileRow}>
-                  <Image
-                    source={{ uri: item.memberImageUrl ? `${BASE_URL}${item.memberImageUrl}` : undefined }}
-                    style={styles.avatar}
-                  />
+      {/* 💗 좋아요 목록 */}
+      <Modal visible={likeModalVisible} animationType="slide" transparent={false}>
+        <View style={styles.likeModalContainer}>
+          <View style={styles.likeModalHeader}>
+            <Text style={styles.likeModalTitle}>좋아요한 사람들</Text>
+            <TouchableOpacity onPress={() => setLikeModalVisible(false)}>
+              <Text style={styles.closeBtn}>닫기</Text>
+            </TouchableOpacity>
+          </View>
 
-                  <View>
-                    <Text style={styles.user}>{item.memberName}</Text>
-                    <Text style={styles.time}>{item.createdAt}</Text>
-                  </View>
-                </View>
-                {editCommentId === item.commentId ? (
-                  <>
-                    <TextInput
-                      value={editCommentInput}
-                      onChangeText={setEditCommentInput}
-                      style={styles.input}
+          {likeListData?.likeListDtos?.length > 0 ? (
+            <ScrollView>
+              {likeListData.likeListDtos.map((user, idx) => (
+                <View key={idx} style={styles.likeUserRow}>
+                  {user.memberImageUrl ? (
+                    <Image
+                      source={{ uri: `${BASE_URL}${user.memberImageUrl}` }}
+                      style={styles.likeUserAvatar}
                     />
-                    <TouchableOpacity onPress={handleSubmitEdit} style={styles.submitBtn}>
-                      <Text style={{ color: "#fff" }}>수정 완료</Text>
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <Text style={styles.content}>{item.content}</Text>
-                    {item.owner && (
-                      <View style={{ flexDirection: "row", gap: 10 }}>
-                        <TouchableOpacity onPress={() => handleEditComment(item.commentId, item.content)}>
-                          <Text style={{ fontSize: 13, color: "#555" }}>수정</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => handleDeleteComment(item.commentId)}>
-                          <Text style={{ fontSize: 13, color: "red" }}>삭제</Text>
-                        </TouchableOpacity>
-                      </View>
-                    )}
-                  </>
-                )}
-              </View>
-            )}
-          />
-        ) : (
-          <Text style={{ color: "#888" }}>댓글이 아직 없습니다.</Text>
-        )}
-      </View>
-    </View>
+                  ) : (
+                    <View
+                      style={[styles.likeUserAvatar, styles.likeUserFallback]}
+                    />
+                  )}
+                  <Text style={styles.likeUserName}>{user.memberName}</Text>
+                </View>
+              ))}
+            </ScrollView>
+          ) : (
+            <Text style={styles.likeEmptyText}>
+              아직 좋아요한 사용자가 없습니다.
+            </Text>
+          )}
+        </View>
+      </Modal>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: "#FFF" },
+  container: {
+    flex: 1,
+    padding: 18,
+    backgroundColor: "#fff",
+  },
+
   title: {
-    fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 12,
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#2c2c2c",
+    marginBottom: 20,
     fontFamily: "cute",
-    color: "#333",
   },
-  card: {
-    backgroundColor: "#F9F9F9",
-    padding: 16,
-    borderRadius: 12,
+
+  feedbackContainer: {
+    backgroundColor: "#fefaf6",
+    borderRadius: 18,
+    padding: 20,
     borderWidth: 1,
-    borderColor: "#E6E6E6",
+    borderColor: "#f3e5d7",
+    marginBottom: 28,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
   },
+
   profileRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 14,
   },
+
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 10,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    borderWidth: 1,
+    borderColor: "#f4d8c6",
+    marginRight: 12,
+    backgroundColor: "#fff",
   },
+
   user: {
-    fontWeight: "600",
-    fontSize: 14,
-    color: "#6D9886",
+    fontWeight: "700",
+    fontSize: 16,
+    color: "#3d2a21",
   },
+
   time: {
     fontSize: 12,
-    color: "#888",
+    color: "#a58b7b",
+    marginTop: 3,
   },
+
   feedbackTitle: {
-    fontSize: 15,
-    fontWeight: "600",
-    marginBottom: 4,
-    color: "#2C3E50",
-  },
-  content: {
-    fontSize: 14,
-    color: "#444",
-    fontFamily: "font",
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2b2118",
     marginBottom: 8,
+    fontFamily: "fontExtra",
   },
+
+  feedbackContent: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: "#4b4037",
+    fontFamily: "font",
+    marginBottom: 14,
+  },
+
   likeRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
+    justifyContent: "space-between",
+    marginTop: 8,
   },
-  heart: {
-    fontSize: 18,
-    marginRight: 6,
-  },
-  heartFilled: {
-    color: "red",
-  },
-  heartEmpty: {
-    color: "#aaa",
-  },
-  likes: {
-    fontSize: 13,
-    color: "#999",
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
-  },
-  submitBtn: {
-    backgroundColor: "#8DB596",
-    padding: 10,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  commentRow: {
+
+  likeButton: {
     flexDirection: "row",
     alignItems: "center",
     gap: 8,
-  },
-
-  commentInput: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    fontSize: 14,
-    backgroundColor: "#fff",
-    height: 40,
-  },
-
-  commentButton: {
-    backgroundColor: "#8DB596",
-    paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: "#fff2f2",
+    borderWidth: 1,
+    borderColor: "#ffdede",
   },
 
+  likeText: {
+    fontWeight: "600",
+    color: "#6b6b6b",
+  },
+
+  likeListText: {
+    fontSize: 14,
+    color: "#5b4b3a",
+    textDecorationLine: "underline",
+  },
+
+  // ✅ 좋아요 모달 (배경 제거, 전체 확장)
+  likeModalContainer: {
+    flex: 1,
+    backgroundColor: "#fffaf7",
+    paddingTop: 60,
+    paddingHorizontal: 20,
+  },
+
+  likeModalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    borderBottomWidth: 1,
+    borderColor: "#f0e0d0",
+    paddingBottom: 8,
+  },
+
+  likeModalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#2b2118",
+    fontFamily: "fontExtra",
+  },
+
+  closeBtn: {
+    fontSize: 15,
+    color: "#a47148",
+    fontWeight: "600",
+  },
+
+  likeUserRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 0.8,
+    borderColor: "#f3e5d7",
+  },
+
+  likeUserAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+    backgroundColor: "#f8f1eb",
+  },
+
+  likeUserName: {
+    fontSize: 15,
+    color: "#3c2b1e",
+    fontWeight: "600",
+  },
+
+  likeUserFallback: {
+    backgroundColor: "#e5d9c8",
+  },
+
+  likeEmptyText: {
+    textAlign: "center",
+    marginTop: 40,
+    color: "#b3a89e",
+    fontSize: 14,
+  },
+
+  statusText: {
+    textAlign: "center",
+    marginTop: 40,
+    color: "#888",
+  },
 });

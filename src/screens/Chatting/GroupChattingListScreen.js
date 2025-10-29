@@ -16,6 +16,8 @@ import { BASE_URL } from "../../api/apiClient";
 import { useViewProfile } from "../../hooks/useProfile";
 import { useProfileSession } from "../../context/SelectProfile";
 import { UserContext } from "../../context/User";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+
 import {
   connectStomp,
   logStompStatus,
@@ -130,105 +132,58 @@ const GroupChattingListScreen = ({ navigation }) => {
   };
 
   // 서버 응답 구조에 맞게 수정
-  const renderItem = ({ item }) => {
-    console.log("📱 채팅방 데이터:", item); // 디버깅용
-    
-    return (
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate("ChattingDetail", {
-            chatRoomId: item.chatRoomId,
-            chatRoomType: "MANY",
-            chatName: item.chatName || "채팅방",
-          })
-        }
-        style={styles.chatCard}
-      >
-        <View style={styles.chatHeader}>
-          <Text style={styles.chatName}>
-            {item.chatName || "채팅방"}
-          </Text>
-          {item.unReadCount > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadText}>{item.unReadCount}</Text>
-            </View>
-          )}
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate("ChattingDetail", {
+          chatRoomId: item.chatRoomId,
+          chatRoomType: "MANY",
+          chatName: item.chatName || `${item.ownerName}님의 방`,
+        })
+      }
+      style={styles.chatCard}
+    >
+      {/* 방 이름 + 인원수 */}
+      <View style={styles.chatHeader}>
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <MaterialCommunityIcons name="chat-outline" size={20} style={styles.chatIcon} />
+          <Text style={styles.chatName}>{item.chatName || `${item.ownerName}님의 방`}</Text>
         </View>
-
-        <View style={styles.thumbnailRow}>
-          {/* 사용자 이미지들을 카톡처럼 겹쳐서 표시 */}
-          {item.users?.slice(0, 3).map((user, index) => (
-            <View
-              key={user.userId}
-              style={[
-                styles.thumbnailContainer,
-                { marginLeft: index > 0 ? -8 : 0, zIndex: 3 - index }
-              ]}
-            >
-              <Image
-                source={{
-                  uri: user.userImageUrl?.startsWith("http")
-                    ? user.userImageUrl
-                    : `${BASE_URL}${user.userImageUrl}`,
-                }}
-                style={styles.thumbnail}
-                onError={(error) => {
-                  console.log("이미지 로딩 실패:", user.userImageUrl, error);
-                }}
-              />
+        <Text style={styles.participantCount}>{item.userSize}명</Text>
+      </View>
+  
+      {/* 프로필 이미지 */}
+      <View style={styles.thumbnailRow}>
+        {item.users?.slice(0, 4).map((user, index) => (
+          <View
+            key={user.userId}
+            style={[
+              styles.thumbnailContainer,
+              { marginLeft: index > 0 ? -12 : 0, zIndex: 4 - index },
+            ]}
+          >
+            <Image
+              source={{
+                uri: user.userImageUrl?.startsWith("http")
+                  ? user.userImageUrl
+                  : `${BASE_URL}${user.userImageUrl}`,
+              }}
+              style={styles.thumbnail}
+            />
+          </View>
+        ))}
+        {item.users?.length > 4 && (
+          <View style={[styles.thumbnailContainer, { marginLeft: -10 }]}>
+            <View style={styles.moreProfiles}>
+              <Text style={styles.moreText}>+{item.users.length - 4}</Text>
             </View>
-          ))}
-          {item.users?.length > 3 && (
-            <View style={[styles.thumbnailContainer, { marginLeft: -8 }]}>
-              <View style={styles.moreProfiles}>
-                <Text style={styles.moreText}>+{item.users.length - 3}</Text>
-              </View>
-            </View>
-          )}
-          <Text style={styles.participantCount}>
-            {item.userSize}명
-          </Text>
-        </View>
-
-        <Text numberOfLines={1} style={styles.lastMessage}>
-          {item.lastMessage || "메시지 없음"}
-        </Text>
-
-        <View style={styles.meta}>
-          <Text style={styles.timeText}>
-            {item.lastMessageTime
-              ? new Date(item.lastMessageTime).toLocaleString("ko-KR", {
-                  month: "short",
-                  day: "numeric",
-                  hour: "2-digit",
-                  minute: "2-digit"
-                })
-              : ""}
-          </Text>
-          {item.unReadCount > 0 && (
-            <Text style={styles.unreadMeta}>안읽음 {item.unReadCount}개</Text>
-          )}
-        </View>
-
-        {item.owner && (
-          <View style={styles.ownerButtons}>
-            <TouchableOpacity
-              style={styles.editButton}
-              onPress={() => handleEdit(item.chatRoomId)}
-            >
-              <Text style={styles.buttonText}>수정</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => handleDelete(item.chatRoomId)}
-            >
-              <Text style={styles.buttonText}>삭제</Text>
-            </TouchableOpacity>
           </View>
         )}
-      </TouchableOpacity>
-    );
-  };
+      </View>
+    </TouchableOpacity>
+  );
+  
+  
 
   // 로딩 상태
   if (isLoading) {
@@ -348,22 +303,23 @@ export default GroupChattingListScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F9FAFB",
+    backgroundColor: "#F8FAF9",
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 12,
   },
+
   headerRow: {
     flexDirection: "row",
     justifyContent: "flex-end",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   smallButton: {
-    backgroundColor: "#fff",
+    backgroundColor: "#ffffff",
     paddingHorizontal: 17,
     paddingVertical: 8,
     borderRadius: 20,
-    borderColor: "#6A9C89",
+    borderColor: "#7EC8C2",
     borderWidth: 1.5,
   },
   smallButtonText: {
@@ -371,216 +327,85 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
+
+  /* 🩵 채팅방 카드 */
   chatCard: {
-    backgroundColor: "#fff",
-    padding: 20,
-    borderRadius: 20,
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 8,
-    elevation: 4,
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 22,
+    paddingHorizontal: 20,
+    borderRadius: 22,
+    marginBottom: 16,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#E6ECEA",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: 6,
+    elevation: 3,
   },
+
+  /* 카드 상단 */
   chatHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    justifyContent: "space-between",
+    marginBottom: 12,
   },
   chatName: {
     fontSize: 18,
-    fontWeight: "800",
-    color: "#1a1a1a",
-    flex: 1,
-    letterSpacing: -0.5,
+    fontWeight: "700",
+    color: "#1A1A1A",
   },
-  unreadBadge: {
-    backgroundColor: "#ff4757",
+  chatIcon: {
+    marginRight: 6,
+    color: "#7EC8C2",
+  },
+
+  /* 참가자 수 */
+  participantCount: {
+    backgroundColor: "#E7F6F2",
+    color: "#3C6255",
+    fontSize: 13,
+    fontWeight: "600",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 12,
-    minWidth: 24,
-    height: 24,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 8,
-    shadowColor: "#ff4757",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 3,
   },
-  unreadText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "bold",
-  },
+
+  /* 프로필 썸네일 */
   thumbnailRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginTop: 4,
   },
   thumbnailContainer: {
     position: "relative",
   },
   thumbnail: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    borderWidth: 3,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    borderWidth: 2.5,
     borderColor: "#fff",
+    backgroundColor: "#F0F4F3",
   },
   moreProfiles: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: "#f8f9fa",
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    backgroundColor: "#F1F5F4",
     justifyContent: "center",
     alignItems: "center",
-    borderWidth: 3,
+    borderWidth: 2.5,
     borderColor: "#fff",
   },
   moreText: {
-    fontSize: 10,
-    fontWeight: "bold",
-    color: "#666",
-  },
-  participantCount: {
-    fontSize: 13,
-    color: "#6c757d",
-    alignSelf: "center",
-    marginLeft: 12,
-    fontWeight: "600",
-    backgroundColor: "#f8f9fa",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  lastMessage: {
-    color: "#6c757d",
-    fontSize: 14,
-    marginBottom: 8,
-    lineHeight: 20,
-    fontWeight: "500",
-  },
-  meta: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  timeText: {
     fontSize: 12,
-    color: "#adb5bd",
-    fontWeight: "600",
-  },
-  unreadMeta: {
-    fontSize: 12,
-    color: "#ff4757",
     fontWeight: "700",
-  },
-  ownerButtons: {
-    flexDirection: "row",
-    marginTop: 8,
-  },
-  editButton: {
-    backgroundColor: "#6A9C89",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  deleteButton: {
-    backgroundColor: "#E57373",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  buttonText: {
-    color: "#fff",
-    fontWeight: "bold",
-    fontSize: 13,
-  },
-  messageRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 8,
-  },
-  senderProfileImage: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    marginRight: 12,
-    backgroundColor: "#f0f0f0",
-    borderWidth: 1,
-    borderColor: "#e0e0e0",
-  },
-  messageContent: {
-    flex: 1,
-  },
-  senderName: {
-    fontSize: 12,
     color: "#666",
-    fontWeight: "500",
-    marginTop: 2,
   },
-  modalWrapper: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.45)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalContent: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 20,
-    width: "90%",
-  },
-  modalTitle: { fontSize: 18, fontWeight: "bold", marginBottom: 12 },
-  profileCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: "#F9FAFB",
-    marginBottom: 10,
-  },
-  profileImage: { width: 50, height: 50, borderRadius: 25, marginRight: 10 },
-  profileName: { fontSize: 16, color: "#333" },
-  applyBtn: {
-    backgroundColor: "#7EC8C2",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginVertical: 6,
-  },
-  applyText: { color: "white", fontWeight: "600" },
-  loadingText: {
-    fontSize: 16,
-    color: "#666",
-    textAlign: "center",
-    marginTop: 50,
-  },
-  errorText: {
-    fontSize: 16,
-    color: "#ff4757",
-    textAlign: "center",
-    marginTop: 50,
-    marginHorizontal: 20,
-  },
-  retryButton: {
-    backgroundColor: "#007aff",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    marginTop: 20,
-    alignSelf: "center",
-  },
-  retryText: {
-    color: "white",
-    fontWeight: "600",
-  },
+
+  /* 🔘 공백 상태 */
   emptyContainer: {
     flex: 1,
     justifyContent: "center",

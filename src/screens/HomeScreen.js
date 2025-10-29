@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useNavigation, useFocusEffect } from "@react-navigation/native";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { UserContext } from "../context/User";
 import { NotificationBell } from "../components/notification";
@@ -84,30 +85,18 @@ const HomeScreen = () => {
         onScroll={handleScroll}
         scrollEventThrottle={16}
       >
-        <View style={styles.headerRow}>
-          <Text style={styles.headerInfoText}>{weatherText}</Text>
-          <View style={styles.rightHeader}>
-            <NotificationBell
-              onPress={() => navigation.navigate("NotificationList")}
-            />
-            <TouchableOpacity
-              onPress={() => navigation.navigate("MyProfile")}
-              style={styles.iconBtn}
-            >
-              <MaterialIcons name="person" size={28} color="#333" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={handleLogout}
-              style={styles.logoutButton}
-            >
-              <Text style={styles.logoutText}>로그아웃</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
+<View style={styles.headerBox}>
+  <View style={styles.headerLeft}>
+    <Text style={styles.weatherText}>{weatherText}</Text>
+    <Text style={styles.greetingText}>{greetingText}</Text>
+  </View>
 
-        <View style={styles.petGreetingBox}>
-          <Text style={styles.petGreetingText}>{greetingText}</Text>
-        </View>
+  <TouchableOpacity onPress={handleLogout} style={styles.logoutBtn}>
+    <MaterialIcons name="logout" size={20} color="#fff" />
+    <Text style={styles.logoutLabel}>로그아웃</Text>
+  </TouchableOpacity>
+</View>
+
 
         <View style={styles.petSection}>
           <Text style={styles.title}>🐶🐱 댕냥이 친구들</Text>
@@ -135,37 +124,37 @@ const HomeScreen = () => {
 
               return (
                 <TouchableOpacity
-                  style={styles.feedCard}
-                  onPress={() =>
-                    navigation.navigate("PostDetail", { postId: item.postId })
-                  }
+                  style={styles.card}
+                  activeOpacity={0.9}
+                  onPress={() => navigation.navigate("PostDetail", { postId: item.postId })}
                 >
-                  <View style={styles.feedHeader}>
-                    {profileUri && (
-                      <Image
-                        source={{ uri: profileUri }}
-                        style={styles.profileImage}
-                      />
+                  {/* 헤더 */}
+                  <View style={styles.cardHeader}>
+                    {profileUri ? (
+                      <Image source={{ uri: profileUri }} style={styles.cardAvatar} />
+                    ) : (
+                      <View style={[styles.cardAvatar, styles.cardAvatarFallback]} />
                     )}
-                    <Text style={styles.authorName}>{item.memberName}</Text>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardAuthor}>{item.memberName || "익명"}</Text>
+                      <Text style={styles.cardCreated}>{item.createdAt}</Text>
+                    </View>
+                    <View style={styles.badgeRow}>
+                      <View style={styles.badgeGray}><Text style={styles.badgeText}>조회 {item.viewCount ?? 0}</Text></View>
+                      <View style={styles.likeInline}>
+                        <AntDesign name="heart" size={12} color="#FF6B6B" />
+                        <Text style={styles.likeInlineText}>{item.likeCount ?? 0}</Text>
+                      </View>
+                    </View>
                   </View>
 
+                  {/* 타이틀 */}
+                  <Text style={styles.cardTitle} numberOfLines={2}>{item.title}</Text>
+
+                  {/* 본문 이미지 */}
                   {imageUri && (
-                    <Image
-                      source={{ uri: imageUri }}
-                      style={styles.feedImage}
-                    />
+                    <Image source={{ uri: imageUri }} style={styles.cardImage} />
                   )}
-
-                  <View style={styles.feedMeta}>
-                    <Text style={styles.feedLikes}>
-                      ❤️ 좋아요 {item.likeCount}
-                    </Text>
-                    <Text style={styles.feedCaption}>{item.title}</Text>
-                    <Text style={styles.feedDate}>
-                      {item.createdAt} · 조회수 {item.viewCount}
-                    </Text>
-                  </View>
                 </TouchableOpacity>
               );
             }}
@@ -174,14 +163,13 @@ const HomeScreen = () => {
       </ScrollView>
 
       {showScrollTop && (
-        <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
-          <MaterialCommunityIcons
-            name="arrow-up-bold-circle"
-            size={50}
-            color="#6D9886"
-          />
-        </TouchableOpacity>
-      )}
+  <TouchableOpacity style={styles.scrollTopButton} onPress={scrollToTop}>
+    <View style={styles.scrollTopInner}>
+    <MaterialCommunityIcons name="arrow-up-bold-circle" size={50} color="#FFF" />
+    </View>
+  </TouchableOpacity>
+)}
+
     </>
   );
 };
@@ -223,53 +211,82 @@ const PetSpeechBubble = () => {
   );
 };
 
+export default HomeScreen;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 16,
   },
-  scrollTopButton: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    zIndex: 100,
+
+  /* 🌤️ 헤더 상단 */
+  headerBox: {
+    backgroundColor: "#E8F6F3", // 은은한 민트 배경
+    borderRadius: 16,
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    marginTop: 14,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  headerLeft: {
+    flexShrink: 1,
+    flex: 1,
+  },
+  title: {
+    fontSize: 28,
+    color: "#333",
+    textAlign: "left",
+    alignSelf: "flex-start",
+    width: "100%",
+    paddingLeft: 20,
+    marginLeft: 0,
+    marginTop: 18,
+    marginBottom: 5,
+    fontFamily: "cute",
+    lineHeight: 34,
+  },
+  
+  weatherText: {
+    fontSize: 16,
+    color: "#3C6255",
+    marginBottom: 4,
+    fontFamily: "font",
+  },
+  greetingText: {
+    fontSize: 16,
+    color: "#2C3E50",
+    fontFamily: "cute",
+    fontWeight: "600",
+  },
+  logoutBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#6A9C89",
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 20,
+    gap: 4,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 2 },
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  logoutLabel: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "600",
   },
 
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "flex-end",
-    alignItems: "center",
-    marginTop: 10,
-    marginBottom: 10,
-  },
-  headerInfoText: {
-    fontSize: 14,
-    color: "#444",
-    fontFamily: "font",
-    flex: 1,
-    marginLeft: 15,
-    lineHeight: 20,
-  },
-  rightHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 12,
-  },
-  iconBtn: {
-    padding: 4,
-  },
-  logoutButton: {
-    backgroundColor: "#9CA3AF",
-    paddingVertical: 6,
-    paddingHorizontal: 13,
-    borderRadius: 8,
-  },
-  logoutText: {
-    color: "#fff",
-    fontWeight: "600",
-    fontSize: 13,
-  },
+  /* 🐶 펫 프로필 / 인사 */
   petGreetingBox: {
     backgroundColor: "#F7F7F7",
     paddingHorizontal: 14,
@@ -285,6 +302,18 @@ const styles = StyleSheet.create({
     color: "#333",
     fontFamily: "font",
   },
+  petSection: {
+    marginBottom: 20,
+    marginTop: 10,
+  },
+  petProfileContainer: {
+    backgroundColor: "transparent",
+    padding: 4,
+    marginTop: 4,
+    marginHorizontal: 2,
+  },
+
+  /* 💬 커뮤니티 */
   divider: {
     height: 1,
     backgroundColor: "#D2E0DC",
@@ -304,104 +333,84 @@ const styles = StyleSheet.create({
     marginTop: 8,
     lineHeight: 34,
   },
-  threadCard: {
-    borderBottomWidth: 1,
-    borderColor: "#E0E0E0",
-    paddingVertical: 10,
-    paddingHorizontal: 4,
-    marginHorizontal: 5,
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 14,
+    marginBottom: 14,
+    borderWidth: 1,
+    borderColor: "#F1F1F1",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  threadTitle: {
-    fontSize: 15,
-    fontWeight: "500",
-    marginBottom: 6,
-    color: "#2C3E50",
-  },
-  threadMetaRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  threadActions: {
+  cardHeader: {
     flexDirection: "row",
     alignItems: "center",
+    marginBottom: 10,
   },
-  metaText: {
-    fontSize: 12,
-    color: "#6B7B8C",
-    marginLeft: 4,
+  cardAvatar: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    marginRight: 10,
+    backgroundColor: "#F3F4F6",
   },
-  title: {
-    fontSize: 28,
-    color: "#333",
-    textAlign: "left",
-    alignSelf: "flex-start",
-    width: "100%",
-    paddingLeft: 20,
-    marginLeft: 0,
-    marginTop: 18,
-    marginBottom: 5,
-    fontFamily: "cute",
-    lineHeight: 34,
+  cardAvatarFallback: {
+    backgroundColor: "#E5E7EB",
   },
-  feedCard: {
-    marginBottom: 20,
-    borderBottomWidth: 1,
-    borderColor: "#eee",
-    paddingBottom: 10,
-  },
-  feedHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 10,
-    marginBottom: 6,
-  },
-  profileImage: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    marginRight: 8,
-  },
-  authorName: {
-    fontWeight: "600",
-    fontSize: 15,
-    color: "#333",
-  },
-  feedImage: {
-    width: "100%",
-    height: 280,
-    backgroundColor: "#f3f3f3",
-  },
-  feedMeta: {
-    paddingHorizontal: 10,
-    marginTop: 8,
-  },
-  feedLikes: {
-    fontWeight: "500",
+  cardAuthor: {
     fontSize: 14,
-    marginBottom: 2,
+    fontWeight: "700",
+    color: "#1F2937",
   },
-  feedCaption: {
-    fontSize: 14,
-    color: "#222",
-  },
-  feedDate: {
+  cardCreated: {
     fontSize: 12,
-    color: "#888",
+    color: "#9CA3AF",
     marginTop: 2,
   },
-  petSection: {
-    marginBottom: 20,
-    marginTop: 10,
+  badgeRow: {
+    flexDirection: "row",
+    gap: 6,
   },
-  petProfileContainer: {
-    backgroundColor: "transparent",
-    padding: 4,
-    marginTop: 4,
-    marginHorizontal: 2,
+  badgeGray: {
+    backgroundColor: "#F6F7FB",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  likeInline: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF5F5",
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderWidth: 1,
+    borderColor: "#FFE3E3",
+    gap: 6,
+  },
+  likeInlineText: {
+    fontSize: 11,
+    color: "#FF6B6B",
+    fontWeight: "700",
+  },
+  cardTitle: {
+    fontSize: 16,
+    color: "#111827",
+    fontWeight: "700",
+    marginBottom: 10,
+  },
+  cardImage: {
+    width: "100%",
+    height: 180,
+    borderRadius: 12,
+    backgroundColor: "#F3F3F3",
   },
 
-  /* 🐕 펫 말풍선 스타일 */
+  /* 🐾 말풍선 */
   speechBubbleContainer: {
     alignItems: "flex-start",
     marginVertical: 10,
@@ -443,6 +452,38 @@ const styles = StyleSheet.create({
     borderRightColor: "transparent",
     borderBottomColor: "#E8F5E8",
   },
-});
 
-export default HomeScreen;
+  /* ⬆️ 위로가기 버튼 */
+  scrollTopButton: {
+    position: "absolute",
+    bottom: 28,
+    right: 20,
+    zIndex: 100,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  scrollTopInner: {
+    width: 54,
+    height: 54,
+    borderRadius: 27,
+    backgroundColor: "#7EC8C2", // 민트
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 6,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.6)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  badgeText: {
+    fontSize: 11,
+    color: "#6B7280",      // 회색 계열 텍스트
+    fontWeight: "600",
+  },
+  badgePinkText: {
+    color: "#FF6B6B",      // 좋아요 배지 강조색
+  },
+  
+});

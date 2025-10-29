@@ -116,7 +116,7 @@ const SignupScreen = () => {
       />
 
       <TextInput
-        placeholder="전화번호"
+        placeholder="전화번호 (-없이 입력)"
         value={formData.phoneNumber}
         onChangeText={(text) => handleChange("phoneNumber", text)}
         style={styles.input}

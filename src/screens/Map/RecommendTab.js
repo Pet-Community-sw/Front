@@ -12,6 +12,8 @@ import {
   Keyboard,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView, 
+  TouchableWithoutFeedback, 
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import Geocoder from "react-native-geocoding";
@@ -61,7 +63,6 @@ export default function RecommendTab() {
   const [locationName, setLocationName] = useState("");
 
   const mapRef = useRef(null);
-
 
   // 🔹 API Hooks
   const { mutate: addRecommendPost } = useAddRecommend();
@@ -152,7 +153,8 @@ export default function RecommendTab() {
     } else {
       // 일반 모드일 때는 기존 로직
       const latMoved = Math.abs(newRegion.latitude - region.latitude) > 0.0005;
-      const lngMoved = Math.abs(newRegion.longitude - region.longitude) > 0.0005;
+      const lngMoved =
+        Math.abs(newRegion.longitude - region.longitude) > 0.0005;
       if (latMoved || lngMoved) {
         setRegion(newRegion);
         setUsePlaceMode(false);
@@ -261,15 +263,13 @@ export default function RecommendTab() {
             tracksViewChanges={false}
           >
             <View style={styles.customMarker}>
-              <View style={[
-                styles.markerIcon, 
-                { backgroundColor: post.owner ? "#4A9B8E" : "#31326F" }
-              ]}>
-                <MaterialIcons 
-                  name="pets" 
-                  size={24} 
-                  color="#FFFFFF" 
-                />
+              <View
+                style={[
+                  styles.markerIcon,
+                  { backgroundColor: post.owner ? "#4A9B8E" : "#31326F" },
+                ]}
+              >
+                <MaterialIcons name="pets" size={24} color="#FFFFFF" />
               </View>
               <View style={styles.markerShadow} />
             </View>
@@ -300,13 +300,17 @@ export default function RecommendTab() {
           {/* 🔹 위치 선택 안내 카드 */}
           <View style={styles.locationSelectionCard}>
             <View style={styles.cardHeader}>
-              <MaterialCommunityIcons name="map-marker-radius" size={24} color="#7EC8C2" />
+              <MaterialCommunityIcons
+                name="map-marker-radius"
+                size={24}
+                color="#7EC8C2"
+              />
               <Text style={styles.cardTitle}>📍 위치 선택</Text>
             </View>
             <Text style={styles.cardDescription}>
               지도를 움직여서 산책길을 추가할 위치를 선택해주세요
             </Text>
-            
+
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.confirmButton}
@@ -315,7 +319,7 @@ export default function RecommendTab() {
                 <MaterialCommunityIcons name="check" size={20} color="#fff" />
                 <Text style={styles.confirmButtonText}>이 위치로 선택</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.cancelButton}
                 onPress={() => setSelectingLocationVisible(false)}
@@ -395,11 +399,15 @@ export default function RecommendTab() {
             <Text style={styles.legendTitle}>마커 색깔 구분</Text>
             <View style={styles.legendItems}>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: '#4A9B8E' }]} />
+                <View
+                  style={[styles.legendDot, { backgroundColor: "#4A9B8E" }]}
+                />
                 <Text style={styles.legendText}>내가 쓴 글</Text>
               </View>
               <View style={styles.legendItem}>
-                <View style={[styles.legendDot, { backgroundColor: '#31326F' }]} />
+                <View
+                  style={[styles.legendDot, { backgroundColor: "#31326F" }]}
+                />
                 <Text style={styles.legendText}>다른 사람이 쓴 글</Text>
               </View>
             </View>
@@ -413,9 +421,9 @@ export default function RecommendTab() {
           <View style={styles.bubble}>
             <Text style={styles.bubbleText}>🐕💕</Text>
             <Text style={styles.bubbleMessage}>
-              산책길 코스 선택 후 {'\n'}산책 메이트를 찾아보세요!
+              산책길 코스 선택 후 {"\n"}산책 메이트를 찾아보세요!
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.bubbleCloseButton}
               onPress={() => setShowBubble(false)}
             >
@@ -433,81 +441,90 @@ export default function RecommendTab() {
         </TouchableOpacity>
       )}
 
-
       {/* 🔹 추천글 작성 모달 */}
       <Modal visible={writeModalVisible} animationType="slide" transparent>
-        <View style={styles.writeModalWrapper}>
-          <View style={styles.writeModalContent}>
-            {/* 모달 헤더 */}
-            <View style={styles.writeModalHeader}>
-              <Text style={styles.writeModalTitle}>산책길 추천 코스 추가</Text>
-              <TouchableOpacity 
-                onPress={() => setWriteModalVisible(false)}
-                style={styles.writeModalCloseButton}
-              >
-                <Text style={styles.writeModalCloseText}>×</Text>
-              </TouchableOpacity>
-            </View>
+        <KeyboardAvoidingView behavior="padding" style={{ flex: 1 }}>
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.writeModalWrapper}>
+              <View style={styles.writeModalContent}>
+                {/* 모달 헤더 */}
+                <View style={styles.writeModalHeader}>
+                  <Text style={styles.writeModalTitle}>
+                    산책길 추천 코스 추가
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setWriteModalVisible(false)}
+                    style={styles.writeModalCloseButton}
+                  >
+                    <Text style={styles.writeModalCloseText}>×</Text>
+                  </TouchableOpacity>
+                </View>
 
-            {/* 선택된 위치 표시 */}
-            <View style={styles.selectedLocationCard}>
-              <View style={styles.locationIcon}>
-                <Text style={styles.locationEmoji}>📍</Text>
-              </View>
-              <View style={styles.locationInfo}>
-                <Text style={styles.locationLabel}>선택한 위치</Text>
-                <Text style={styles.locationName}>
-                  {locationName || "불러오는 중..."}
-                </Text>
+                {/* 선택된 위치 표시 */}
+                <View style={styles.selectedLocationCard}>
+                  <View style={styles.locationIcon}>
+                    <Text style={styles.locationEmoji}>📍</Text>
+                  </View>
+                  <View style={styles.locationInfo}>
+                    <Text style={styles.locationLabel}>선택한 위치</Text>
+                    <Text style={styles.locationName}>
+                      {locationName || "불러오는 중..."}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* 입력 필드들 */}
+                <View style={styles.inputSection}>
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>제목</Text>
+                    <TextInput
+                      placeholder="산책길 제목을 입력하세요"
+                      value={title}
+                      onChangeText={setTitle}
+                      style={styles.writeTitleInput}
+                      placeholderTextColor="#9CA3AF"
+                    />
+                  </View>
+
+                  <View style={styles.inputGroup}>
+                    <Text style={styles.inputLabel}>내용</Text>
+                    <TextInput
+                      placeholder="산책길에 대한 설명을 입력하세요"
+                      value={content}
+                      onChangeText={setContent}
+                      multiline
+                      numberOfLines={4}
+                      style={styles.writeContentInput}
+                      placeholderTextColor="#9CA3AF"
+                      textAlignVertical="top"
+                    />
+                  </View>
+                </View>
+
+                {/* 버튼들 */}
+                <View style={styles.writeButtonContainer}>
+                  <TouchableOpacity
+                    style={styles.writeCancelButton}
+                    onPress={() => setWriteModalVisible(false)}
+                  >
+                    <Text style={styles.writeCancelText}>취소</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[
+                      styles.writeSubmitButton,
+                      (!title.trim() || !content.trim()) &&
+                        styles.writeSubmitButtonDisabled,
+                    ]}
+                    onPress={handleSubmit}
+                    disabled={!title.trim() || !content.trim()}
+                  >
+                    <Text style={styles.writeSubmitText}>등록하기</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
-
-            {/* 입력 필드들 */}
-            <View style={styles.inputSection}>
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>제목</Text>
-                <TextInput
-                  placeholder="산책길 제목을 입력하세요"
-                  value={title}
-                  onChangeText={setTitle}
-                  style={styles.writeTitleInput}
-                  placeholderTextColor="#9CA3AF"
-                />
-              </View>
-
-              <View style={styles.inputGroup}>
-                <Text style={styles.inputLabel}>내용</Text>
-                <TextInput
-                  placeholder="산책길에 대한 설명을 입력하세요"
-                  value={content}
-                  onChangeText={setContent}
-                  multiline
-                  numberOfLines={4}
-                  style={styles.writeContentInput}
-                  placeholderTextColor="#9CA3AF"
-                  textAlignVertical="top"
-                />
-              </View>
-            </View>
-
-            {/* 버튼들 */}
-            <View style={styles.writeButtonContainer}>
-              <TouchableOpacity 
-                style={styles.writeCancelButton} 
-                onPress={() => setWriteModalVisible(false)}
-              >
-                <Text style={styles.writeCancelText}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity 
-                style={[styles.writeSubmitButton, (!title.trim() || !content.trim()) && styles.writeSubmitButtonDisabled]} 
-                onPress={handleSubmit}
-                disabled={!title.trim() || !content.trim()}
-              >
-                <Text style={styles.writeSubmitText}>등록하기</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </Modal>
     </View>
   );
@@ -580,7 +597,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     color: "#333",
   },
-  
+
   /* 📍 위치 선택 카드 스타일 */
   locationSelectionCard: {
     position: "absolute",
@@ -658,7 +675,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 4,
   },
-  
+
   /* 🐾 커스텀 마커 스타일 */
   customMarker: {
     alignItems: "center",
@@ -686,7 +703,7 @@ const styles = StyleSheet.create({
     marginTop: -6,
     zIndex: -1,
   },
-  
+
   overlayBottom: {
     position: "absolute",
     bottom: 40,
@@ -757,7 +774,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     alignItems: "center",
   },
-  
+
   // 🔹 말풍선 스타일
   bubbleContainer: {
     position: "absolute",
@@ -1026,5 +1043,4 @@ const styles = StyleSheet.create({
     color: "#374151",
     fontFamily: "cute",
   },
-
 });

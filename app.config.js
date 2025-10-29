@@ -46,7 +46,8 @@ export default {
     extra: {
       eas: {
         projectId: "c9ca1310-0088-4c5c-aaba-1bcb9a44a68c"
-      }
+      }, 
+      EXPO_PUBLIC_BASE_URL: process.env.EXPO_PUBLIC_BASE_URL,
     }
   }
 };
