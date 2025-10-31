@@ -64,7 +64,7 @@ export const connectStomp = async () => {
 
 export const disconnectStomp = async () => {
   try {
-    if (client && client.active) {
+    if (client && client.connected) {
       await client.deactivate();
       console.log("✅ STOMP 연결 해제 완료");
     } else {

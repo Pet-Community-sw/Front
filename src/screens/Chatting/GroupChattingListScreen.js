@@ -104,11 +104,11 @@ const GroupChattingListScreen = ({ navigation }) => {
     };
   }, []);
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     setSelectProfileModalVisible(true);
-  //   }, [])
-  // );
+  useFocusEffect(
+    useCallback(() => {
+      setSelectProfileModalVisible(true);
+    }, [])
+  );
 
   const handleSelectProfile = async () => {
     if (!selectedPetProfileId) return;
@@ -423,4 +423,85 @@ const styles = StyleSheet.create({
     color: "#999",
     textAlign: "center",
   },
+  modalWrapper: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 12,
+  },
+  modalWrapper: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center", // 중앙 정렬 추가
+    paddingHorizontal: 20,
+  },
+  
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 20,
+    width: "100%",
+    maxWidth: 340, // 너무 커지지 않도록 제한
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowOffset: { width: 0, height: 4 },
+    shadowRadius: 10,
+    elevation: 5,
+  },
+  
+  profileCard: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F9F9F9",
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E6ECEA",
+  },
+  
+  profileImage: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    marginRight: 12,
+    borderWidth: 2,
+    borderColor: "#fff",
+    backgroundColor: "#F0F4F3",
+  },
+  
+  profileName: {
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#333",
+  },
+  applyBtn: {
+    backgroundColor: "#7EC8C2",
+    paddingVertical: 12,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 12,
+  },
+  
+  applyText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  
+  
 });
